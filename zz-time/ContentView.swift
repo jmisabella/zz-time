@@ -1,5 +1,6 @@
 import SwiftUI
 import AVFoundation
+import UIKit  // Added for UIColor to extract HSB components
 
 // Color extension for hex conversion (optional, not used now but kept for reference)
 extension Color {
@@ -28,17 +29,71 @@ extension Color {
     }
 }
 
+// Extension to extract HSB components from Color
+extension Color {
+    var hsba: (hue: CGFloat, saturation: CGFloat, brightness: CGFloat, alpha: CGFloat) {
+        var h: CGFloat = 0, s: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+        UIColor(self).getHue(&h, saturation: &s, brightness: &b, alpha: &a)
+        return (h, s, b, a)
+    }
+}
+
 struct SelectedItem: Identifiable, Equatable {
     let id: Int
 }
 
-// ExpandingView for the full-screen color (audio management moved to ContentView)
+// ExpandingView for the full-screen color with breathing effect (audio management moved to ContentView)
 struct ExpandingView: View {
     let color: Color
     let dismiss: () -> Void
     
+    private let numBlobs: Int = 15  // More blobs for denser, varied patches
+    private let blobSize: CGFloat = 250  // Smaller for more defined, random areas
+    private let blurRadius: CGFloat = 80  // Reduced for crisper transitions (less washout)
+    private let amplitude: CGFloat = 200  // Kept for good screen coverage
+    private let speed: Double = 0.75  // Slightly faster for noticeable "breathing"
+    private let blobOpacity: Double = 0.6  // Higher for bolder visibility
+    private let hueVariation: CGFloat = 0.1  // Increased slightly for shade diversity
+    private let satVariation: CGFloat = 0.5  // Higher to add vibrancy to darks
+    private let brightVariation: CGFloat = 0.15  // Increased range for deeper darks
+    private let brightBias: CGFloat = -0.15  // New: Negative bias to favor darker shades
+    
     var body: some View {
-        color
+        let hsba = color.hsba
+        let baseHue = hsba.hue
+        let baseSaturation = hsba.saturation
+        let baseBrightness = hsba.brightness
+        
+        TimelineView(.animation) { context in
+            let t = context.date.timeIntervalSince1970
+            
+            ZStack {
+                color  // Base remains the same
+                
+                ForEach(0..<numBlobs) { i in
+                    let phase = Double(i) * .pi * 2 / Double(numBlobs)
+                    let x = sin(t * speed + phase) * amplitude
+                    let y = cos(t * speed + phase * 1.3) * amplitude
+                    
+                    let hueOffset = sin(t * 0.1 + phase) * hueVariation
+                    let satOffset = cos(t * 0.15 + phase * 2) * satVariation
+                    let brightOffset = sin(t * 0.2 + phase * 3) * brightVariation
+                    
+                    let variantColor = Color(
+                        hue: baseHue + hueOffset,
+                        saturation: max(0, min(1, baseSaturation + satOffset)),
+                        brightness: max(0.2, min(1, baseBrightness + brightOffset))
+                    )
+                    
+                    Circle()
+                        .fill(variantColor)
+                        .frame(width: blobSize, height: blobSize)
+                        .blur(radius: blurRadius)
+                        .offset(x: x, y: y)
+                        .opacity(blobOpacity)
+                        .blendMode(.overlay)  // Changed to .overlay for better contrast on pastels (try .screen or .multiply if needed)
+                }
+            }
             .ignoresSafeArea()
             .gesture(
                 TapGesture()
@@ -48,9 +103,9 @@ struct ExpandingView: View {
                         }
                     }
             )
+        }
     }
 }
-
 // ContentView for the 5x5 grid
 struct ContentView: View {
     // Array of audio filenames, updated to match "ambient-01", "ambient-02", etc.
@@ -244,30 +299,18 @@ struct ContentView: View {
 //    }
 //}
 //
-//struct SelectedItem: Identifiable {
+//struct SelectedItem: Identifiable, Equatable {
 //    let id: Int
 //}
 //
-//// ExpandingView for playing the looped audio with fade-in and background color
+//// ExpandingView for the full-screen color (audio management moved to ContentView)
 //struct ExpandingView: View {
 //    let color: Color
-//    let audioFile: String
 //    let dismiss: () -> Void
-//    
-//    @State private var player: AVAudioPlayer? = nil
-//    @State private var timer: Timer? = nil
 //    
 //    var body: some View {
 //        color
 //            .ignoresSafeArea()
-//            .onAppear {
-//                setupAudio()
-//            }
-//            .onDisappear {
-//                player?.stop()
-//                timer?.invalidate()
-//                timer = nil
-//            }
 //            .gesture(
 //                TapGesture()
 //                    .onEnded { _ in
@@ -276,36 +319,6 @@ struct ContentView: View {
 //                        }
 //                    }
 //            )
-//    }
-//    
-//    private func setupAudio() {
-//        guard let url = Bundle.main.url(forResource: audioFile, withExtension: "mp3") else {
-//            print("Audio file not found: \(audioFile).mp3")
-//            return
-//        }
-//        do {
-//            player = try AVAudioPlayer(contentsOf: url)
-//            player?.numberOfLoops = -1 // Infinite loop
-//            player?.volume = 0.0 // Start at zero volume
-//            player?.play()
-//            
-//            // Manual fade-in using a timer
-//            let fadeDuration: Double = 2.0 // Adjust duration as needed
-//            let fadeSteps: Int = 20 // Adjust for smoothness (higher = smoother)
-//            let stepDuration = fadeDuration / Double(fadeSteps)
-//            let stepIncrement = 1.0 / Float(fadeSteps)
-//            
-//            timer = Timer.scheduledTimer(withTimeInterval: stepDuration, repeats: true) { _ in
-//                if let currentVolume = player?.volume, currentVolume < 1.0 {
-//                    player?.volume = min(1.0, currentVolume + stepIncrement)
-//                } else {
-//                    timer?.invalidate()
-//                    timer = nil
-//                }
-//            }
-//        } catch {
-//            print("Error playing audio: \(error.localizedDescription)")
-//        }
 //    }
 //}
 //
@@ -327,6 +340,10 @@ struct ContentView: View {
 //    
 //    @Namespace private var animation: Namespace.ID
 //    @State private var selectedItem: SelectedItem? = nil
+//    
+//    @State private var currentPlayer: AVAudioPlayer? = nil
+//    @State private var currentTimer: Timer? = nil
+//    @State private var currentAudioFile: String? = nil
 //    
 //    var body: some View {
 //        ZStack {
@@ -364,13 +381,106 @@ struct ContentView: View {
 //                let row = selected.id / 5
 //                let col = selected.id % 5
 //                let color = colorFor(row: row, col: col)
-//                let file = files[selected.id]
 //                
-//                ExpandingView(color: color, audioFile: file) {
+//                ExpandingView(color: color) {
 //                    selectedItem = nil
 //                }
 //                .matchedGeometryEffect(id: selected.id, in: animation)
 //            }
+//        }
+//        .onChange(of: selectedItem) { _, newValue in
+//            if let new = newValue {
+//                let file = files[new.id]
+//                if !file.isEmpty {
+//                    if let currFile = currentAudioFile, currFile == file {
+//                        // Reverse fade-out to fade-in if needed
+//                        currentTimer?.invalidate()
+//                        if let vol = currentPlayer?.volume, vol < 1.0 {
+//                            let remaining = 1.0 - Double(vol)
+//                            let fadeDuration = 2.0 * (remaining / 1.0)
+//                            let fadeSteps = 20
+//                            let stepDuration = fadeDuration / Double(fadeSteps)
+//                            let stepIncrement = Float(remaining) / Float(fadeSteps)
+//                            currentTimer = Timer.scheduledTimer(withTimeInterval: stepDuration, repeats: true) { _ in
+//                                if let currentVolume = self.currentPlayer?.volume, currentVolume < 1.0 {
+//                                    self.currentPlayer?.volume = min(1.0, currentVolume + stepIncrement)
+//                                } else {
+//                                    self.currentTimer?.invalidate()
+//                                    self.currentTimer = nil
+//                                }
+//                            }
+//                        }
+//                    } else {
+//                        fadeOutCurrent {
+//                            setupNewAudio(file: file)
+//                        }
+//                    }
+//                }
+//            } else {
+//                fadeOutCurrent()
+//            }
+//        }
+//    }
+//    
+//    private func setupNewAudio(file: String) {
+//        guard let url = Bundle.main.url(forResource: file, withExtension: "mp3") else {
+//            print("Audio file not found: \(file).mp3")
+//            return
+//        }
+//        do {
+//            currentPlayer = try AVAudioPlayer(contentsOf: url)
+//            currentPlayer?.numberOfLoops = -1 // Infinite loop
+//            currentPlayer?.volume = 0.0 // Start at zero volume
+//            currentPlayer?.play()
+//            currentAudioFile = file
+//            
+//            // Manual fade-in using a timer
+//            currentTimer?.invalidate()
+//            let fadeDuration: Double = 2.0 // Adjust duration as needed
+//            let fadeSteps: Int = 20 // Adjust for smoothness (higher = smoother)
+//            let stepDuration = fadeDuration / Double(fadeSteps)
+//            let stepIncrement = 1.0 / Float(fadeSteps)
+//            
+//            currentTimer = Timer.scheduledTimer(withTimeInterval: stepDuration, repeats: true) { _ in
+//                if let currentVolume = self.currentPlayer?.volume, currentVolume < 1.0 {
+//                    self.currentPlayer?.volume = min(1.0, currentVolume + stepIncrement)
+//                } else {
+//                    self.currentTimer?.invalidate()
+//                    self.currentTimer = nil
+//                }
+//            }
+//        } catch {
+//            print("Error playing audio: \(error.localizedDescription)")
+//        }
+//    }
+//    
+//    private func fadeOutCurrent(completion: (() -> Void)? = nil) {
+//        if let player = currentPlayer, player.volume > 0.0 {
+//            currentTimer?.invalidate()
+//            let vol = player.volume
+//            let remaining = Double(vol)
+//            let fadeDuration = 2.0 * (remaining / 1.0)
+//            let fadeSteps = 20
+//            let stepDuration = fadeDuration / Double(fadeSteps)
+//            let stepDecrement = vol / Float(fadeSteps)
+//            
+//            currentTimer = Timer.scheduledTimer(withTimeInterval: stepDuration, repeats: true) { _ in
+//                if let currentVolume = self.currentPlayer?.volume, currentVolume > 0.0 {
+//                    self.currentPlayer?.volume = max(0.0, currentVolume - stepDecrement)
+//                } else {
+//                    self.currentTimer?.invalidate()
+//                    self.currentTimer = nil
+//                    self.currentPlayer?.stop()
+//                    self.currentPlayer = nil
+//                    self.currentAudioFile = nil
+//                    completion?()
+//                }
+//            }
+//        } else {
+//            currentPlayer?.stop()
+//            currentPlayer = nil
+//            currentAudioFile = nil
+//            completion?()
 //        }
 //    }
 //}
