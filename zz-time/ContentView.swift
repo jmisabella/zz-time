@@ -42,21 +42,53 @@ struct SelectedItem: Identifiable, Equatable {
     let id: Int
 }
 
-// ExpandingView for the full-screen color with breathing effect (audio management moved to ContentView)
-struct ExpandingView: View {
-    let color: Color
-    let dismiss: () -> Void
+struct BlobView: View {
+    let i: Int
+    let t: Double
+    let baseHue: CGFloat
+    let baseSaturation: CGFloat
+    let baseBrightness: CGFloat
     
-    private let numBlobs: Int = 15  // More blobs for denser, varied patches
-    private let blobSize: CGFloat = 250  // Smaller for more defined, random areas
-    private let blurRadius: CGFloat = 80  // Reduced for crisper transitions (less washout)
-    private let amplitude: CGFloat = 200  // Kept for good screen coverage
-    private let speed: Double = 0.75  // Slightly faster for noticeable "breathing"
-    private let blobOpacity: Double = 0.6  // Higher for bolder visibility
-    private let hueVariation: CGFloat = 0.1  // Increased slightly for shade diversity
-    private let satVariation: CGFloat = 0.5  // Higher to add vibrancy to darks
-    private let brightVariation: CGFloat = 0.15  // Increased range for deeper darks
-    private let brightBias: CGFloat = -0.15  // New: Negative bias to favor darker shades
+    private let numBlobs: Int = 15
+    private let blobSize: CGFloat = 250
+    private let blurRadius: CGFloat = 80
+    private let amplitude: CGFloat = 200
+    private let speed: Double = 0.75
+    private let blobOpacity: Double = 0.6
+    private let hueVariation: CGFloat = 0.1
+    private let satVariation: CGFloat = 0.5
+    private let brightVariation: CGFloat = 0.15
+    private let brightBias: CGFloat = -0.15  // Applied here (was unused originally)
+    
+    var body: some View {
+        let phase = Double(i) * .pi * 2 / Double(numBlobs)
+        let x = sin(t * speed + phase) * amplitude
+        let y = cos(t * speed + phase * 1.3) * amplitude
+        
+        let hueOffset = sin(t * 0.1 + phase) * hueVariation
+        let satOffset = cos(t * 0.15 + phase * 2) * satVariation
+        let brightOffset = sin(t * 0.2 + phase * 3) * brightVariation + brightBias
+        
+        let variantColor = Color(
+            hue: baseHue + hueOffset,
+            saturation: max(0, min(1, baseSaturation + satOffset)),
+            brightness: max(0.2, min(1, baseBrightness + brightOffset))
+        )
+        
+        Circle()
+            .fill(variantColor)
+            .frame(width: blobSize, height: blobSize)
+            .blur(radius: blurRadius)
+            .offset(x: x, y: y)
+            .opacity(blobOpacity)
+            .blendMode(.overlay)
+    }
+}
+
+struct BreathingBackground: View {
+    let color: Color
+    
+    private let numBlobs: Int = 15
     
     var body: some View {
         let hsba = color.hsba
@@ -68,44 +100,68 @@ struct ExpandingView: View {
             let t = context.date.timeIntervalSince1970
             
             ZStack {
-                color  // Base remains the same
+                color
                 
                 ForEach(0..<numBlobs) { i in
-                    let phase = Double(i) * .pi * 2 / Double(numBlobs)
-                    let x = sin(t * speed + phase) * amplitude
-                    let y = cos(t * speed + phase * 1.3) * amplitude
-                    
-                    let hueOffset = sin(t * 0.1 + phase) * hueVariation
-                    let satOffset = cos(t * 0.15 + phase * 2) * satVariation
-                    let brightOffset = sin(t * 0.2 + phase * 3) * brightVariation
-                    
-                    let variantColor = Color(
-                        hue: baseHue + hueOffset,
-                        saturation: max(0, min(1, baseSaturation + satOffset)),
-                        brightness: max(0.2, min(1, baseBrightness + brightOffset))
+                    BlobView(
+                        i: i,
+                        t: t,
+                        baseHue: baseHue,
+                        baseSaturation: baseSaturation,
+                        baseBrightness: baseBrightness
                     )
-                    
-                    Circle()
-                        .fill(variantColor)
-                        .frame(width: blobSize, height: blobSize)
-                        .blur(radius: blurRadius)
-                        .offset(x: x, y: y)
-                        .opacity(blobOpacity)
-                        .blendMode(.overlay)  // Changed to .overlay for better contrast on pastels (try .screen or .multiply if needed)
                 }
             }
-            .ignoresSafeArea()
-            .gesture(
-                TapGesture()
-                    .onEnded { _ in
-                        withAnimation(.easeInOut(duration: 0.3)) {
-                            dismiss()
-                        }
-                    }
-            )
         }
     }
 }
+
+// ExpandingView for the full-screen color with breathing effect (audio management moved to ContentView)
+struct ExpandingView: View {
+    let color: Color
+    let dismiss: () -> Void
+    @Binding var durationMinutes: Double
+    
+    @State private var showLabel: Bool = false
+    
+    var body: some View {
+        ZStack {
+            BreathingBackground(color: color)
+                .ignoresSafeArea()
+                .gesture(
+                    TapGesture()
+                        .onEnded { _ in
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                dismiss()
+                            }
+                        }
+                )
+            
+            VStack {
+                Slider(value: $durationMinutes, in: 0...720, step: 1, onEditingChanged: { editing in
+                    showLabel = editing
+                })
+                .accentColor(.white)
+                .padding(.horizontal, 40)
+                
+                if showLabel {
+                    let hours = Int(durationMinutes / 60)
+                    let mins = Int(durationMinutes.truncatingRemainder(dividingBy: 60))
+                    let text = durationMinutes == 0 ? "Infinite" : String(format: "%d:%02d", hours, mins)
+                    Text(text)
+                        .font(.title)
+                        .foregroundColor(.white)
+                        .padding()
+                        .background(Color.black.opacity(0.5))
+                        .cornerRadius(8)
+                }
+                
+                Spacer()
+            }
+        }
+    }
+}
+
 // ContentView for the 5x5 grid
 struct ContentView: View {
     // Array of audio filenames, updated to match "ambient-01", "ambient-02", etc.
@@ -128,6 +184,8 @@ struct ContentView: View {
     @State private var currentPlayer: AVAudioPlayer? = nil
     @State private var currentTimer: Timer? = nil
     @State private var currentAudioFile: String? = nil
+    @State private var durationMinutes: Double = 0.0 // 0 means infinite
+    @State private var stopTimer: Timer? = nil
     
     var body: some View {
         ZStack {
@@ -166,9 +224,9 @@ struct ContentView: View {
                 let col = selected.id % 5
                 let color = colorFor(row: row, col: col)
                 
-                ExpandingView(color: color) {
+                ExpandingView(color: color, dismiss: {
                     selectedItem = nil
-                }
+                }, durationMinutes: $durationMinutes)
                 .matchedGeometryEffect(id: selected.id, in: animation)
             }
         }
@@ -202,6 +260,22 @@ struct ContentView: View {
                 }
             } else {
                 fadeOutCurrent()
+                stopTimer?.invalidate()
+                stopTimer = nil
+            }
+        }
+        .onChange(of: durationMinutes) { _, newValue in
+            if let _ = selectedItem {
+                stopTimer?.invalidate()
+                stopTimer = nil
+                if newValue > 0 {
+                    let seconds = newValue * 60
+                    stopTimer = Timer.scheduledTimer(withTimeInterval: seconds, repeats: false) { _ in
+                        self.fadeOutCurrent {
+                            self.selectedItem = nil
+                        }
+                    }
+                }
             }
         }
     }
@@ -231,6 +305,16 @@ struct ContentView: View {
                 } else {
                     self.currentTimer?.invalidate()
                     self.currentTimer = nil
+                }
+            }
+            
+            // Schedule stop timer if duration is set
+            if durationMinutes > 0 {
+                let seconds = durationMinutes * 60
+                stopTimer = Timer.scheduledTimer(withTimeInterval: seconds, repeats: false) { _ in
+                    self.fadeOutCurrent {
+                        self.selectedItem = nil
+                    }
                 }
             }
         } catch {
@@ -271,6 +355,7 @@ struct ContentView: View {
 
 //import SwiftUI
 //import AVFoundation
+//import UIKit  // Added for UIColor to extract HSB components
 //
 //// Color extension for hex conversion (optional, not used now but kept for reference)
 //extension Color {
@@ -299,26 +384,134 @@ struct ContentView: View {
 //    }
 //}
 //
+//// Extension to extract HSB components from Color
+//extension Color {
+//    var hsba: (hue: CGFloat, saturation: CGFloat, brightness: CGFloat, alpha: CGFloat) {
+//        var h: CGFloat = 0, s: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+//        UIColor(self).getHue(&h, saturation: &s, brightness: &b, alpha: &a)
+//        return (h, s, b, a)
+//    }
+//}
+//
 //struct SelectedItem: Identifiable, Equatable {
 //    let id: Int
 //}
 //
-//// ExpandingView for the full-screen color (audio management moved to ContentView)
+//struct BlobView: View {
+//    let i: Int
+//    let t: Double
+//    let baseHue: CGFloat
+//    let baseSaturation: CGFloat
+//    let baseBrightness: CGFloat
+//    
+//    private let numBlobs: Int = 15
+//    private let blobSize: CGFloat = 250
+//    private let blurRadius: CGFloat = 80
+//    private let amplitude: CGFloat = 200
+//    private let speed: Double = 0.75
+//    private let blobOpacity: Double = 0.6
+//    private let hueVariation: CGFloat = 0.1
+//    private let satVariation: CGFloat = 0.5
+//    private let brightVariation: CGFloat = 0.15
+//    private let brightBias: CGFloat = -0.15  // Applied here (was unused originally)
+//    
+//    var body: some View {
+//        let phase = Double(i) * .pi * 2 / Double(numBlobs)
+//        let x = sin(t * speed + phase) * amplitude
+//        let y = cos(t * speed + phase * 1.3) * amplitude
+//        
+//        let hueOffset = sin(t * 0.1 + phase) * hueVariation
+//        let satOffset = cos(t * 0.15 + phase * 2) * satVariation
+//        let brightOffset = sin(t * 0.2 + phase * 3) * brightVariation + brightBias
+//        
+//        let variantColor = Color(
+//            hue: baseHue + hueOffset,
+//            saturation: max(0, min(1, baseSaturation + satOffset)),
+//            brightness: max(0.2, min(1, baseBrightness + brightOffset))
+//        )
+//        
+//        Circle()
+//            .fill(variantColor)
+//            .frame(width: blobSize, height: blobSize)
+//            .blur(radius: blurRadius)
+//            .offset(x: x, y: y)
+//            .opacity(blobOpacity)
+//            .blendMode(.overlay)
+//    }
+//}
+//
+//struct BreathingBackground: View {
+//    let color: Color
+//    
+//    private let numBlobs: Int = 15
+//    
+//    var body: some View {
+//        let hsba = color.hsba
+//        let baseHue = hsba.hue
+//        let baseSaturation = hsba.saturation
+//        let baseBrightness = hsba.brightness
+//        
+//        TimelineView(.animation) { context in
+//            let t = context.date.timeIntervalSince1970
+//            
+//            ZStack {
+//                color
+//                
+//                ForEach(0..<numBlobs) { i in
+//                    BlobView(
+//                        i: i,
+//                        t: t,
+//                        baseHue: baseHue,
+//                        baseSaturation: baseSaturation,
+//                        baseBrightness: baseBrightness
+//                    )
+//                }
+//            }
+//        }
+//    }
+//}
+//
+//// ExpandingView for the full-screen color with breathing effect (audio management moved to ContentView)
 //struct ExpandingView: View {
 //    let color: Color
 //    let dismiss: () -> Void
+//    @Binding var durationMinutes: Double
+//    
+//    @State private var showLabel: Bool = false
 //    
 //    var body: some View {
-//        color
-//            .ignoresSafeArea()
-//            .gesture(
-//                TapGesture()
-//                    .onEnded { _ in
-//                        withAnimation(.easeInOut(duration: 0.3)) {
-//                            dismiss()
+//        ZStack {
+//            BreathingBackground(color: color)
+//                .ignoresSafeArea()
+//                .gesture(
+//                    TapGesture()
+//                        .onEnded { _ in
+//                            withAnimation(.easeInOut(duration: 0.3)) {
+//                                dismiss()
+//                            }
 //                        }
-//                    }
-//            )
+//                )
+//            
+//            VStack {
+//                if showLabel {
+//                    let hours = Int(durationMinutes / 60)
+//                    let mins = Int(durationMinutes.truncatingRemainder(dividingBy: 60))
+//                    let text = durationMinutes == 0 ? "Infinite" : String(format: "%d:%02d", hours, mins)
+//                    Text(text)
+//                        .font(.title)
+//                        .foregroundColor(.white)
+//                        .padding()
+//                        .background(Color.black.opacity(0.5))
+//                        .cornerRadius(8)
+//                }
+//                Slider(value: $durationMinutes, in: 0...720, step: 1, onEditingChanged: { editing in
+//                    showLabel = editing
+//                })
+//                .accentColor(.white)
+//                .padding(.horizontal, 40)
+//                Spacer()
+//            }
+//        }
 //    }
 //}
 //
@@ -344,6 +537,8 @@ struct ContentView: View {
 //    @State private var currentPlayer: AVAudioPlayer? = nil
 //    @State private var currentTimer: Timer? = nil
 //    @State private var currentAudioFile: String? = nil
+//    @State private var durationMinutes: Double = 0.0 // 0 means infinite
+//    @State private var stopTimer: Timer? = nil
 //    
 //    var body: some View {
 //        ZStack {
@@ -382,9 +577,9 @@ struct ContentView: View {
 //                let col = selected.id % 5
 //                let color = colorFor(row: row, col: col)
 //                
-//                ExpandingView(color: color) {
+//                ExpandingView(color: color, dismiss: {
 //                    selectedItem = nil
-//                }
+//                }, durationMinutes: $durationMinutes)
 //                .matchedGeometryEffect(id: selected.id, in: animation)
 //            }
 //        }
@@ -418,6 +613,22 @@ struct ContentView: View {
 //                }
 //            } else {
 //                fadeOutCurrent()
+//                stopTimer?.invalidate()
+//                stopTimer = nil
+//            }
+//        }
+//        .onChange(of: durationMinutes) { _, newValue in
+//            if let _ = selectedItem {
+//                stopTimer?.invalidate()
+//                stopTimer = nil
+//                if newValue > 0 {
+//                    let seconds = newValue * 60
+//                    stopTimer = Timer.scheduledTimer(withTimeInterval: seconds, repeats: false) { _ in
+//                        self.fadeOutCurrent {
+//                            self.selectedItem = nil
+//                        }
+//                    }
+//                }
 //            }
 //        }
 //    }
@@ -447,6 +658,16 @@ struct ContentView: View {
 //                } else {
 //                    self.currentTimer?.invalidate()
 //                    self.currentTimer = nil
+//                }
+//            }
+//            
+//            // Schedule stop timer if duration is set
+//            if durationMinutes > 0 {
+//                let seconds = durationMinutes * 60
+//                stopTimer = Timer.scheduledTimer(withTimeInterval: seconds, repeats: false) { _ in
+//                    self.fadeOutCurrent {
+//                        self.selectedItem = nil
+//                    }
 //                }
 //            }
 //        } catch {
