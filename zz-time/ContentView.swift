@@ -19,12 +19,18 @@ extension Color {
         default:
             (a, r, g, b) = (1, 1, 1, 0)
         }
+        
+        let redValue = Double(r) / 255
+        let greenValue = Double(g) / 255
+        let blueValue = Double(b) / 255
+        let opacityValue = Double(a) / 255
+        
         self.init(
             .sRGB,
-            red: Double(r) / 255,
-            green: Double(g) / 255,
-            blue:  Double(b) / 255,
-            opacity: Double(a) / 255
+            red: redValue,
+            green: greenValue,
+            blue: blueValue,
+            opacity: opacityValue
         )
     }
 }
@@ -116,6 +122,103 @@ struct BreathingBackground: View {
     }
 }
 
+struct CustomSlider: UIViewRepresentable {
+    @Binding var value: Double
+    var minValue: Double = 0
+    var maxValue: Double = 480 // Changed to 8 hours (480 minutes)
+    var step: Double = 1
+    var onEditingChanged: (Bool) -> Void = { _ in }
+    
+    private let exponent: Double = 2.0 // Controls the non-linearity; higher values give more space to lower durations
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(parent: self)
+    }
+    
+    func makeUIView(context: Context) -> UISlider {
+        let slider = UISlider()
+        slider.minimumValue = 0.0
+        slider.maximumValue = 1.0 // Normalized range for non-linear mapping
+        slider.minimumTrackTintColor = .white
+        slider.maximumTrackTintColor = .white.withAlphaComponent(0.3)
+        slider.thumbTintColor = .white
+        
+        slider.addTarget(context.coordinator, action: #selector(Coordinator.valueChanged(_:)), for: .valueChanged)
+        slider.addTarget(context.coordinator, action: #selector(Coordinator.touchDown(_:)), for: [.touchDown])
+        slider.addTarget(context.coordinator, action: #selector(Coordinator.touchUp(_:)), for: [.touchUpInside, .touchUpOutside, .touchCancel])
+        
+        return slider
+    }
+    
+    func updateUIView(_ uiView: UISlider, context: Context) {
+        if value == minValue {
+            uiView.value = 0.0
+            uiView.setThumbImage(infinityThumbImage(), for: .normal)
+        } else {
+            let normalized = pow(value / maxValue, 1.0 / exponent)
+            uiView.value = Float(normalized)
+            uiView.setThumbImage(nil, for: .normal)
+        }
+    }
+    
+    private func infinityThumbImage() -> UIImage? {
+        let size = CGSize(width: 34, height: 34)
+        let renderer = UIGraphicsImageRenderer(size: size)
+        return renderer.image { ctx in
+            let context = ctx.cgContext
+            // Draw white circle
+            let circleRect = CGRect(origin: .zero, size: size).inset(by: UIEdgeInsets(top: 2, left: 2, bottom: 2, right: 2))
+            context.setFillColor(UIColor.white.cgColor)
+            context.addEllipse(in: circleRect)
+            context.fillPath()
+            
+            // Draw infinity symbol centered
+            let config = UIImage.SymbolConfiguration(pointSize: 18, weight: .regular)
+            if let symImage = UIImage(systemName: "infinity", withConfiguration: config)?.withTintColor(.black, renderingMode: .alwaysOriginal) {
+                let imgSize = symImage.size
+                let x = (size.width - imgSize.width) / 2
+                let y = (size.height - imgSize.height) / 2 - 1 // Slight adjustment for visual centering
+                symImage.draw(at: CGPoint(x: x, y: y))
+            }
+        }
+    }
+    
+    class Coordinator {
+        var parent: CustomSlider
+        var isEditing = false
+        
+        init(parent: CustomSlider) {
+            self.parent = parent
+        }
+        
+        @objc func valueChanged(_ sender: UISlider) {
+            let sliderValue = Double(sender.value)
+            let raw: Double
+            if sliderValue == 0.0 {
+                raw = 0.0
+            } else {
+                raw = parent.maxValue * pow(sliderValue, parent.exponent)
+            }
+            let stepped = round(raw / parent.step) * parent.step
+            parent.value = max(parent.minValue, min(parent.maxValue, stepped))
+        }
+        
+        @objc func touchDown(_ sender: UISlider) {
+            if !isEditing {
+                isEditing = true
+                parent.onEditingChanged(true)
+            }
+        }
+        
+        @objc func touchUp(_ sender: UISlider) {
+            if isEditing {
+                isEditing = false
+                parent.onEditingChanged(false)
+            }
+        }
+    }
+}
+
 // ExpandingView for the full-screen color with breathing effect (audio management moved to ContentView)
 struct ExpandingView: View {
     let color: Color
@@ -138,16 +241,35 @@ struct ExpandingView: View {
                 )
             
             VStack {
-                Slider(value: $durationMinutes, in: 0...720, step: 1, onEditingChanged: { editing in
-                    showLabel = editing
-                })
-                .accentColor(.white)
+                CustomSlider(
+                    value: $durationMinutes,
+                    minValue: 0,
+                    maxValue: 480, // 8 hours
+                    step: 1,
+                    onEditingChanged: { editing in
+                        showLabel = editing
+                    }
+                )
                 .padding(.horizontal, 40)
                 
                 if showLabel {
-                    let hours = Int(durationMinutes / 60)
-                    let mins = Int(durationMinutes.truncatingRemainder(dividingBy: 60))
-                    let text = durationMinutes == 0 ? "Infinite" : String(format: "%d:%02d", hours, mins)
+                    let text: String = {
+                        if durationMinutes == 0 {
+                            return "Infinite"
+                        } else if durationMinutes < 60 {
+                            let minutes = Int(durationMinutes)
+                            return "\(minutes) Minute\(minutes == 1 ? "" : "s")"
+                        } else {
+                            let hours = Int(durationMinutes / 60)
+                            let minutes = Int(durationMinutes.truncatingRemainder(dividingBy: 60))
+                            if minutes == 0 {
+                                return "\(hours) Hour\(hours == 1 ? "" : "s")"
+                            } else {
+                                return "\(hours) Hour\(hours == 1 ? "" : "s"), \(minutes) Minute\(minutes == 1 ? "" : "s")"
+                            }
+                        }
+                    }()
+                    
                     Text(text)
                         .font(.title)
                         .foregroundColor(.white)
@@ -161,6 +283,56 @@ struct ExpandingView: View {
         }
     }
 }
+
+//struct ExpandingView: View {
+//    let color: Color
+//    let dismiss: () -> Void
+//    @Binding var durationMinutes: Double
+//    
+//    @State private var showLabel: Bool = false
+//    
+//    var body: some View {
+//        ZStack {
+//            BreathingBackground(color: color)
+//                .ignoresSafeArea()
+//                .gesture(
+//                    TapGesture()
+//                        .onEnded { _ in
+//                            withAnimation(.easeInOut(duration: 0.3)) {
+//                                dismiss()
+//                            }
+//                        }
+//                )
+//            
+//            VStack {
+//                CustomSlider(
+//                    value: $durationMinutes,
+//                    minValue: 0,
+//                    maxValue: 480, // Changed to 8 hours
+//                    step: 1,
+//                    onEditingChanged: { editing in
+//                        showLabel = editing
+//                    }
+//                )
+//                .padding(.horizontal, 40)
+//                
+//                if showLabel {
+//                    let hours = Int(durationMinutes / 60)
+//                    let mins = Int(durationMinutes.truncatingRemainder(dividingBy: 60))
+//                    let text = durationMinutes == 0 ? "Infinite" : String(format: "%d:%02d", hours, mins)
+//                    Text(text)
+//                        .font(.title)
+//                        .foregroundColor(.white)
+//                        .padding()
+//                        .background(Color.black.opacity(0.5))
+//                        .cornerRadius(8)
+//                }
+//                
+//                Spacer()
+//            }
+//        }
+//    }
+//}
 
 // ContentView for the 5x5 grid
 struct ContentView: View {
@@ -374,12 +546,18 @@ struct ContentView: View {
 //        default:
 //            (a, r, g, b) = (1, 1, 1, 0)
 //        }
+//        
+//        let redValue = Double(r) / 255
+//        let greenValue = Double(g) / 255
+//        let blueValue = Double(b) / 255
+//        let opacityValue = Double(a) / 255
+//        
 //        self.init(
 //            .sRGB,
-//            red: Double(r) / 255,
-//            green: Double(g) / 255,
-//            blue:  Double(b) / 255,
-//            opacity: Double(a) / 255
+//            red: redValue,
+//            green: greenValue,
+//            blue: blueValue,
+//            opacity: opacityValue
 //        )
 //    }
 //}
@@ -471,6 +649,95 @@ struct ContentView: View {
 //    }
 //}
 //
+//struct CustomSlider: UIViewRepresentable {
+//    @Binding var value: Double
+//    var minValue: Double = 0
+//    var maxValue: Double = 720
+//    var step: Double = 1
+//    var onEditingChanged: (Bool) -> Void = { _ in }
+//    
+//    func makeCoordinator() -> Coordinator {
+//        Coordinator(parent: self)
+//    }
+//    
+//    func makeUIView(context: Context) -> UISlider {
+//        let slider = UISlider()
+//        slider.minimumValue = Float(minValue)
+//        slider.maximumValue = Float(maxValue)
+//        slider.value = Float(value)
+//        slider.minimumTrackTintColor = .white
+//        slider.maximumTrackTintColor = .white.withAlphaComponent(0.3)
+//        slider.thumbTintColor = .white
+//        
+//        slider.addTarget(context.coordinator, action: #selector(Coordinator.valueChanged(_:)), for: .valueChanged)
+//        slider.addTarget(context.coordinator, action: #selector(Coordinator.touchDown(_:)), for: [.touchDown])
+//        slider.addTarget(context.coordinator, action: #selector(Coordinator.touchUp(_:)), for: [.touchUpInside, .touchUpOutside, .touchCancel])
+//        
+//        return slider
+//    }
+//    
+//    func updateUIView(_ uiView: UISlider, context: Context) {
+//        uiView.value = Float(value)
+//        
+//        if value == minValue {
+//            uiView.setThumbImage(infinityThumbImage(), for: .normal)
+//        } else {
+//            uiView.setThumbImage(nil, for: .normal)
+//        }
+//    }
+//    
+//    private func infinityThumbImage() -> UIImage? {
+//        let size = CGSize(width: 34, height: 34)
+//        let renderer = UIGraphicsImageRenderer(size: size)
+//        return renderer.image { ctx in
+//            let context = ctx.cgContext
+//            // Draw white circle
+//            let circleRect = CGRect(origin: .zero, size: size).inset(by: UIEdgeInsets(top: 2, left: 2, bottom: 2, right: 2))
+//            context.setFillColor(UIColor.white.cgColor)
+//            context.addEllipse(in: circleRect)
+//            context.fillPath()
+//            
+//            // Draw infinity symbol centered
+//            let config = UIImage.SymbolConfiguration(pointSize: 18, weight: .regular)
+//            if let symImage = UIImage(systemName: "infinity", withConfiguration: config)?.withTintColor(.black, renderingMode: .alwaysOriginal) {
+//                let imgSize = symImage.size
+//                let x = (size.width - imgSize.width) / 2
+//                let y = (size.height - imgSize.height) / 2 - 1 // Slight adjustment for visual centering
+//                symImage.draw(at: CGPoint(x: x, y: y))
+//            }
+//        }
+//    }
+//    
+//    class Coordinator {
+//        var parent: CustomSlider
+//        var isEditing = false
+//        
+//        init(parent: CustomSlider) {
+//            self.parent = parent
+//        }
+//        
+//        @objc func valueChanged(_ sender: UISlider) {
+//            let raw = Double(sender.value)
+//            let stepped = round(raw / parent.step) * parent.step
+//            parent.value = max(parent.minValue, min(parent.maxValue, stepped))
+//        }
+//        
+//        @objc func touchDown(_ sender: UISlider) {
+//            if !isEditing {
+//                isEditing = true
+//                parent.onEditingChanged(true)
+//            }
+//        }
+//        
+//        @objc func touchUp(_ sender: UISlider) {
+//            if isEditing {
+//                isEditing = false
+//                parent.onEditingChanged(false)
+//            }
+//        }
+//    }
+//}
+//
 //// ExpandingView for the full-screen color with breathing effect (audio management moved to ContentView)
 //struct ExpandingView: View {
 //    let color: Color
@@ -493,6 +760,17 @@ struct ContentView: View {
 //                )
 //            
 //            VStack {
+//                CustomSlider(
+//                    value: $durationMinutes,
+//                    minValue: 0,
+//                    maxValue: 720,
+//                    step: 1,
+//                    onEditingChanged: { editing in
+//                        showLabel = editing
+//                    }
+//                )
+//                .padding(.horizontal, 40)
+//                
 //                if showLabel {
 //                    let hours = Int(durationMinutes / 60)
 //                    let mins = Int(durationMinutes.truncatingRemainder(dividingBy: 60))
@@ -504,16 +782,13 @@ struct ContentView: View {
 //                        .background(Color.black.opacity(0.5))
 //                        .cornerRadius(8)
 //                }
-//                Slider(value: $durationMinutes, in: 0...720, step: 1, onEditingChanged: { editing in
-//                    showLabel = editing
-//                })
-//                .accentColor(.white)
-//                .padding(.horizontal, 40)
+//                
 //                Spacer()
 //            }
 //        }
 //    }
 //}
+//
 //
 //// ContentView for the 5x5 grid
 //struct ContentView: View {
