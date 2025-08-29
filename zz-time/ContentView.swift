@@ -224,17 +224,17 @@ struct ExpandingView: View {
                 if showLabel {
                     let text: String = {
                         if durationMinutes == 0 {
-                            return "Infinite"
+                            return "infinite"
                         } else if durationMinutes < 60 {
                             let minutes = Int(durationMinutes)
-                            return "\(minutes) Minute\(minutes == 1 ? "" : "s")"
+                            return "\(minutes) minute\(minutes == 1 ? "" : "s")"
                         } else {
                             let hours = Int(durationMinutes / 60)
                             let minutes = Int(durationMinutes.truncatingRemainder(dividingBy: 60))
                             if minutes == 0 {
-                                return "\(hours) Hour\(hours == 1 ? "" : "s")"
+                                return "\(hours) hour\(hours == 1 ? "" : "s")"
                             } else {
-                                return "\(hours) Hour\(hours == 1 ? "" : "s"), \(minutes) Minute\(minutes == 1 ? "" : "s")"
+                                return "\(hours) hour\(hours == 1 ? "" : "s"), \(minutes) minute\(minutes == 1 ? "" : "s")"
                             }
                         }
                     }()
