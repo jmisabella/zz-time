@@ -513,6 +513,10 @@ struct ContentView: View {
             return
         }
         do {
+            // Set up audio session for background playback
+            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
+            try AVAudioSession.sharedInstance().setActive(true)
+            
             currentPlayer = try AVAudioPlayer(contentsOf: url)
             currentPlayer?.numberOfLoops = -1
             currentPlayer?.volume = 0.0
@@ -592,6 +596,10 @@ struct ContentView: View {
         }
         
         do {
+            // Set up audio session for background playback
+                    try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
+                    try AVAudioSession.sharedInstance().setActive(true)
+            
             let player = try AVAudioPlayer(contentsOf: url)
             player.numberOfLoops = -1
             player.volume = 0.0
