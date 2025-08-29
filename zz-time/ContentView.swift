@@ -106,8 +106,8 @@ struct CustomSlider: UIViewRepresentable {
         let slider = UISlider()
         slider.minimumValue = 0.0
         slider.maximumValue = 1.0
-        slider.minimumTrackTintColor = UIColor(white: 0.95, alpha: 1.0) // Very light grey
-        slider.maximumTrackTintColor = UIColor(white: 0.95, alpha: 0.3) // Very light grey with opacity
+        slider.minimumTrackTintColor = UIColor(white: 0.95, alpha: 1.0)
+        slider.maximumTrackTintColor = UIColor(white: 0.95, alpha: 0.3)
         slider.setThumbImage(customThumbImage(), for: .normal)
         
         slider.addTarget(context.coordinator, action: #selector(Coordinator.valueChanged(_:)), for: .valueChanged)
@@ -129,7 +129,7 @@ struct CustomSlider: UIViewRepresentable {
         return renderer.image { ctx in
             let context = ctx.cgContext
             let circleRect = CGRect(origin: .zero, size: size).inset(by: UIEdgeInsets(top: 2, left: 2, bottom: 2, right: 2))
-            context.setFillColor(UIColor(white: 0.7, alpha: 1.0).cgColor) // Softer gray
+            context.setFillColor(UIColor(white: 0.7, alpha: 1.0).cgColor)
             context.addEllipse(in: circleRect)
             context.fillPath()
         }
@@ -179,12 +179,18 @@ struct ExpandingView: View {
     let color: Color
     let dismiss: () -> Void
     @Binding var durationMinutes: Double
-    @Binding var isAlarmActive: Bool // New binding to track alarm state
+    @Binding var isAlarmActive: Bool
+    let changeRoom: (Int) -> Void
+    let currentIndex: Int
+    let maxIndex: Int
     
     @State private var showLabel: Bool = false
     @State private var dimOverlayOpacity: Double = 0.0
     @State private var flashOverlayOpacity: Double = 0.0
-    @State private var dimMode: DimMode = .duration(360) // Default to 6 minutes
+    @State private var dimMode: DimMode = .duration(360)
+    
+    // New state to trigger flash on room change
+    @State private var roomChangeTrigger: Bool = false
     
     var body: some View {
         ZStack {
@@ -248,12 +254,12 @@ struct ExpandingView: View {
                         print("Sun button tapped, triggering flash and setting dim duration to 360 seconds")
                         dimMode = .duration(360)
                         dimOverlayOpacity = 0
-                        flashOverlayOpacity = 0.8 // Start with near-white flash
+                        flashOverlayOpacity = 0.8
                         withAnimation(.linear(duration: 0.5)) {
-                            flashOverlayOpacity = 0 // Rapidly fade out flash
+                            flashOverlayOpacity = 0
                         }
                         withAnimation(.linear(duration: 360)) {
-                            dimOverlayOpacity = 1 // Gradual fade to black
+                            dimOverlayOpacity = 1
                         }
                     } label: {
                         Image(systemName: "sun.max.fill")
@@ -268,7 +274,7 @@ struct ExpandingView: View {
                         print("Moon button tapped, setting dim duration to 4 seconds")
                         dimMode = .duration(4)
                         dimOverlayOpacity = 0
-                        flashOverlayOpacity = 0 // Ensure flash is off
+                        flashOverlayOpacity = 0
                         withAnimation(.linear(duration: 4)) {
                             dimOverlayOpacity = 1
                         }
@@ -285,18 +291,39 @@ struct ExpandingView: View {
             }
         }
         .gesture(
-            TapGesture()
-                .onEnded { _ in
-                    print("Background tapped")
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        dismiss()
+            SimultaneousGesture(
+                TapGesture()
+                    .onEnded { _ in
+                        print("Background tapped")
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            dismiss()
+                        }
+                    },
+                DragGesture(minimumDistance: 20, coordinateSpace: .global)
+                    .onEnded { value in
+                        let translationHeight = value.translation.height
+                        let translationWidth = value.translation.width
+                        if translationHeight > 100 { // Downward swipe
+                            print("Downward swipe detected")
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                dismiss()
+                            }
+                        } else if translationWidth < -50 { // Left swipe (next room)
+                            print("Left swipe detected, moving to next room")
+                            changeRoom(1)
+                            roomChangeTrigger.toggle() // Trigger flash
+                        } else if translationWidth > 50 { // Right swipe (previous room)
+                            print("Right swipe detected, moving to previous room")
+                            changeRoom(-1)
+                            roomChangeTrigger.toggle() // Trigger flash
+                        }
                     }
-                }
+            )
         )
         .onAppear {
             if case .duration(let seconds) = dimMode {
                 print("ExpandingView appeared with dim duration: \(seconds) seconds")
-                flashOverlayOpacity = 0 // Ensure flash is off on appear
+                flashOverlayOpacity = 0
                 withAnimation(.linear(duration: seconds)) {
                     dimOverlayOpacity = 1
                 }
@@ -304,14 +331,12 @@ struct ExpandingView: View {
         }
         .onChange(of: isAlarmActive) { _, newValue in
             if newValue {
-                // Start pulsing animation for alarm
                 withAnimation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true)) {
-                    dimOverlayOpacity = 0.8 // Pulse to soft light grayish-blue
+                    dimOverlayOpacity = 0.8
                 }
             } else {
-                // Stop pulsing and revert to dimMode behavior
                 withAnimation(.none) {
-                    dimOverlayOpacity = 0 // Reset to avoid abrupt jump
+                    dimOverlayOpacity = 0
                 }
                 if case .duration(let seconds) = dimMode {
                     withAnimation(.linear(duration: seconds)) {
@@ -320,11 +345,24 @@ struct ExpandingView: View {
                 }
             }
         }
+        .onChange(of: roomChangeTrigger) { _, _ in
+            // Trigger flash effect on room change
+            flashOverlayOpacity = 0.8
+            dimOverlayOpacity = 0
+            withAnimation(.linear(duration: 0.5)) {
+                flashOverlayOpacity = 0
+            }
+            if case .duration(let seconds) = dimMode {
+                withAnimation(.linear(duration: seconds)) {
+                    dimOverlayOpacity = 1
+                }
+            }
+        }
     }
 }
 
 struct ContentView: View {
-    let files: [String] = (1...18).map { String(format: "ambient-%02d", $0) } + Array(repeating: "", count: 7)
+    let files: [String] = (1...21).map { String(format: "ambient-%02d", $0) } + Array(repeating: "", count: 7)
     
     private func colorFor(row: Int, col: Int) -> Color {
         let diag = CGFloat(row + col) / 8.0
@@ -341,12 +379,23 @@ struct ContentView: View {
     @State private var currentPlayer: AVAudioPlayer? = nil
     @State private var currentTimer: Timer? = nil
     @State private var currentAudioFile: String? = nil
-    @State private var durationMinutes: Double = UserDefaults.standard.double(forKey: "durationMinutes") // Initialize from UserDefaults
+    @State private var durationMinutes: Double = UserDefaults.standard.double(forKey: "durationMinutes")
     @State private var stopTimer: Timer? = nil
     @State private var alarmPlayer: AVAudioPlayer? = nil
     @State private var alarmTimer: Timer? = nil
     @State private var hapticGenerator: UINotificationFeedbackGenerator? = nil
-    @State private var isAlarmActive: Bool = false // New state to track alarm
+    @State private var isAlarmActive: Bool = false
+    
+    private func findNextValidIndex(from currentIndex: Int, direction: Int) -> Int? {
+        var newIndex = currentIndex + direction
+        while newIndex >= 0 && newIndex < files.count {
+            if !files[newIndex].isEmpty {
+                return newIndex
+            }
+            newIndex += direction
+        }
+        return nil
+    }
     
     var body: some View {
         ZStack {
@@ -389,10 +438,19 @@ struct ContentView: View {
                     color: color,
                     dismiss: {
                         selectedItem = nil
-                        isAlarmActive = false // Reset alarm state on dismiss
+                        isAlarmActive = false
                     },
                     durationMinutes: $durationMinutes,
-                    isAlarmActive: $isAlarmActive
+                    isAlarmActive: $isAlarmActive,
+                    changeRoom: { direction in
+                        if let newIndex = findNextValidIndex(from: selected.id, direction: direction) {
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                selectedItem = SelectedItem(id: newIndex)
+                            }
+                        }
+                    },
+                    currentIndex: selected.id,
+                    maxIndex: files.count
                 )
                 .matchedGeometryEffect(id: selected.id, in: animation)
             }
@@ -429,11 +487,11 @@ struct ContentView: View {
                 fadeOutAlarm()
                 stopTimer?.invalidate()
                 stopTimer = nil
-                isAlarmActive = false // Reset alarm state
+                isAlarmActive = false
             }
         }
         .onChange(of: durationMinutes) { _, newValue in
-            UserDefaults.standard.set(newValue, forKey: "durationMinutes") // Save to UserDefaults
+            UserDefaults.standard.set(newValue, forKey: "durationMinutes")
             if let _ = selectedItem {
                 stopTimer?.invalidate()
                 stopTimer = nil
@@ -455,6 +513,10 @@ struct ContentView: View {
             return
         }
         do {
+            // Set up audio session for background playback
+            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
+            try AVAudioSession.sharedInstance().setActive(true)
+            
             currentPlayer = try AVAudioPlayer(contentsOf: url)
             currentPlayer?.numberOfLoops = -1
             currentPlayer?.volume = 0.0
@@ -521,12 +583,12 @@ struct ContentView: View {
     
     private func startAlarm() {
         if alarmPlayer != nil {
-            return // Already active
+            return
         }
         
         stopTimer?.invalidate()
         stopTimer = nil
-        isAlarmActive = true // Set alarm state
+        isAlarmActive = true
         
         guard let url = Bundle.main.url(forResource: "alarm-01", withExtension: "mp3") else {
             print("Alarm audio file not found: alarm-01.mp3")
@@ -534,13 +596,16 @@ struct ContentView: View {
         }
         
         do {
+            // Set up audio session for background playback
+                    try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
+                    try AVAudioSession.sharedInstance().setActive(true)
+            
             let player = try AVAudioPlayer(contentsOf: url)
             player.numberOfLoops = -1
             player.volume = 0.0
             player.play()
             self.alarmPlayer = player
             
-            // Fade in quickly
             let fadeDuration: Double = 0.5
             let fadeSteps: Int = 10
             let stepDuration = fadeDuration / Double(fadeSteps)
@@ -554,12 +619,10 @@ struct ContentView: View {
                 }
             }
             
-            // Haptic
             let haptic = UINotificationFeedbackGenerator()
             haptic.notificationOccurred(.warning)
             self.hapticGenerator = haptic
             
-            // Repeat haptic every audio duration
             let interval = player.duration
             self.alarmTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { _ in
                 self.hapticGenerator?.notificationOccurred(.warning)
@@ -574,7 +637,7 @@ struct ContentView: View {
             alarmTimer?.invalidate()
             alarmTimer = nil
             hapticGenerator = nil
-            isAlarmActive = false // Reset alarm state
+            isAlarmActive = false
             
             let vol = player.volume
             let remaining = Double(vol)
@@ -599,7 +662,7 @@ struct ContentView: View {
             alarmTimer?.invalidate()
             alarmTimer = nil
             hapticGenerator = nil
-            isAlarmActive = false // Reset alarm state
+            isAlarmActive = false
             completion?()
         }
     }
