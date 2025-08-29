@@ -285,13 +285,25 @@ struct ExpandingView: View {
             }
         }
         .gesture(
-            TapGesture()
-                .onEnded { _ in
-                    print("Background tapped")
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        dismiss()
+            SimultaneousGesture(
+                TapGesture()
+                    .onEnded { _ in
+                        print("Background tapped")
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            dismiss()
+                        }
+                    },
+                DragGesture(minimumDistance: 20, coordinateSpace: .global)
+                    .onEnded { value in
+                        let translationHeight = value.translation.height
+                        if translationHeight > 100 { // Detect downward swipe
+                            print("Downward swipe detected")
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                dismiss()
+                            }
+                        }
                     }
-                }
+            )
         )
         .onAppear {
             if case .duration(let seconds) = dimMode {
@@ -324,7 +336,7 @@ struct ExpandingView: View {
 }
 
 struct ContentView: View {
-    let files: [String] = (1...18).map { String(format: "ambient-%02d", $0) } + Array(repeating: "", count: 7)
+    let files: [String] = (1...21).map { String(format: "ambient-%02d", $0) } + Array(repeating: "", count: 7)
     
     private func colorFor(row: Int, col: Int) -> Color {
         let diag = CGFloat(row + col) / 8.0
