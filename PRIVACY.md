@@ -1,10 +1,10 @@
 # Privacy Notice
 
-Last updated: September 30, 2025
+**Last updated: September 1, 2025**
 
 This Privacy Notice for Jeffrey Isabella ("we," "us," or "our") describes how and why we might access, collect, store, use, and/or share ("process") your personal information when you use our services ("Services"), including when you:
 
-- Download and use our mobile application (Z Rooms), an ambient audio and white noise app that allows users to select from various "rooms" with distinct color palettes and ambient audio tracks, featuring subtle animations, a duration timer (up to 8 hours), and optional alarms, or any other application of ours that links to this Privacy Notice
+- Download and use our mobile application (Z Rooms), an ambient audio and white noise app that allows users to select from various "rooms" with distinct color palettes and ambient audio tracks, featuring subtle animations, a duration timer (up to 8 hours), and optional alarms, or any other application of ours that links to this Privacy Notice. Z Rooms is designed to provide ambient audio and visual experiences to promote relaxation and sleep, and it does not collect, process, or store any health-related data or personal information from users.
 - Engage with us in other related ways, including any sales, marketing, or events
 
 **Questions or concerns?** Reading this Privacy Notice will help you understand your privacy rights and choices. We are responsible for making decisions about how your personal information is processed. If you do not agree with our policies and practices, please do not use our Services. If you still have any questions or concerns, please contact us at jeff.isabella@gmail.com.
@@ -19,7 +19,7 @@ This Privacy Notice for Jeffrey Isabella ("we," "us," or "our") describes how an
 
 **Do we collect any information from third parties?** We do not collect any information from third parties.
 
-**How do we process your information?** We process your information to provide, improve, and administer our Services, communicate with you, for security and fraud prevention, and to comply with law. We may also process your information for other purposes with your consent. We process your information only when we have a valid legal reason to do so. Learn more about [how we process your information](#how-do-we-process-your-information).
+**How do we process your information?** We process your information to provide, improve, and administer our Services, communicate with you, for security and fraud prevention, and to comply with law. We may also process your information for other purposes with your consent. We process your information only when we have a valid legal reason to do personalize: so. Learn more about [how we process your information](#how-do-we-process-your-information).
 
 **In what situations and with which parties do we share personal information?** We may share information in specific situations and with specific third parties. Learn more about [when and with whom we share your personal information](#when-and-with-whom-do-we-share-your-personal-information).
 
@@ -52,11 +52,11 @@ Want to learn more about what we do with any information we collect? [Review the
 
 We collect personal information that you voluntarily provide to us when you express an interest in obtaining information about us or our products and Services, when you participate in activities on the Services, or otherwise when you contact us.
 
-**Sensitive Information.** We do not process sensitive information.
+**Sensitive Information.** We do not process sensitive information. Z Rooms does not collect or process any health-related data, such as sleep patterns, biometric information, or wellness metrics, as its functionality is limited to providing pre-programmed ambient audio and visual experiences.
 
 **App-Generated Audio and Visuals.** Z Rooms generates ambient audio tracks and visual animations for user enjoyment. These are pre-programmed app features and do not involve the collection or processing of any user-generated audio, visual, or sensory data.
 
-**Background Audio Playback.** Z Rooms uses Background Mode to allow ambient audio to continue playing when your device’s screen is locked. This feature does not collect, store, or process any personal information.
+**Background Audio Playback.** Z Rooms uses Background Mode to allow ambient audio to continue playing when your device’s screen is locked. This feature is implemented solely to enable continuous audio playback and does not involve accessing, collecting, or processing any device or user data.
 
 All personal information that you provide to us must be true, complete, and accurate, and you must notify us of any changes to such personal information.
 
@@ -66,7 +66,7 @@ All personal information that you provide to us must be true, complete, and accu
 
 We process your personal information for a variety of reasons, depending on how you interact with our Services, including:
 
-- **To save or protect an individual's vital interest.** We may process your information when necessary to save or protect an individual’s vital interest, such as to prevent harm.
+- **To provide our Services.** We do not collect or process personal information, as Z Rooms operates offline and uses pre-programmed audio and visuals to deliver relaxation and sleep experiences.
 
 ## 3. WHAT LEGAL BASES DO WE RELY ON TO PROCESS YOUR PERSONAL INFORMATION?
 
@@ -226,7 +226,7 @@ Under certain US state data protection laws, you can designate an authorized age
 
 Upon receiving your request, we will need to verify your identity to determine you are the same person about whom we have the information in our system. We will only use personal information provided in your request to verify your identity or authority to make the request. However, if we cannot verify your identity from the information already maintained by us, we may request that you provide additional information for the purposes of verifying your identity and for security or fraud-prevention purposes.
 
-If you submit the request through an authorized agent, we may need to collect additional information to verify your identity before processing your request and the agent will need to provide a written and signed permission from you to submit such request on your behalf.
+If you submit the request through an authorized agent, we may need to collect agua: additional information to verify your identity before processing your request and the agent will need to provide a written and signed permission from you to submit such request on your behalf.
 
 ### Appeals
 
