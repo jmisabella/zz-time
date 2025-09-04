@@ -1,41 +1,38 @@
-
-
-// AlarmSelectionView.swift (new or updated file - assuming this is the structure based on context)
 import SwiftUI
 import AVFoundation
 
 struct AlarmSelectionView: View {
     @Binding var selectedAlarmIndex: Int?
     let files: [String]
+    let fadeMainTo: (Float) -> Void
     
     @State private var previewPlayer: AVAudioPlayer? = nil
     @State private var previewTimer: Timer? = nil
     @Environment(\.dismiss) private var dismiss
     
-    private func alarmColorFor(row: Int, col: Int) -> Color {
-        if row == 0 {
-            let hue: CGFloat = 0.67 // Blue hue, same as main
-            let saturation: CGFloat = 0.6
-            let diag = CGFloat(col) / 4.0
-            let startBright: CGFloat = 0.6
-            let endBright: CGFloat = 0.8
-            let brightness = startBright + (endBright - startBright) * diag
-            return Color(hue: hue, saturation: saturation, brightness: brightness)
-        } else {
-            let origRow = row - 1
-            let diag = CGFloat(origRow + col) / 8.0
-            let startHue: CGFloat = 0.083 // Orange
-            let endHue: CGFloat = 0.916 // Pink
-            let hue = startHue + (endHue - startHue) * diag
-            let saturation: CGFloat = 0.8
-            let brightness: CGFloat = 0.9
-            return Color(hue: hue, saturation: saturation, brightness: brightness)
+    private func alarmColorFor(row: Int, col: Int, isSelected: Bool) -> Color {
+        let origRow = row
+        let diag = CGFloat(origRow + col) / 8.0
+        let startHue: CGFloat = 0.166 // Yellow
+        var endHue: CGFloat = 0.916 // Pink
+        var delta = endHue - startHue
+        if abs(delta) > 0.5 {
+            delta -= (delta > 0 ? 1.0 : -1.0)
         }
+        var hue = startHue + delta * diag
+        if hue < 0 {
+            hue += 1
+        } else if hue > 1 {
+            hue -= 1
+        }
+        let saturation: CGFloat = 0.8
+        let brightness: CGFloat = 0.9
+        return Color(hue: hue, saturation: saturation, brightness: isSelected ? brightness : brightness * 0.5)
     }
     
     var body: some View {
         ZStack {
-            Color(white: 0.3) // Slightly dark grey background
+            Color(white: 0.1) // Near-black background
                 .ignoresSafeArea()
             
             GeometryReader { geo in
@@ -44,23 +41,22 @@ struct AlarmSelectionView: View {
                 let availW = geo.size.width - 2 * padding
                 let availH = geo.size.height - 2 * padding
                 let numCols: CGFloat = 5
-                let numRows: CGFloat = 6
+                let numRows: CGFloat = 5
                 let itemW = (availW - spacing * (numCols - 1)) / numCols
-                let maxItemH = (availH - spacing * (numRows - 1)) / numRows
-                let itemH = min(itemW, maxItemH)
+                let itemH = (availH - spacing * (numRows - 1)) / numRows
                 
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: spacing), count: 5), spacing: spacing) {
-                    ForEach(0..<30) { index in
-                        let row = index / 5
-                        let col = index % 5
-                        let color = alarmColorFor(row: row, col: col)
+                    ForEach(5..<30) { index in
+                        let row = (index - 5) / 5
+                        let col = (index - 5) % 5
                         let isSelected = selectedAlarmIndex == index
+                        let color = alarmColorFor(row: row, col: col, isSelected: isSelected)
                         
                         Rectangle()
                             .fill(color)
                             .aspectRatio(1, contentMode: .fit)
                             .overlay(
-                                isSelected ? 
+                                isSelected ?
                                     RoundedRectangle(cornerRadius: 8)
                                         .stroke(Color.white, lineWidth: 4)
                                     : nil
@@ -76,26 +72,15 @@ struct AlarmSelectionView: View {
                             }
                     }
                 }
-                .padding(20)
+                .padding(padding)
             }
-            
-            VStack {
-                Spacer()
-                Button("Done") {
-                    fadeOutPreview {
-                        dismiss()
-                    }
-                }
-                .font(.title2)
-                .foregroundColor(Color(white: 0.9)) // Off-white text
-                .padding()
-                .background(Color.black.opacity(0.5))
-                .cornerRadius(8)
-                .padding(.bottom, 20)
-            }
+        }
+        .onAppear {
+            fadeMainTo(0.2)
         }
         .onDisappear {
             fadeOutPreview()
+            fadeMainTo(1.0)
         }
     }
     
@@ -166,30 +151,26 @@ struct AlarmItemView: View {
     let files: [String]
     let selectedItem: SelectedItem?
     let animation: Namespace.ID
-    let onTap: (Int) -> Void
+    let onSelect: (Int) -> Void
     
     var body: some View {
         let row = index / 5
         let col = index % 5
         let color = colorFor(row, col)
-        let file = files[index]
+        let file = index < files.count ? files[index] : ""
         
-        Rectangle()
-            .fill(color)
-            .aspectRatio(aspect, contentMode: .fit)
-            .overlay(
-                selectedItem?.id == index ?
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color.white, lineWidth: 4)
-                    : nil
-            )
-            .cornerRadius(8)
-            .opacity(file.isEmpty ? 0.5 : 1.0)
-            .matchedGeometryEffect(id: index, in: animation)
-            .onTapGesture {
-                if !file.isEmpty {
-                    onTap(index)
-                }
+        Button(action: {
+            if !file.isEmpty {
+                onSelect(index)
             }
+        }) {
+            Rectangle()
+                .fill(color)
+                .aspectRatio(aspect, contentMode: .fit)
+                .cornerRadius(8)
+        }
+        .matchedGeometryEffect(id: index, in: animation)
+        .opacity(selectedItem?.id == index ? 0 : 1)
+        .disabled(file.isEmpty)
     }
 }
