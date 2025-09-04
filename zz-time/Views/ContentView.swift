@@ -137,21 +137,33 @@ struct ContentView: View {
                 }
             )
             .matchedGeometryEffect(id: selected.id, in: animation)
+            .zIndex(1) // Ensure ExpandingView is above other content
         }
     }
     
     var body: some View {
         ZStack {
-                backgroundGradient
-                backgroundColor
-                VStack {
-                    Spacer() // Push the grid to the center
-                    roomGrid
-                        .frame(maxHeight: .infinity, alignment: .center) // Ensure grid doesn't expand unnecessarily
-                    Spacer() // Balance the spacing
-                }
-                selectedRoom
+            backgroundGradient
+            backgroundColor
+            VStack {
+                Spacer() // Push the grid to the center
+                roomGrid
+                    .frame(maxHeight: .infinity, alignment: .center) // Ensure grid doesn't expand unnecessarily
+                Spacer() // Balance the spacing
             }
+            selectedRoom
+        }
+        .gesture(
+            DragGesture(minimumDistance: 20, coordinateSpace: .global)
+                .onEnded { value in
+                    if selectedItem == nil {
+                        let translationHeight = value.translation.height
+                        if translationHeight < -50 {
+                            showingAlarmSelection = true
+                        }
+                    }
+                }
+        )
         .onAppear {
             if !UserDefaults.standard.bool(forKey: "hasLaunched") {
                 withAnimation(.easeInOut(duration: 1.0)) {
@@ -431,4 +443,3 @@ struct ContentView: View {
         }
     }
 }
-
