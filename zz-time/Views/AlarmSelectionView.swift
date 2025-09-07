@@ -41,16 +41,16 @@ struct AlarmSelectionView: View {
                 let availW = geo.size.width - 2 * padding
                 let availH = geo.size.height - 2 * padding
                 let numCols: CGFloat = 5
-                let numRows: CGFloat = 5
+                let numRows: CGFloat = 2
                 let itemW = (availW - spacing * (numCols - 1)) / numCols
                 let maxItemH = (availH - spacing * (numRows - 1)) / numRows
                 let itemH = min(itemW, maxItemH)
                 let aspect = itemW / itemH
                 
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: spacing), count: 5), spacing: spacing) {
-                    ForEach(5..<30) { index in
-                        let row = (index - 5) / 5
-                        let col = (index - 5) % 5
+                    ForEach(20..<30) { index in
+                        let row = (index - 20) / 5
+                        let col = (index - 20) % 5
                         let isSelected = selectedAlarmIndex == index
                         let color = alarmColorFor(row: row, col: col, isSelected: isSelected)
                         
@@ -222,7 +222,9 @@ struct AlarmItemView: View {
 //                let numCols: CGFloat = 5
 //                let numRows: CGFloat = 5
 //                let itemW = (availW - spacing * (numCols - 1)) / numCols
-//                let itemH = (availH - spacing * (numRows - 1)) / numRows
+//                let maxItemH = (availH - spacing * (numRows - 1)) / numRows
+//                let itemH = min(itemW, maxItemH)
+//                let aspect = itemW / itemH
 //                
 //                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: spacing), count: 5), spacing: spacing) {
 //                    ForEach(5..<30) { index in
@@ -233,7 +235,7 @@ struct AlarmItemView: View {
 //                        
 //                        Rectangle()
 //                            .fill(color)
-//                            .aspectRatio(1, contentMode: .fit)
+//                            .aspectRatio(aspect, contentMode: .fit)
 //                            .overlay(
 //                                isSelected ?
 //                                    RoundedRectangle(cornerRadius: 8)
