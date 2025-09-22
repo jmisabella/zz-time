@@ -151,12 +151,14 @@ struct ExpandingView: View {
                     
                     Button {
                         let now = Date()
-                        if let savedTime = UserDefaults.standard.object(forKey: "lastWakeTime") as? Date {
-                            tempWakeTime = savedTime
-                        } else if durationMinutes == 0 {
-                            tempWakeTime = Calendar.current.date(byAdding: .hour, value: 8, to: now) ?? now
-                        } else {
+                        if durationMinutes > 0 {
                             tempWakeTime = now.addingTimeInterval(durationMinutes * 60)
+                        } else {
+                            if let savedTime = UserDefaults.standard.object(forKey: "lastWakeTime") as? Date {
+                                tempWakeTime = savedTime
+                            } else {
+                                tempWakeTime = Calendar.current.date(byAdding: .hour, value: 8, to: now) ?? now
+                            }
                         }
                         showTimePicker = true
                     } label: {
