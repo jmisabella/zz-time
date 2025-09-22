@@ -26,12 +26,16 @@ struct ExpandingView: View {
     @State private var roomChangeTrigger: Bool = false
     @State private var showTimePicker: Bool = false
     @State private var tempWakeTime: Date = Date()
+    @State private var usePlasmaStyle: Bool = Bool.random()
     
     var body: some View {
         ZStack {
             ZStack {
-                BreathingBackground(color: color)
-                    .ignoresSafeArea()
+                if usePlasmaStyle {
+                    PlasmaBackground(color: color).ignoresSafeArea()
+                } else {
+                    BreathingBackground(color: color).ignoresSafeArea()
+                }
                 
                 Rectangle()
                     .fill(isAlarmActive ? Color(hue: 0.58, saturation: 0.3, brightness: 0.9) : .black)
