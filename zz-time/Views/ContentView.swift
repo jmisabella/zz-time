@@ -238,25 +238,16 @@ struct ContentView: View {
                 isAlarmActive = false
             }
         }
-        .onChange(of: durationMinutes) { _, newValue in
+        .onChange(of: durationMinutes) { oldValue, newValue in
             UserDefaults.standard.set(newValue, forKey: "durationMinutes")
+            
             if newValue == 0 {
                 isAlarmEnabled = false
                 UserDefaults.standard.set(false, forKey: "isAlarmEnabled")
-            }
-            if let _ = selectedItem {
-                stopTimer?.invalidate()
-                stopTimer = nil
-                if newValue > 0 {
-                    let seconds = newValue * 60
-                    stopTimer = Timer.scheduledTimer(withTimeInterval: seconds, repeats: false) { _ in
-                        self.fadeOutCurrent {
-                            if self.isAlarmEnabled {
-                                self.startAlarm()
-                            }
-                        }
-                    }
-                }
+            } else if isAlarmEnabled && newValue > 0 {
+                let now = Date()
+                let newWakeDate = now.addingTimeInterval(newValue * 60)
+                UserDefaults.standard.set(newWakeDate, forKey: "lastWakeTime")
             }
         }
         .onChange(of: selectedAlarmIndex) { _, newValue in

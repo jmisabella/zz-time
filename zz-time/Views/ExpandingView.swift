@@ -27,6 +27,7 @@ struct ExpandingView: View {
     @State private var showTimePicker: Bool = false
     @State private var tempWakeTime: Date = Date()
     @State private var usePlasmaStyle: Bool = Bool.random()
+    @State private var remainingTimer: Timer? = nil
     
     var body: some View {
         ZStack {
@@ -135,6 +136,9 @@ struct ExpandingView: View {
                             isAlarmEnabled.toggle()
                             UserDefaults.standard.set(isAlarmEnabled, forKey: "isAlarmEnabled")
                             if !wasEnabled {
+                                let now = Date()
+                                let newWakeDate = now.addingTimeInterval(durationMinutes * 60)
+                                UserDefaults.standard.set(newWakeDate, forKey: "lastWakeTime")
                                 selectAlarm()
                             }
                         }
@@ -150,12 +154,12 @@ struct ExpandingView: View {
                     .opacity(durationMinutes == 0 ? 0.5 : 1.0)
                     
                     Button {
-                        let now = Date()
-                        if durationMinutes > 0 {
-                            tempWakeTime = now.addingTimeInterval(durationMinutes * 60)
+                        if let savedTime = UserDefaults.standard.object(forKey: "lastWakeTime") as? Date {
+                            tempWakeTime = savedTime
                         } else {
-                            if let savedTime = UserDefaults.standard.object(forKey: "lastWakeTime") as? Date {
-                                tempWakeTime = savedTime
+                            let now = Date()
+                            if durationMinutes > 0 {
+                                tempWakeTime = now.addingTimeInterval(durationMinutes * 60)
                             } else {
                                 tempWakeTime = Calendar.current.date(byAdding: .hour, value: 8, to: now) ?? now
                             }
@@ -212,6 +216,16 @@ struct ExpandingView: View {
                     dimOverlayOpacity = 1
                 }
             }
+            if isAlarmEnabled {
+                updateDurationToRemaining()
+                remainingTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { _ in
+                    updateDurationToRemaining()
+                }
+            }
+        }
+        .onDisappear {
+            remainingTimer?.invalidate()
+            remainingTimer = nil
         }
         .onChange(of: isAlarmActive) { _, newValue in
             if newValue {
@@ -263,7 +277,7 @@ struct ExpandingView: View {
                     let durationSeconds = wakeDate.timeIntervalSince(now)
                     durationMinutes = max(1, min(1440, durationSeconds / 60))  // Clamp to min 1 min, max 24 hours
                     
-                    UserDefaults.standard.set(tempWakeTime, forKey: "lastWakeTime") // Save the selected time
+                    UserDefaults.standard.set(wakeDate, forKey: "lastWakeTime") // Save the absolute wake date
                     
                     if !isAlarmEnabled {
                         isAlarmEnabled = true
@@ -283,5 +297,19 @@ struct ExpandingView: View {
             .presentationDetents([.medium])
         }
     }
+    
+    private func updateDurationToRemaining() {
+        if let wakeDate = UserDefaults.standard.object(forKey: "lastWakeTime") as? Date {
+            let now = Date()
+            let remainingMinutes = wakeDate.timeIntervalSince(now) / 60
+            if remainingMinutes > 0 {
+                durationMinutes = min(1440, remainingMinutes)
+            } else {
+                durationMinutes = 0
+                isAlarmEnabled = false
+                UserDefaults.standard.set(false, forKey: "isAlarmEnabled")
+            }
+            UserDefaults.standard.set(durationMinutes, forKey: "durationMinutes")
+        }
+    }
 }
-
