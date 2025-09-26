@@ -10,28 +10,41 @@ struct AlarmSelectionView: View {
     @State private var previewTimer: Timer? = nil
     @Environment(\.dismiss) private var dismiss
     
+    private let alarmIndices: [Int] = Array(20..<30) + Array(15..<20)
+    
     private func alarmColorFor(row: Int, col: Int, isSelected: Bool) -> Color {
-        let origRow = row
-        let diag = CGFloat(origRow + col) / 8.0
-        let startHue: CGFloat = 0.166 // Yellow
-        var endHue: CGFloat = 0.916 // Pink
-        var delta = endHue - startHue
-        if abs(delta) > 0.5 {
-            delta -= (delta > 0 ? 1.0 : -1.0)
+        if row < 2 {
+            let origRow = row
+            let diag = CGFloat(origRow + col) / 8.0
+            let startHue: CGFloat = 0.166 // Yellow
+            let endHue: CGFloat = 0.916 // Pink
+            var delta = endHue - startHue
+            if abs(delta) > 0.5 {
+                delta -= (delta > 0 ? 1.0 : -1.0)
+            }
+            var hue = startHue + delta * diag
+            if hue < 0 {
+                hue += 1
+            } else if hue > 1 {
+                hue -= 1
+            }
+            let saturation: CGFloat = 0.8
+            let brightness: CGFloat = isSelected ? 0.9 : 0.9 * 0.5
+            return Color(hue: hue, saturation: saturation, brightness: brightness)
+        } else {
+            // New row: deep blue to deep purple, left to right
+            let progress = CGFloat(col) / 4.0
+            let startHue: CGFloat = 0.666 // Deep blue
+            let endHue: CGFloat = 0.833 // Deep purple
+            let hue = startHue + (endHue - startHue) * progress
+            let saturation: CGFloat = 0.8
+            let brightness: CGFloat = isSelected ? 0.6 : 0.6 * 0.5
+            return Color(hue: hue, saturation: saturation, brightness: brightness)
         }
-        var hue = startHue + delta * diag
-        if hue < 0 {
-            hue += 1
-        } else if hue > 1 {
-            hue -= 1
-        }
-        let saturation: CGFloat = 0.8
-        let brightness: CGFloat = 0.9
-        return Color(hue: hue, saturation: saturation, brightness: isSelected ? brightness : brightness * 0.5)
     }
     
     var body: some View {
-        ZStack {
+        ZStack(alignment: .bottom) {
             Color(white: 0.1) // Near-black background
                 .ignoresSafeArea()
             
@@ -41,20 +54,23 @@ struct AlarmSelectionView: View {
                 let availW = geo.size.width - 2 * padding
                 let availH = geo.size.height - 2 * padding
                 let numCols: CGFloat = 5
-                let numRows: CGFloat = 5
+                let numRows: CGFloat = 3
                 let itemW = (availW - spacing * (numCols - 1)) / numCols
-                let itemH = (availH - spacing * (numRows - 1)) / numRows
+                let maxItemH = (availH - spacing * (numRows - 1)) / numRows
+                let itemH = min(itemW, maxItemH)
+                let aspect = itemW / itemH
                 
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: spacing), count: 5), spacing: spacing) {
-                    ForEach(5..<30) { index in
-                        let row = (index - 5) / 5
-                        let col = (index - 5) % 5
+                    ForEach(alarmIndices.indices, id: \.self) { i in
+                        let index = alarmIndices[i]
+                        let row = i / 5
+                        let col = i % 5
                         let isSelected = selectedAlarmIndex == index
                         let color = alarmColorFor(row: row, col: col, isSelected: isSelected)
                         
                         Rectangle()
                             .fill(color)
-                            .aspectRatio(1, contentMode: .fit)
+                            .aspectRatio(aspect, contentMode: .fit)
                             .overlay(
                                 isSelected ?
                                     RoundedRectangle(cornerRadius: 8)
@@ -65,23 +81,45 @@ struct AlarmSelectionView: View {
                             .onTapGesture {
                                 if isSelected {
                                     selectedAlarmIndex = nil
+                                    fadeOutPreview {
+                                        fadeMainTo(1.0)
+                                    }
                                 } else {
                                     selectedAlarmIndex = index
+                                    playPreview(for: index)
                                 }
-                                playPreview(for: index)
                             }
                     }
                 }
                 .padding(padding)
             }
+            
+            Text("waking rooms")
+                .font(.system(size: 14, weight: .light, design: .rounded))
+                .foregroundColor(Color(white: 0.5))
+                .padding(.bottom, 40)
         }
         .onAppear {
-            fadeMainTo(0.2)
+            if let index = selectedAlarmIndex {
+                playPreview(for: index)
+            }
         }
         .onDisappear {
-            fadeOutPreview()
+            // Immediately clean up without timer-based fade to avoid timing issues on dismiss
+            previewTimer?.invalidate()
+            previewTimer = nil
+            if let player = previewPlayer {
+                player.volume = 0.0
+                player.stop()
+            }
+            previewPlayer = nil
             fadeMainTo(1.0)
         }
+//        .onDisappear {
+//            fadeOutPreview {
+//                fadeMainTo(1.0)
+//            }
+//        }
     }
     
     private func playPreview(for index: Int) {
@@ -90,6 +128,7 @@ struct AlarmSelectionView: View {
             print("Preview file not found: \(file).mp3")
             return
         }
+        fadeMainTo(0.0)
         fadeOutPreview {
             do {
                 previewPlayer = try AVAudioPlayer(contentsOf: url)
