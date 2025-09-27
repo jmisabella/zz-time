@@ -91,7 +91,7 @@ struct ExpandingView: View {
                 
                 Text("room \(currentIndex + 1)")
                     .font(.system(size: 14, weight: .light, design: .rounded))
-                    .foregroundColor((currentIndex + 1 <= 5 || currentIndex + 1 >= 28) ? Color(white: 0.7) : Color(white: 0.3))
+                    .foregroundColor((currentIndex < 10) ? Color(white: 0.7) : Color(white: 0.3))
                     .padding(.bottom, 20)
                 
                 HStack(spacing: 40) {
@@ -313,3 +313,4 @@ struct ExpandingView: View {
         }
     }
 }
+
