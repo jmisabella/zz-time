@@ -13,7 +13,6 @@ struct ExpandingView: View {
     let dismiss: () -> Void
     @Binding var durationMinutes: Double
     @Binding var isAlarmActive: Bool
-    @Binding var isAlarmEnabled: Bool
     let changeRoom: (Int) -> Void
     let currentIndex: Int
     let maxIndex: Int
@@ -53,7 +52,7 @@ struct ExpandingView: View {
                 CustomSlider(
                     value: $durationMinutes,
                     minValue: 0,
-                    maxValue: 1440,  // 24 hours in minutes
+                    maxValue: 1440, // 24 hours in minutes
                     step: 1,
                     onEditingChanged: { editing in
                         showLabel = editing
@@ -131,29 +130,6 @@ struct ExpandingView: View {
                     .contentShape(Circle())
                     
                     Button {
-                        if durationMinutes > 0 {
-                            let wasEnabled = isAlarmEnabled
-                            isAlarmEnabled.toggle()
-                            UserDefaults.standard.set(isAlarmEnabled, forKey: "isAlarmEnabled")
-                            if !wasEnabled {
-                                let now = Date()
-                                let newWakeDate = now.addingTimeInterval(durationMinutes * 60)
-                                UserDefaults.standard.set(newWakeDate, forKey: "lastWakeTime")
-                                selectAlarm()
-                            }
-                        }
-                    } label: {
-                        Image(systemName: isAlarmEnabled ? "bell.fill" : "bell.slash.fill")
-                            .font(.title)
-                            .foregroundColor(Color(white: 0.7))
-                            .padding(10)
-                            .background(Circle().fill(Color.black.opacity(0.5)))
-                    }
-                    .contentShape(Circle())
-                    .disabled(durationMinutes == 0)
-                    .opacity(durationMinutes == 0 ? 0.5 : 1.0)
-                    
-                    Button {
                         if let savedTime = UserDefaults.standard.object(forKey: "lastWakeTime") as? Date {
                             tempWakeTime = savedTime
                         } else {
@@ -173,8 +149,6 @@ struct ExpandingView: View {
                             .background(Circle().fill(Color.black.opacity(0.5)))
                     }
                     .contentShape(Circle())
-                    .disabled(durationMinutes == 0 && !isAlarmEnabled)
-                    .opacity(durationMinutes == 0 && !isAlarmEnabled ? 0.5 : 1.0)
                 }
                 .padding(.bottom, 40)
             }
@@ -216,7 +190,7 @@ struct ExpandingView: View {
                     dimOverlayOpacity = 1
                 }
             }
-            if isAlarmEnabled {
+            if let wakeDate = UserDefaults.standard.object(forKey: "lastWakeTime") as? Date, wakeDate > Date() {
                 updateDurationToRemaining()
                 remainingTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { _ in
                     updateDurationToRemaining()
@@ -275,15 +249,9 @@ struct ExpandingView: View {
                     }
                     
                     let durationSeconds = wakeDate.timeIntervalSince(now)
-                    durationMinutes = max(1, min(1440, durationSeconds / 60))  // Clamp to min 1 min, max 24 hours
+                    durationMinutes = max(1, min(1440, durationSeconds / 60)) // Clamp to min 1 min, max 24 hours
                     
                     UserDefaults.standard.set(wakeDate, forKey: "lastWakeTime") // Save the absolute wake date
-                    
-                    if !isAlarmEnabled {
-                        isAlarmEnabled = true
-                        UserDefaults.standard.set(true, forKey: "isAlarmEnabled")
-                        selectAlarm()
-                    }
                     
                     showTimePicker = false
                 }
@@ -306,11 +274,9 @@ struct ExpandingView: View {
                 durationMinutes = min(1440, remainingMinutes)
             } else {
                 durationMinutes = 0
-                isAlarmEnabled = false
-                UserDefaults.standard.set(false, forKey: "isAlarmEnabled")
+                UserDefaults.standard.removeObject(forKey: "lastWakeTime")
             }
             UserDefaults.standard.set(durationMinutes, forKey: "durationMinutes")
         }
     }
 }
-
