@@ -213,7 +213,7 @@ struct ContentView: View {
                 fadeOutAlarm() // Ensure alarm is stopped and cleaned up
                 stopTimer?.invalidate() // Invalidate stopTimer to prevent it from triggering startAlarm
                 stopTimer = nil
-                UserDefaults.standard.removeObject(forKey: "lastWakeTime") // Clear wake time
+                // Removed: UserDefaults.standard.removeObject(forKey: "lastWakeTime") // Clear wake time
             } else if let new = newValue {
                 let selectedIndex = new.id
                 fadeOutCurrent {
@@ -376,16 +376,6 @@ struct ContentView: View {
     }
     
     private func startAlarm() {
-        // Only start the alarm if a room is active
-        guard selectedItem != nil else {
-            print("No room active, skipping alarm")
-            isAlarmActive = false
-            stopTimer?.invalidate()
-            stopTimer = nil
-            UserDefaults.standard.removeObject(forKey: "lastWakeTime")
-            return
-        }
-        
         if alarmPlayer != nil {
             return
         }
@@ -397,15 +387,12 @@ struct ContentView: View {
         guard let idx = selectedAlarmIndex,
               idx >= 0 && idx < files.count,
               !files[idx].isEmpty else {
-            print("Invalid alarm index or empty file")
-            isAlarmActive = false
             return
         }
         
         let alarmFile = files[idx]
         guard let url = Bundle.main.url(forResource: alarmFile, withExtension: "mp3") else {
             print("Alarm audio file not found: \(alarmFile).mp3")
-            isAlarmActive = false
             return
         }
         
@@ -445,7 +432,6 @@ struct ContentView: View {
             }
         } catch {
             print("Error playing alarm: \(error.localizedDescription)")
-            isAlarmActive = false
         }
     }
     
@@ -484,6 +470,7 @@ struct ContentView: View {
         }
     }
 }
+
 
 //import SwiftUI
 //import AVFoundation
@@ -659,9 +646,9 @@ struct ContentView: View {
 //                ZStack {
 //                    Color.black.opacity(0.5)
 //                    VStack {
-//                        Text("Tap to stop alarm")
-//                            .font(.title)
-//                            .foregroundColor(.white)
+////                        Text("Tap to stop alarm")
+////                            .font(.title)
+////                            .foregroundColor(.white)
 //                    }
 //                }
 //                .ignoresSafeArea()
@@ -685,6 +672,7 @@ struct ContentView: View {
 //                }
 //        )
 //        .onAppear {
+//            configureAudioSession()
 //            if !UserDefaults.standard.bool(forKey: "hasLaunched") {
 //                withAnimation(.easeInOut(duration: 2.0)) {
 //                    backgroundOpacity = 1.0
@@ -694,7 +682,12 @@ struct ContentView: View {
 //        }
 //        .onChange(of: selectedItem) { oldValue, newValue in
 //            if let old = oldValue, newValue == nil {
+//                // Exiting a room: Clean up both current audio and alarm
 //                fadeOutCurrent()
+//                fadeOutAlarm() // Ensure alarm is stopped and cleaned up
+//                stopTimer?.invalidate() // Invalidate stopTimer to prevent it from triggering startAlarm
+//                stopTimer = nil
+//                UserDefaults.standard.removeObject(forKey: "lastWakeTime") // Clear wake time
 //            } else if let new = newValue {
 //                let selectedIndex = new.id
 //                fadeOutCurrent {
@@ -703,7 +696,7 @@ struct ContentView: View {
 //                        stopTimer?.invalidate()
 //                        let durationSeconds = durationMinutes * 60
 //                        stopTimer = Timer.scheduledTimer(withTimeInterval: durationSeconds, repeats: false) { _ in
-//                            if self.selectedAlarmIndex != nil {
+//                            if self.selectedAlarmIndex != nil && self.selectedItem != nil { // Only start alarm if still in a room
 //                                self.startAlarm()
 //                            } else {
 //                                self.fadeOutCurrent {
@@ -758,6 +751,15 @@ struct ContentView: View {
 //        }
 //    }
 //    
+//    private func configureAudioSession() {
+//        do {
+//            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
+//            try AVAudioSession.sharedInstance().setActive(true)
+//        } catch {
+//            print("Error configuring AVAudioSession: \(error.localizedDescription)")
+//        }
+//    }
+//    
 //    private func playAudio(for index: Int) {
 //        let file = files[index]
 //        guard let url = Bundle.main.url(forResource: file, withExtension: "mp3") else {
@@ -765,6 +767,7 @@ struct ContentView: View {
 //            return
 //        }
 //        do {
+//            configureAudioSession() // Ensure session is set before playing
 //            currentPlayer = try AVAudioPlayer(contentsOf: url)
 //            currentPlayer?.numberOfLoops = -1
 //            currentPlayer?.volume = 0.0
@@ -847,6 +850,16 @@ struct ContentView: View {
 //    }
 //    
 //    private func startAlarm() {
+//        // Only start the alarm if a room is active
+//        guard selectedItem != nil else {
+//            print("No room active, skipping alarm")
+//            isAlarmActive = false
+//            stopTimer?.invalidate()
+//            stopTimer = nil
+//            UserDefaults.standard.removeObject(forKey: "lastWakeTime")
+//            return
+//        }
+//        
 //        if alarmPlayer != nil {
 //            return
 //        }
@@ -858,12 +871,15 @@ struct ContentView: View {
 //        guard let idx = selectedAlarmIndex,
 //              idx >= 0 && idx < files.count,
 //              !files[idx].isEmpty else {
+//            print("Invalid alarm index or empty file")
+//            isAlarmActive = false
 //            return
 //        }
 //        
 //        let alarmFile = files[idx]
 //        guard let url = Bundle.main.url(forResource: alarmFile, withExtension: "mp3") else {
 //            print("Alarm audio file not found: \(alarmFile).mp3")
+//            isAlarmActive = false
 //            return
 //        }
 //        
@@ -903,6 +919,7 @@ struct ContentView: View {
 //            }
 //        } catch {
 //            print("Error playing alarm: \(error.localizedDescription)")
+//            isAlarmActive = false
 //        }
 //    }
 //    
