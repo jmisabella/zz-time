@@ -1,16 +1,16 @@
+
 import SwiftUI
 import AVFoundation
 
 struct ContentView: View {
     let files: [String] = (1...30).map { String(format: "ambient_%02d", $0) }
-    
+
     @Namespace private var animation: Namespace.ID
     @State private var selectedItem: SelectedItem? = nil
     @State private var currentPlayer: AVAudioPlayer? = nil
     @State private var currentTimer: Timer? = nil
     @State private var currentAudioFile: String? = nil
     @State private var durationMinutes: Double = UserDefaults.standard.double(forKey: "durationMinutes")
-    @State private var isAlarmEnabled: Bool = UserDefaults.standard.bool(forKey: "isAlarmEnabled")
     @State private var stopTimer: Timer? = nil
     @State private var alarmPlayer: AVAudioPlayer? = nil
     @State private var alarmTimer: Timer? = nil
@@ -19,7 +19,7 @@ struct ContentView: View {
     @State private var backgroundOpacity: Double = UserDefaults.standard.bool(forKey: "hasLaunched") ? 1.0 : 0.0
     @State private var selectedAlarmIndex: Int? = UserDefaults.standard.object(forKey: "selectedAlarmIndex") as? Int
     @State private var showingAlarmSelection: Bool = false
-    
+
     private func findNextValidIndex(from currentIndex: Int, direction: Int) -> Int? {
         var newIndex = currentIndex + direction
         while newIndex >= 0 && newIndex < files.count {
@@ -30,7 +30,7 @@ struct ContentView: View {
         }
         return nil
     }
-    
+
     private func colorFor(row: Int, col: Int) -> Color {
         let diag = CGFloat(row + col) / 9.0 // Max sum of row (0-5) + col (0-4) = 9
         if row <= 1 {
@@ -84,13 +84,13 @@ struct ContentView: View {
         .opacity(backgroundOpacity)
         .ignoresSafeArea()
     }
-    
+
     var backgroundColor: some View {
         Color(white: 0.8)
             .opacity(1.0 - backgroundOpacity)
             .ignoresSafeArea()
     }
-    
+
     var roomGrid: some View {
         GeometryReader { geo in
             let spacing: CGFloat = 10
@@ -103,7 +103,7 @@ struct ContentView: View {
             let maxItemH = (availH - spacing * (numRows - 1)) / numRows
             let itemH = min(itemW, maxItemH)
             let aspect = itemW / itemH
-            
+
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: spacing), count: 5), spacing: spacing) {
                 ForEach(0..<30) { index in
                     AlarmItemView(
@@ -124,168 +124,195 @@ struct ContentView: View {
         }
         .padding(20)
     }
-    
-    @ViewBuilder
-    var selectedRoom: some View {
-        if let selected = selectedItem {
-            let row = selected.id / 5
-            let col = selected.id % 5
-            let color = colorFor(row: row, col: col)
-            
-            ExpandingView(
-                color: color,
-                dismiss: {
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        selectedItem = nil
-                        isAlarmActive = false
-                    }
-                },
-                durationMinutes: $durationMinutes,
-                isAlarmActive: $isAlarmActive,
-                isAlarmEnabled: $isAlarmEnabled,
-                changeRoom: { direction in
-                    if let newIndex = findNextValidIndex(from: selected.id, direction: direction) {
+
+    var body: some View {
+        ZStack {
+            if selectedItem == nil {
+                backgroundGradient
+            } else {
+                backgroundColor
+            }
+
+            if selectedItem == nil {
+                roomGrid
+            }
+
+            if let item = selectedItem {
+                let index = item.id
+                let row = index / 5
+                let col = index % 5
+                let color = colorFor(row: row, col: col)
+
+                ExpandingView(
+                    color: color,
+                    dismiss: {
                         withAnimation(.easeInOut(duration: 0.3)) {
-                            selectedItem = SelectedItem(id: newIndex)
+                            selectedItem = nil
+                        }
+                    },
+                    durationMinutes: $durationMinutes,
+                    isAlarmActive: $isAlarmActive,
+                    changeRoom: { direction in
+                        if let nextIndex = findNextValidIndex(from: index, direction: direction) {
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                selectedItem = SelectedItem(id: nextIndex)
+                            }
+                        }
+                    },
+                    currentIndex: index,
+                    maxIndex: files.count - 1,
+                    selectAlarm: {
+                        showingAlarmSelection = true
+                    }
+                )
+                .matchedGeometryEffect(id: index, in: animation)
+                .zIndex(1)
+            }
+
+            if isAlarmActive {
+                ZStack {
+                    Color.black.opacity(0.5)
+                    VStack {
+//                        Text("Tap to stop alarm")
+//                            .font(.title)
+//                            .foregroundColor(.white)
+                    }
+                }
+                .ignoresSafeArea()
+                .onTapGesture {
+                    fadeOutAlarm {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            selectedItem = nil
                         }
                     }
-                },
-                currentIndex: selected.id,
-                maxIndex: files.count,
-                selectAlarm: {
-                    showingAlarmSelection = true
                 }
-            )
-            .matchedGeometryEffect(id: selected.id, in: animation)
-            .zIndex(1) // Ensure ExpandingView is above other content
-        }
-    }
-    
-    var body: some View {
-        ZStack(alignment: .bottom) {
-            backgroundGradient
-            backgroundColor
-            VStack {
-                Spacer() // Push the grid to the center
-                roomGrid
-                    .frame(maxHeight: .infinity, alignment: .center) // Ensure grid doesn't expand unnecessarily
-                Spacer() // Balance the spacing
-                Text("z rooms")
-                    .font(.system(size: 14, weight: .light, design: .rounded))
-                    .foregroundColor(Color(white: 0.7))
-                    .padding(.bottom, 40)
+                .zIndex(2)
             }
-            selectedRoom
         }
         .gesture(
             DragGesture(minimumDistance: 20, coordinateSpace: .global)
                 .onEnded { value in
-                    if selectedItem == nil {
-                        let translationHeight = value.translation.height
-                        if translationHeight < -50 {
-                            showingAlarmSelection = true
-                        }
+                    let translationHeight = value.translation.height
+                    if translationHeight < -50 && selectedItem == nil && !isAlarmActive {
+                        showingAlarmSelection = true
                     }
                 }
         )
         .onAppear {
+            configureAudioSession()
             if !UserDefaults.standard.bool(forKey: "hasLaunched") {
-                withAnimation(.easeInOut(duration: 1.0)) {
+                withAnimation(.easeInOut(duration: 2.0)) {
                     backgroundOpacity = 1.0
                 }
                 UserDefaults.standard.set(true, forKey: "hasLaunched")
             }
-            if durationMinutes == 0 {
-                isAlarmEnabled = false
-                UserDefaults.standard.set(false, forKey: "isAlarmEnabled")
-            }
         }
-        .onChange(of: selectedItem) { _, newValue in
-            if newValue == nil {
-                // No need to set backgroundOpacity here; it's already 1.0
-            }
-            if let new = newValue {
-                let file = files[new.id]
-                if !file.isEmpty {
-                    if let currFile = currentAudioFile, currFile == file {
-                        currentTimer?.invalidate()
-                        if let vol = currentPlayer?.volume, vol < 1.0 {
-                            let remaining = 1.0 - Double(vol)
-                            let fadeDuration = 2.0 * (remaining / 1.0)
-                            let fadeSteps = 20
-                            let stepDuration = fadeDuration / Double(fadeSteps)
-                            let stepIncrement = Float(remaining) / Float(fadeSteps)
-                            currentTimer = Timer.scheduledTimer(withTimeInterval: stepDuration, repeats: true) { _ in
-                                if let currentVolume = self.currentPlayer?.volume, currentVolume < 1.0 {
-                                    self.currentPlayer?.volume = min(1.0, currentVolume + stepIncrement)
-                                } else {
-                                    self.currentTimer?.invalidate()
-                                    self.currentTimer = nil
+        .onChange(of: selectedItem) { oldValue, newValue in
+            if let old = oldValue, newValue == nil {
+                // Exiting a room: Clean up both current audio and alarm
+                fadeOutCurrent()
+                fadeOutAlarm() // Ensure alarm is stopped and cleaned up
+                stopTimer?.invalidate() // Invalidate stopTimer to prevent it from triggering startAlarm
+                stopTimer = nil
+                // Removed: UserDefaults.standard.removeObject(forKey: "lastWakeTime") // Clear wake time
+            } else if let new = newValue {
+                let selectedIndex = new.id
+                fadeOutCurrent {
+                    playAudio(for: selectedIndex)
+                    if durationMinutes > 0 {
+                        stopTimer?.invalidate()
+                        let durationSeconds = durationMinutes * 60
+                        stopTimer = Timer.scheduledTimer(withTimeInterval: durationSeconds, repeats: false) { _ in
+                            if self.selectedAlarmIndex != nil && self.selectedItem != nil { // Only start alarm if still in a room
+                                self.startAlarm()
+                            } else {
+                                self.fadeOutCurrent {
+                                    UserDefaults.standard.removeObject(forKey: "lastWakeTime")
                                 }
                             }
                         }
                     } else {
-                        fadeOutCurrent {
-                            setupNewAudio(file: file)
-                        }
+                        stopTimer?.invalidate()
+                        stopTimer = nil
                     }
                 }
-            } else {
-                fadeOutCurrent()
-                fadeOutAlarm()
-                stopTimer?.invalidate()
-                stopTimer = nil
-                isAlarmActive = false
             }
         }
-        .onChange(of: durationMinutes) { oldValue, newValue in
-            UserDefaults.standard.set(newValue, forKey: "durationMinutes")
-            
-            if newValue == 0 {
-                isAlarmEnabled = false
-                UserDefaults.standard.set(false, forKey: "isAlarmEnabled")
-            } else if isAlarmEnabled && newValue > 0 {
-                let now = Date()
-                let newWakeDate = now.addingTimeInterval(newValue * 60)
-                UserDefaults.standard.set(newWakeDate, forKey: "lastWakeTime")
+        .onChange(of: durationMinutes) { old, new in
+            UserDefaults.standard.set(new, forKey: "durationMinutes")
+            if let item = selectedItem {
+                if new > 0 {
+                    stopTimer?.invalidate()
+                    let durationSeconds = new * 60
+                    stopTimer = Timer.scheduledTimer(withTimeInterval: durationSeconds, repeats: false) { _ in
+                        if self.selectedAlarmIndex != nil {
+                            self.startAlarm()
+                        } else {
+                            self.fadeOutCurrent {
+                                UserDefaults.standard.removeObject(forKey: "lastWakeTime")
+                            }
+                        }
+                    }
+                    let now = Date()
+                    let newWakeDate = now.addingTimeInterval(new * 60)
+                    UserDefaults.standard.set(newWakeDate, forKey: "lastWakeTime")
+                    
+                    // Update preferred wake time components for sync with picker
+                    let calendar = Calendar.current
+                    let comps = calendar.dateComponents([.hour, .minute], from: newWakeDate)
+                    if let hour = comps.hour, let minute = comps.minute {
+                        UserDefaults.standard.set(hour, forKey: "preferredWakeHour")
+                        UserDefaults.standard.set(minute, forKey: "preferredWakeMinute")
+                    }
+                } else {
+                    stopTimer?.invalidate()
+                    stopTimer = nil
+                    UserDefaults.standard.removeObject(forKey: "lastWakeTime")
+                }
             }
         }
-        .onChange(of: selectedAlarmIndex) { _, newValue in
-            if let newValue = newValue {
-                UserDefaults.standard.set(newValue, forKey: "selectedAlarmIndex")
-            } else {
-                UserDefaults.standard.removeObject(forKey: "selectedAlarmIndex")
-            }
+        .onChange(of: selectedAlarmIndex) { _, new in
+            UserDefaults.standard.set(new, forKey: "selectedAlarmIndex")
         }
         .sheet(isPresented: $showingAlarmSelection) {
-            AlarmSelectionView(selectedAlarmIndex: $selectedAlarmIndex, files: files) { target in
-                self.fadeCurrentTo(target: target)
-            }
-            .presentationDetents([.medium, .large])
+            AlarmSelectionView(
+                selectedAlarmIndex: $selectedAlarmIndex,
+                files: files,
+                fadeMainTo: { target in
+                    fadeCurrentTo(target: target)
+                }
+            )
+            .presentationDetents([.medium])
         }
     }
-    
-    private func setupNewAudio(file: String) {
+
+    private func configureAudioSession() {
+        do {
+            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
+            try AVAudioSession.sharedInstance().setActive(true)
+        } catch {
+            print("Error configuring AVAudioSession: \(error.localizedDescription)")
+        }
+    }
+
+    private func playAudio(for index: Int) {
+        let file = files[index]
         guard let url = Bundle.main.url(forResource: file, withExtension: "mp3") else {
             print("Audio file not found: \(file).mp3")
             return
         }
         do {
-            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
-            try AVAudioSession.sharedInstance().setActive(true)
-            
+            configureAudioSession() // Ensure session is set before playing
             currentPlayer = try AVAudioPlayer(contentsOf: url)
             currentPlayer?.numberOfLoops = -1
             currentPlayer?.volume = 0.0
             currentPlayer?.play()
-            currentAudioFile = file
-            
-            currentTimer?.invalidate()
+
             let fadeDuration: Double = 2.0
             let fadeSteps: Int = 20
             let stepDuration = fadeDuration / Double(fadeSteps)
             let stepIncrement = 1.0 / Float(fadeSteps)
-            
+
             currentTimer = Timer.scheduledTimer(withTimeInterval: stepDuration, repeats: true) { _ in
                 if let currentVolume = self.currentPlayer?.volume, currentVolume < 1.0 {
                     self.currentPlayer?.volume = min(1.0, currentVolume + stepIncrement)
@@ -294,32 +321,21 @@ struct ContentView: View {
                     self.currentTimer = nil
                 }
             }
-            
-            if durationMinutes > 0 {
-                let seconds = durationMinutes * 60
-                stopTimer = Timer.scheduledTimer(withTimeInterval: seconds, repeats: false) { _ in
-                    self.fadeOutCurrent {
-                        if self.isAlarmEnabled {
-                            self.startAlarm()
-                        }
-                    }
-                }
-            }
+            currentAudioFile = file
         } catch {
             print("Error playing audio: \(error.localizedDescription)")
         }
     }
-    
+
     private func fadeOutCurrent(completion: (() -> Void)? = nil) {
         if let player = currentPlayer, player.volume > 0.0 {
             currentTimer?.invalidate()
             let vol = player.volume
-            let remaining = Double(vol)
-            let fadeDuration = 2.0 * (remaining / 1.0)
+            let fadeDuration = 2.0 * Double(vol) / 1.0
             let fadeSteps = 20
             let stepDuration = fadeDuration / Double(fadeSteps)
             let stepDecrement = vol / Float(fadeSteps)
-            
+
             currentTimer = Timer.scheduledTimer(withTimeInterval: stepDuration, repeats: true) { _ in
                 if let currentVolume = self.currentPlayer?.volume, currentVolume > 0.0 {
                     self.currentPlayer?.volume = max(0.0, currentVolume - stepDecrement)
@@ -339,7 +355,7 @@ struct ContentView: View {
             completion?()
         }
     }
-    
+
     private func fadeCurrentTo(target: Float, duration: Double = 2.0) {
         guard let player = currentPlayer else { return }
         currentTimer?.invalidate()
@@ -367,41 +383,46 @@ struct ContentView: View {
             }
         }
     }
-    
+
     private func startAlarm() {
         if alarmPlayer != nil {
             return
         }
-        
+
         stopTimer?.invalidate()
         stopTimer = nil
         isAlarmActive = true
-        
-        var alarmFile = "alarm_01"
-        if let idx = selectedAlarmIndex, idx >= 0 && idx < files.count, !files[idx].isEmpty {
-            alarmFile = files[idx]
+
+        guard let idx = selectedAlarmIndex,
+              idx >= 0 && idx < files.count,
+              !files[idx].isEmpty else {
+            return
         }
-        
+
+        let alarmFile = files[idx]
         guard let url = Bundle.main.url(forResource: alarmFile, withExtension: "mp3") else {
             print("Alarm audio file not found: \(alarmFile).mp3")
             return
         }
-        
+
+        fadeOutCurrent()
+        UserDefaults.standard.removeObject(forKey: "lastWakeTime")
+
         do {
             try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
             try AVAudioSession.sharedInstance().setActive(true)
-            
+
             let player = try AVAudioPlayer(contentsOf: url)
             player.numberOfLoops = -1
             player.volume = 0.0
             player.play()
             self.alarmPlayer = player
-            
+
             let fadeDuration: Double = 0.5
             let fadeSteps: Int = 10
             let stepDuration = fadeDuration / Double(fadeSteps)
             let stepIncrement = 1.0 / Float(fadeSteps)
-            
+
             let fadeTimer = Timer.scheduledTimer(withTimeInterval: stepDuration, repeats: true) { timer in
                 if let currentVolume = self.alarmPlayer?.volume, currentVolume < 1.0 {
                     self.alarmPlayer?.volume = min(1.0, currentVolume + stepIncrement)
@@ -409,11 +430,11 @@ struct ContentView: View {
                     timer.invalidate()
                 }
             }
-            
+
             let haptic = UINotificationFeedbackGenerator()
             haptic.notificationOccurred(.warning)
             self.hapticGenerator = haptic
-            
+
             let interval = player.duration
             self.alarmTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { _ in
                 self.hapticGenerator?.notificationOccurred(.warning)
@@ -422,21 +443,21 @@ struct ContentView: View {
             print("Error playing alarm: \(error.localizedDescription)")
         }
     }
-    
+
     private func fadeOutAlarm(completion: (() -> Void)? = nil) {
         if let player = alarmPlayer, player.volume > 0.0 {
             alarmTimer?.invalidate()
             alarmTimer = nil
             hapticGenerator = nil
             isAlarmActive = false
-            
+
             let vol = player.volume
             let remaining = Double(vol)
             let fadeDuration = 2.0 * (remaining / 1.0)
             let fadeSteps = 20
             let stepDuration = fadeDuration / Double(fadeSteps)
             let stepDecrement = vol / Float(fadeSteps)
-            
+
             let fadeTimer = Timer.scheduledTimer(withTimeInterval: stepDuration, repeats: true) { timer in
                 if let currentVolume = self.alarmPlayer?.volume, currentVolume > 0.0 {
                     self.alarmPlayer?.volume = max(0.0, currentVolume - stepDecrement)
@@ -459,6 +480,8 @@ struct ContentView: View {
     }
 }
 
+
+
 //import SwiftUI
 //import AVFoundation
 //
@@ -471,7 +494,6 @@ struct ContentView: View {
 //    @State private var currentTimer: Timer? = nil
 //    @State private var currentAudioFile: String? = nil
 //    @State private var durationMinutes: Double = UserDefaults.standard.double(forKey: "durationMinutes")
-//    @State private var isAlarmEnabled: Bool = UserDefaults.standard.bool(forKey: "isAlarmEnabled")
 //    @State private var stopTimer: Timer? = nil
 //    @State private var alarmPlayer: AVAudioPlayer? = nil
 //    @State private var alarmTimer: Timer? = nil
@@ -493,17 +515,33 @@ struct ContentView: View {
 //    }
 //    
 //    private func colorFor(row: Int, col: Int) -> Color {
-//        if row == 0 {
-//            let hue: CGFloat = 0.67 // Blue hue
-//            let saturation: CGFloat = 0.6
-//            let diag = CGFloat(col) / 4.0
-//            let startBright: CGFloat = 0.6 // starts darkish blue
-//            let endBright: CGFloat = 0.8 // ends lighter blue
-//            let brightness = startBright + (endBright - startBright) * diag
+//        let diag = CGFloat(row + col) / 9.0 // Max sum of row (0-5) + col (0-4) = 9
+//        if row <= 1 {
+//            // White noise (rows 0-1): Diagonal dark purple gradient
+//            let startHue: CGFloat = 0.67 // Dark purple
+//            let endHue: CGFloat = 0.75 // Lighter purple
+//            let startSaturation: CGFloat = 0.7
+//            let endSaturation: CGFloat = 0.5
+//            let startBrightness: CGFloat = 0.5 // Darker
+//            let endBrightness: CGFloat = 0.7 // Lighter
+//            let hue = startHue + (endHue - startHue) * diag
+//            let saturation = startSaturation - (startSaturation - endSaturation) * diag
+//            let brightness = startBrightness + (endBrightness - startBrightness) * diag
 //            return Color(hue: hue, saturation: saturation, brightness: brightness)
-//        } else if row >= 4 {
+//        } else if row <= 3 {
+//            // Nighttime music (rows 2-3): Pink/purple/green diagonal gradient
+//            let origRow = row - 2
+//            let diag = CGFloat(origRow + col) / 6.0 // Max sum of origRow (0-1) + col (0-4) = 5
+//            let startHue: CGFloat = 0.8 // Pink
+//            let endHue: CGFloat = 0.33 // Green
+//            let hue = startHue - (startHue - endHue) * diag
+//            let saturation: CGFloat = 0.3
+//            let brightness: CGFloat = 0.9
+//            return Color(hue: hue, saturation: saturation, brightness: brightness)
+//        } else {
+//            // Waking audio (rows 4-5): Beige/orange diagonal gradient
 //            let origRow = row - 4
-//            let diag = CGFloat(origRow + col) / 4.0 // Max sum of origRow (0-1) + col (0-4) = 5
+//            let diag = CGFloat(origRow + col) / 5.0 // Max sum of origRow (0-1) + col (0-4) = 5
 //            let startHue: CGFloat = 0.0 // Light grey
 //            let endHue: CGFloat = 0.083 // Muted orange
 //            let startSaturation: CGFloat = 0.1 // Light grey
@@ -513,15 +551,6 @@ struct ContentView: View {
 //            let hue = startHue + (endHue - startHue) * diag
 //            let saturation = startSaturation + (endSaturation - startSaturation) * diag
 //            let brightness = startBrightness - (startBrightness - endBrightness) * diag
-//            return Color(hue: hue, saturation: saturation, brightness: brightness)
-//        } else {
-//            let origRow = row - 1
-//            let diag = CGFloat(origRow + col) / 8.0
-//            let startHue: CGFloat = 0.8
-//            let endHue: CGFloat = 0.33
-//            let hue = startHue - (startHue - endHue) * diag
-//            let saturation: CGFloat = 0.3
-//            let brightness: CGFloat = 0.9
 //            return Color(hue: hue, saturation: saturation, brightness: brightness)
 //        }
 //    }
@@ -579,171 +608,181 @@ struct ContentView: View {
 //        .padding(20)
 //    }
 //    
-//    @ViewBuilder
-//    var selectedRoom: some View {
-//        if let selected = selectedItem {
-//            let row = selected.id / 5
-//            let col = selected.id % 5
-//            let color = colorFor(row: row, col: col)
+//    var body: some View {
+//        ZStack {
+//            if selectedItem == nil {
+//                backgroundGradient
+//            } else {
+//                backgroundColor
+//            }
 //            
-//            ExpandingView(
-//                color: color,
-//                dismiss: {
-//                    withAnimation(.easeInOut(duration: 0.3)) {
-//                        selectedItem = nil
-//                        isAlarmActive = false
-//                    }
-//                },
-//                durationMinutes: $durationMinutes,
-//                isAlarmActive: $isAlarmActive,
-//                isAlarmEnabled: $isAlarmEnabled,
-//                changeRoom: { direction in
-//                    if let newIndex = findNextValidIndex(from: selected.id, direction: direction) {
+//            if selectedItem == nil {
+//                roomGrid
+//            }
+//            
+//            if let item = selectedItem {
+//                let index = item.id
+//                let row = index / 5
+//                let col = index % 5
+//                let color = colorFor(row: row, col: col)
+//                
+//                ExpandingView(
+//                    color: color,
+//                    dismiss: {
 //                        withAnimation(.easeInOut(duration: 0.3)) {
-//                            selectedItem = SelectedItem(id: newIndex)
+//                            selectedItem = nil
+//                        }
+//                    },
+//                    durationMinutes: $durationMinutes,
+//                    isAlarmActive: $isAlarmActive,
+//                    changeRoom: { direction in
+//                        if let nextIndex = findNextValidIndex(from: index, direction: direction) {
+//                            withAnimation(.easeInOut(duration: 0.3)) {
+//                                selectedItem = SelectedItem(id: nextIndex)
+//                            }
+//                        }
+//                    },
+//                    currentIndex: index,
+//                    maxIndex: files.count - 1,
+//                    selectAlarm: {
+//                        showingAlarmSelection = true
+//                    }
+//                )
+//                .matchedGeometryEffect(id: index, in: animation)
+//                .zIndex(1)
+//            }
+//            
+//            if isAlarmActive {
+//                ZStack {
+//                    Color.black.opacity(0.5)
+//                    VStack {
+////                        Text("Tap to stop alarm")
+////                            .font(.title)
+////                            .foregroundColor(.white)
+//                    }
+//                }
+//                .ignoresSafeArea()
+//                .onTapGesture {
+//                    fadeOutAlarm {
+//                        withAnimation(.easeInOut(duration: 0.3)) {
+//                            selectedItem = nil
 //                        }
 //                    }
-//                },
-//                currentIndex: selected.id,
-//                maxIndex: files.count,
-//                selectAlarm: {
-//                    showingAlarmSelection = true
 //                }
-//            )
-//            .matchedGeometryEffect(id: selected.id, in: animation)
-//            .zIndex(1) // Ensure ExpandingView is above other content
-//        }
-//    }
-//    
-//    var body: some View {
-//        ZStack(alignment: .bottom) {
-//            backgroundGradient
-//            backgroundColor
-//            VStack {
-//                Spacer() // Push the grid to the center
-//                roomGrid
-//                    .frame(maxHeight: .infinity, alignment: .center) // Ensure grid doesn't expand unnecessarily
-//                Spacer() // Balance the spacing
-//                Text("z rooms")
-//                    .font(.system(size: 14, weight: .light, design: .rounded))
-//                    .foregroundColor(Color(white: 0.7))
-//                    .padding(.bottom, 40)
+//                .zIndex(2)
 //            }
-//            selectedRoom
 //        }
 //        .gesture(
 //            DragGesture(minimumDistance: 20, coordinateSpace: .global)
 //                .onEnded { value in
-//                    if selectedItem == nil {
-//                        let translationHeight = value.translation.height
-//                        if translationHeight < -50 {
-//                            showingAlarmSelection = true
-//                        }
+//                    let translationHeight = value.translation.height
+//                    if translationHeight < -50 && selectedItem == nil && !isAlarmActive {
+//                        showingAlarmSelection = true
 //                    }
 //                }
 //        )
 //        .onAppear {
+//            configureAudioSession()
 //            if !UserDefaults.standard.bool(forKey: "hasLaunched") {
-//                withAnimation(.easeInOut(duration: 1.0)) {
+//                withAnimation(.easeInOut(duration: 2.0)) {
 //                    backgroundOpacity = 1.0
 //                }
 //                UserDefaults.standard.set(true, forKey: "hasLaunched")
 //            }
-//            if durationMinutes == 0 {
-//                isAlarmEnabled = false
-//                UserDefaults.standard.set(false, forKey: "isAlarmEnabled")
-//            }
 //        }
-//        .onChange(of: selectedItem) { _, newValue in
-//            if newValue == nil {
-//                // No need to set backgroundOpacity here; it's already 1.0
-//            }
-//            if let new = newValue {
-//                let file = files[new.id]
-//                if !file.isEmpty {
-//                    if let currFile = currentAudioFile, currFile == file {
-//                        currentTimer?.invalidate()
-//                        if let vol = currentPlayer?.volume, vol < 1.0 {
-//                            let remaining = 1.0 - Double(vol)
-//                            let fadeDuration = 2.0 * (remaining / 1.0)
-//                            let fadeSteps = 20
-//                            let stepDuration = fadeDuration / Double(fadeSteps)
-//                            let stepIncrement = Float(remaining) / Float(fadeSteps)
-//                            currentTimer = Timer.scheduledTimer(withTimeInterval: stepDuration, repeats: true) { _ in
-//                                if let currentVolume = self.currentPlayer?.volume, currentVolume < 1.0 {
-//                                    self.currentPlayer?.volume = min(1.0, currentVolume + stepIncrement)
-//                                } else {
-//                                    self.currentTimer?.invalidate()
-//                                    self.currentTimer = nil
+//        .onChange(of: selectedItem) { oldValue, newValue in
+//            if let old = oldValue, newValue == nil {
+//                // Exiting a room: Clean up both current audio and alarm
+//                fadeOutCurrent()
+//                fadeOutAlarm() // Ensure alarm is stopped and cleaned up
+//                stopTimer?.invalidate() // Invalidate stopTimer to prevent it from triggering startAlarm
+//                stopTimer = nil
+//                // Removed: UserDefaults.standard.removeObject(forKey: "lastWakeTime") // Clear wake time
+//            } else if let new = newValue {
+//                let selectedIndex = new.id
+//                fadeOutCurrent {
+//                    playAudio(for: selectedIndex)
+//                    if durationMinutes > 0 {
+//                        stopTimer?.invalidate()
+//                        let durationSeconds = durationMinutes * 60
+//                        stopTimer = Timer.scheduledTimer(withTimeInterval: durationSeconds, repeats: false) { _ in
+//                            if self.selectedAlarmIndex != nil && self.selectedItem != nil { // Only start alarm if still in a room
+//                                self.startAlarm()
+//                            } else {
+//                                self.fadeOutCurrent {
+//                                    UserDefaults.standard.removeObject(forKey: "lastWakeTime")
 //                                }
 //                            }
 //                        }
 //                    } else {
-//                        fadeOutCurrent {
-//                            setupNewAudio(file: file)
-//                        }
+//                        stopTimer?.invalidate()
+//                        stopTimer = nil
 //                    }
 //                }
-//            } else {
-//                fadeOutCurrent()
-//                fadeOutAlarm()
-//                stopTimer?.invalidate()
-//                stopTimer = nil
-//                isAlarmActive = false
 //            }
 //        }
-//        .onChange(of: durationMinutes) { _, newValue in
-//            UserDefaults.standard.set(newValue, forKey: "durationMinutes")
-//            if newValue == 0 {
-//                isAlarmEnabled = false
-//                UserDefaults.standard.set(false, forKey: "isAlarmEnabled")
-//            }
-//            if let _ = selectedItem {
-//                stopTimer?.invalidate()
-//                stopTimer = nil
-//                if newValue > 0 {
-//                    let seconds = newValue * 60
-//                    stopTimer = Timer.scheduledTimer(withTimeInterval: seconds, repeats: false) { _ in
-//                        self.fadeOutCurrent {
-//                            if self.isAlarmEnabled {
-//                                self.startAlarm()
+//        .onChange(of: durationMinutes) { old, new in
+//            UserDefaults.standard.set(new, forKey: "durationMinutes")
+//            if let item = selectedItem {
+//                if new > 0 {
+//                    stopTimer?.invalidate()
+//                    let durationSeconds = new * 60
+//                    stopTimer = Timer.scheduledTimer(withTimeInterval: durationSeconds, repeats: false) { _ in
+//                        if self.selectedAlarmIndex != nil {
+//                            self.startAlarm()
+//                        } else {
+//                            self.fadeOutCurrent {
+//                                UserDefaults.standard.removeObject(forKey: "lastWakeTime")
 //                            }
 //                        }
 //                    }
+//                    let now = Date()
+//                    let newWakeDate = now.addingTimeInterval(new * 60)
+//                    UserDefaults.standard.set(newWakeDate, forKey: "lastWakeTime")
+//                } else {
+//                    stopTimer?.invalidate()
+//                    stopTimer = nil
+//                    UserDefaults.standard.removeObject(forKey: "lastWakeTime")
 //                }
 //            }
 //        }
-//        .onChange(of: selectedAlarmIndex) { _, newValue in
-//            if let newValue = newValue {
-//                UserDefaults.standard.set(newValue, forKey: "selectedAlarmIndex")
-//            } else {
-//                UserDefaults.standard.removeObject(forKey: "selectedAlarmIndex")
-//            }
+//        .onChange(of: selectedAlarmIndex) { _, new in
+//            UserDefaults.standard.set(new, forKey: "selectedAlarmIndex")
 //        }
 //        .sheet(isPresented: $showingAlarmSelection) {
-//            AlarmSelectionView(selectedAlarmIndex: $selectedAlarmIndex, files: files) { target in
-//                self.fadeCurrentTo(target: target)
-//            }
-//            .presentationDetents([.medium, .large])
+//            AlarmSelectionView(
+//                selectedAlarmIndex: $selectedAlarmIndex,
+//                files: files,
+//                fadeMainTo: { target in
+//                    fadeCurrentTo(target: target)
+//                }
+//            )
+//            .presentationDetents([.medium])
 //        }
 //    }
 //    
-//    private func setupNewAudio(file: String) {
+//    private func configureAudioSession() {
+//        do {
+//            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
+//            try AVAudioSession.sharedInstance().setActive(true)
+//        } catch {
+//            print("Error configuring AVAudioSession: \(error.localizedDescription)")
+//        }
+//    }
+//    
+//    private func playAudio(for index: Int) {
+//        let file = files[index]
 //        guard let url = Bundle.main.url(forResource: file, withExtension: "mp3") else {
 //            print("Audio file not found: \(file).mp3")
 //            return
 //        }
 //        do {
-//            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
-//            try AVAudioSession.sharedInstance().setActive(true)
-//            
+//            configureAudioSession() // Ensure session is set before playing
 //            currentPlayer = try AVAudioPlayer(contentsOf: url)
 //            currentPlayer?.numberOfLoops = -1
 //            currentPlayer?.volume = 0.0
 //            currentPlayer?.play()
-//            currentAudioFile = file
 //            
-//            currentTimer?.invalidate()
 //            let fadeDuration: Double = 2.0
 //            let fadeSteps: Int = 20
 //            let stepDuration = fadeDuration / Double(fadeSteps)
@@ -757,17 +796,7 @@ struct ContentView: View {
 //                    self.currentTimer = nil
 //                }
 //            }
-//            
-//            if durationMinutes > 0 {
-//                let seconds = durationMinutes * 60
-//                stopTimer = Timer.scheduledTimer(withTimeInterval: seconds, repeats: false) { _ in
-//                    self.fadeOutCurrent {
-//                        if self.isAlarmEnabled {
-//                            self.startAlarm()
-//                        }
-//                    }
-//                }
-//            }
+//            currentAudioFile = file
 //        } catch {
 //            print("Error playing audio: \(error.localizedDescription)")
 //        }
@@ -777,8 +806,7 @@ struct ContentView: View {
 //        if let player = currentPlayer, player.volume > 0.0 {
 //            currentTimer?.invalidate()
 //            let vol = player.volume
-//            let remaining = Double(vol)
-//            let fadeDuration = 2.0 * (remaining / 1.0)
+//            let fadeDuration = 2.0 * Double(vol) / 1.0
 //            let fadeSteps = 20
 //            let stepDuration = fadeDuration / Double(fadeSteps)
 //            let stepDecrement = vol / Float(fadeSteps)
@@ -840,15 +868,20 @@ struct ContentView: View {
 //        stopTimer = nil
 //        isAlarmActive = true
 //        
-//        var alarmFile = "alarm_01"
-//        if let idx = selectedAlarmIndex, idx >= 0 && idx < files.count, !files[idx].isEmpty {
-//            alarmFile = files[idx]
+//        guard let idx = selectedAlarmIndex,
+//              idx >= 0 && idx < files.count,
+//              !files[idx].isEmpty else {
+//            return
 //        }
 //        
+//        let alarmFile = files[idx]
 //        guard let url = Bundle.main.url(forResource: alarmFile, withExtension: "mp3") else {
 //            print("Alarm audio file not found: \(alarmFile).mp3")
 //            return
 //        }
+//        
+//        fadeOutCurrent()
+//        UserDefaults.standard.removeObject(forKey: "lastWakeTime")
 //        
 //        do {
 //            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
