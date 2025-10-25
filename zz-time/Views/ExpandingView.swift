@@ -28,6 +28,15 @@ struct ExpandingView: View {
     @State private var usePlasmaStyle: Bool = Bool.random()
     @State private var remainingTimer: Timer? = nil
     
+    // Dictionary to map room indices (30-34) to custom titles
+    private let customRoomTitles: [Int: String] = [
+        30: "Satie: Trois Gymnopédies: No. 1, Lent et douloureux",
+        31: "Bach: Two-Part Invention No. 6 in E Major, BWV 777",
+        32: "Chopin: Prelude No. 21 in B-flat Major, Op. 28",
+        33: "Chopin: Prelude No. 2 in A Minor, Op. 28, Lento",
+        34: "Bach: Goldberg Variations: Variation 21, BWV 988"
+    ]
+    
     var body: some View {
         ZStack {
             ZStack {
@@ -88,7 +97,7 @@ struct ExpandingView: View {
                 
                 Spacer()
                 
-                Text("room \(currentIndex + 1)")
+                Text(customRoomTitles[currentIndex] ?? "room \(currentIndex + 1)")
                     .font(.system(size: 14, weight: .light, design: .rounded))
                     .foregroundColor((currentIndex < 10) ? Color(white: 0.7) : Color(white: 0.3))
                     .padding(.bottom, 20)
