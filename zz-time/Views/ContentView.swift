@@ -333,14 +333,12 @@ struct ContentView: View {
 
     private func playAudio(for index: Int) {
         let file = files[index]
-        guard let url = Bundle.main.url(forResource: file, withExtension: "mp3") else {
-            print("Audio file not found: \(file).mp3")
+        guard let url = Bundle.main.url(forResource: file, withExtension: "m4a") else {
+            print("Audio file not found: \(file).m4a")
             return
         }
         do {
-            configureAudioSession() // Ensure session is set before playing
-            
-            // Force cleanup any lingering state before starting new
+            configureAudioSession()
             currentTimer?.invalidate()
             currentTimer = nil
             currentPlayer?.stop()
@@ -351,12 +349,10 @@ struct ContentView: View {
             newPlayer.numberOfLoops = -1
             newPlayer.volume = 0.0
             newPlayer.play()
-
             let fadeDuration: Double = 2.0
             let fadeSteps: Int = 20
             let stepDuration = fadeDuration / Double(fadeSteps)
             let stepIncrement = 1.0 / Float(fadeSteps)
-
             currentTimer = Timer.scheduledTimer(withTimeInterval: stepDuration, repeats: true) { _ in
                 let currentVolume = newPlayer.volume
                 if currentVolume < 1.0 {
@@ -447,40 +443,32 @@ struct ContentView: View {
         if alarmPlayer != nil {
             return
         }
-
         stopTimer?.invalidate()
         stopTimer = nil
         isAlarmActive = true
-
         guard let idx = selectedAlarmIndex,
               idx >= 0 && idx < files.count,
               !files[idx].isEmpty else {
             return
         }
-
         let alarmFile = files[idx]
-        guard let url = Bundle.main.url(forResource: alarmFile, withExtension: "mp3") else {
-            print("Alarm audio file not found: \(alarmFile).mp3")
+        guard let url = Bundle.main.url(forResource: alarmFile, withExtension: "m4a") else {
+            print("Alarm audio file not found: \(alarmFile).m4a")
             return
         }
-
         fadeOutCurrent()
         UserDefaults.standard.removeObject(forKey: "lastWakeTime")
-
         do {
             try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
             try AVAudioSession.sharedInstance().setActive(true)
-
             let newPlayer = try AVAudioPlayer(contentsOf: url)
             newPlayer.numberOfLoops = -1
             newPlayer.volume = 0.0
             newPlayer.play()
-            
             let fadeDuration: Double = 0.5
             let fadeSteps: Int = 10
             let stepDuration = fadeDuration / Double(fadeSteps)
             let stepIncrement = 1.0 / Float(fadeSteps)
-
             let fadeTimer = Timer.scheduledTimer(withTimeInterval: stepDuration, repeats: true) { timer in
                 let currentVolume = newPlayer.volume
                 if currentVolume < 1.0 {
@@ -489,13 +477,10 @@ struct ContentView: View {
                     timer.invalidate()
                 }
             }
-            
             self.alarmPlayer = newPlayer
-
             let haptic = UINotificationFeedbackGenerator()
             haptic.notificationOccurred(.warning)
             self.hapticGenerator = haptic
-
             let interval = newPlayer.duration
             self.alarmTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { _ in
                 self.hapticGenerator?.notificationOccurred(.warning)

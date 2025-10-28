@@ -72,7 +72,8 @@ struct AlarmSelectionView: View {
                 let numRows: CGFloat = 4
                 let itemW = (availW - spacing * (numCols - 1)) / numCols
                 let maxItemH = (availH - spacing * (numRows - 1)) / numRows
-                let itemH = min(itemW * (isPad ? 0.7 : 1.1), maxItemH)
+//                let itemH = min(itemW * (isPad ? 0.7 : 1.1), maxItemH)
+                let itemH = min(itemW * (isPad ? 0.5 : 1.1), maxItemH)
                 let aspect = itemW / itemH
                 let isPortrait = geo.size.width < geo.size.height
                 let bottomPadding: CGFloat = isPad ? 120 : 90
@@ -180,8 +181,8 @@ struct AlarmSelectionView: View {
     
     private func playPreview(for index: Int) {
         let file = files[index]
-        guard let url = Bundle.main.url(forResource: file, withExtension: "mp3") else {
-            print("Preview file not found: \(file).mp3")
+        guard let url = Bundle.main.url(forResource: file, withExtension: "m4a") else {
+            print("Preview file not found: \(file).m4a")
             return
         }
         fadeMainTo(0.0)
