@@ -9,7 +9,18 @@ struct ContentView: View {
     @State private var currentPlayer: AVAudioPlayer? = nil
     @State private var currentTimer: Timer? = nil
     @State private var currentAudioFile: String? = nil
-    @State private var durationMinutes: Double = UserDefaults.standard.double(forKey: "durationMinutes")
+    
+//    @State private var durationMinutes: Double = UserDefaults.standard.double(forKey: "durationMinutes")
+    
+    @State private var durationMinutes: Double = {
+        let saved = UserDefaults.standard.double(forKey: "durationMinutes")
+        // If no active wake time, force infinite
+        if UserDefaults.standard.object(forKey: "lastWakeTime") == nil {
+            return 0.0
+        }
+        return saved
+    }()
+    
     @State private var stopTimer: Timer? = nil
     @State private var alarmPlayer: AVAudioPlayer? = nil
     @State private var alarmTimer: Timer? = nil
@@ -488,6 +499,12 @@ struct ContentView: View {
         } catch {
             print("Error playing alarm: \(error.localizedDescription)")
         }
+        
+        UserDefaults.standard.set(0.0, forKey: "durationMinutes")
+        durationMinutes = 0
+        UserDefaults.standard.removeObject(forKey: "lastWakeTime")
+        UserDefaults.standard.removeObject(forKey: "selectedAlarmIndex")
+        selectedAlarmIndex = nil
     }
 
     private func fadeOutAlarm(completion: (() -> Void)? = nil) {
@@ -530,6 +547,12 @@ struct ContentView: View {
                 completion?()
             }
         }
+        
+        UserDefaults.standard.set(0.0, forKey: "durationMinutes")
+        durationMinutes = 0
+        UserDefaults.standard.removeObject(forKey: "lastWakeTime")
+        UserDefaults.standard.removeObject(forKey: "selectedAlarmIndex")
+        selectedAlarmIndex = nil
     }
 }
 

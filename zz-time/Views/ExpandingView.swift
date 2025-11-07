@@ -31,10 +31,12 @@ struct ExpandingView: View {
     // Dictionary to map room indices (30-34) to custom titles
     private let customRoomTitles: [Int: String] = [
         30: "Satie: Trois Gymnopédies: No. 1, Lent et douloureux",
-        31: "Bach: Two-Part Invention No. 6 in E Major, BWV 777",
+//        31: "Bach: Two-Part Invention No. 6 in E Major, BWV 777",
+        31: "Brahms: Intermezzo in B Minor, Op. 119 No. 1",
         32: "Chopin: Prelude No. 21 in B-flat Major, Op. 28",
-        33: "Chopin: Prelude No. 2 in A Minor, Op. 28, Lento",
-        34: "Bach: Goldberg Variations: Variation 21, BWV 988"
+//        33: "Ravel: Piano Concerto in G Major, M. 83 – II. Adagio assai",
+        33: "Bach: Goldberg Variations 15 and 25, BWV 988",
+        34: "Bach: Goldberg Variation 21, BWV 988"
     ]
     
     var body: some View {
@@ -295,6 +297,20 @@ struct ExpandingView: View {
         }
     }
     
+//    private func updateDurationToRemaining() {
+//        if let wakeDate = UserDefaults.standard.object(forKey: "lastWakeTime") as? Date {
+//            let now = Date()
+//            let remainingMinutes = wakeDate.timeIntervalSince(now) / 60
+//            if remainingMinutes > 0 {
+//                durationMinutes = min(1440, remainingMinutes)
+//            } else {
+//                durationMinutes = 0
+//                UserDefaults.standard.removeObject(forKey: "lastWakeTime")
+//            }
+//            UserDefaults.standard.set(durationMinutes, forKey: "durationMinutes")
+//        }
+//    }
+    
     private func updateDurationToRemaining() {
         if let wakeDate = UserDefaults.standard.object(forKey: "lastWakeTime") as? Date {
             let now = Date()
@@ -302,10 +318,16 @@ struct ExpandingView: View {
             if remainingMinutes > 0 {
                 durationMinutes = min(1440, remainingMinutes)
             } else {
+                // EXPIRED: Force infinite
                 durationMinutes = 0
+                UserDefaults.standard.set(0.0, forKey: "durationMinutes")
                 UserDefaults.standard.removeObject(forKey: "lastWakeTime")
+                UserDefaults.standard.removeObject(forKey: "selectedAlarmIndex") // Clear sticky alarm
             }
-            UserDefaults.standard.set(durationMinutes, forKey: "durationMinutes")
+        } else {
+            // NO WAKE TIME: Ensure infinite
+            durationMinutes = 0
+            UserDefaults.standard.set(0.0, forKey: "durationMinutes")
         }
     }
 }
