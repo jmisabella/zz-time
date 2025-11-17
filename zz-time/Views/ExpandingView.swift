@@ -35,7 +35,7 @@ struct ExpandingView: View {
         31: "Brahms: Intermezzo in B Minor, Op. 119 No. 1",
         32: "Chopin: Prelude No. 21 in B-flat Major, Op. 28",
 //        33: "Ravel: Piano Concerto in G Major, M. 83 – II. Adagio assai",
-        33: "Bach: Goldberg Variations 15 and 25, BWV 988",
+        33: "Bach: Goldberg Variations 15, BWV 988",
         34: "Bach: Goldberg Variation 21, BWV 988"
     ]
     
