@@ -31,12 +31,11 @@ struct ExpandingView: View {
     // Dictionary to map room indices (30-34) to custom titles
     private let customRoomTitles: [Int: String] = [
         30: "Satie: Trois Gymnopédies: No. 1, Lent et douloureux",
-//        31: "Bach: Two-Part Invention No. 6 in E Major, BWV 777",
-        31: "Brahms: Intermezzo in B Minor, Op. 119 No. 1",
-        32: "Chopin: Prelude No. 21 in B-flat Major, Op. 28",
+        31: "J.S. Bach: Two-Part Invention No. 6 in E Major, BWV 777",
+        32: "Chopin: Prelude No. 2 in A minor, Op. 28, Lento",
 //        33: "Ravel: Piano Concerto in G Major, M. 83 – II. Adagio assai",
-        33: "Bach: Goldberg Variations 15, BWV 988",
-        34: "Bach: Goldberg Variation 21, BWV 988"
+        33: "J.S. Bach: Goldberg Variations 15, BWV 988",
+        34: "Schubert: Sonata No. 6 in E minor, II. Allegretto (excerpt)"
     ]
     
     var body: some View {
