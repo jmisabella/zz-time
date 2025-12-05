@@ -27,6 +27,8 @@ struct ExpandingView: View {
     @State private var tempWakeTime: Date = Date()
     @State private var usePlasmaStyle: Bool = Bool.random()
     @State private var remainingTimer: Timer? = nil
+    // Text-to-speech manager
+    @StateObject private var ttsManager = TextToSpeechManager()
     
     // Dictionary to map room indices (30-34) to custom titles
     private let customRoomTitles: [Int: String] = [
@@ -103,7 +105,7 @@ struct ExpandingView: View {
                     .foregroundColor((currentIndex < 10) ? Color(white: 0.7) : Color(white: 0.3))
                     .padding(.bottom, 20)
                 
-                HStack(spacing: 40) {
+                HStack(spacing: 30) {
                     Button {
                         dimMode = .duration(defaultDimDurationSeconds)
                         dimOverlayOpacity = 0
@@ -163,6 +165,20 @@ struct ExpandingView: View {
                         Image(systemName: "clock")
                             .font(.title)
                             .foregroundColor(Color(white: 0.7))
+                            .padding(10)
+                            .background(Circle().fill(Color.black.opacity(0.5)))
+                    }
+                    .contentShape(Circle())
+                    Button {
+                        if ttsManager.isSpeaking {
+                            ttsManager.stopSpeaking()
+                        } else {
+                            ttsManager.startSpeaking()
+                        }
+                    } label: {
+                        Image(systemName: ttsManager.isSpeaking ? "speaker.wave.3.fill" : "speaker.wave.2")
+                            .font(.title)
+                            .foregroundColor(ttsManager.isSpeaking ? Color.green : Color(white: 0.7))
                             .padding(10)
                             .background(Circle().fill(Color.black.opacity(0.5)))
                     }
@@ -230,6 +246,7 @@ struct ExpandingView: View {
         .onDisappear {
             remainingTimer?.invalidate()
             remainingTimer = nil
+            ttsManager.stopSpeaking()
         }
         .onChange(of: isAlarmActive) { _, newValue in
             if newValue {
