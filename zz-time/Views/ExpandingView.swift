@@ -147,7 +147,9 @@ struct ExpandingView: View {
                         if ttsManager.isSpeaking {
                             ttsManager.stopSpeaking()
                         } else {
-                            ttsManager.startSpeakingRandomMeditation()
+                            guard let text = ttsManager.getRandomMeditation() else { return }
+                            ttsManager.startSpeakingWithPauses(text)
+                            //ttsManager.startSpeakingRandomMeditation()
                         }
                     } label: {
                         Image(systemName: ttsManager.isSpeaking ? "leaf.fill" : "leaf")
@@ -174,7 +176,8 @@ struct ExpandingView: View {
                         .cornerRadius(8)
                         
                         Button("Play Custom Meditation") {
-                            ttsManager.startSpeakingCustomText(customMeditationText)
+                            ttsManager                                .startSpeakingWithPauses(customMeditationText)
+                        //    ttsManager.startSpeakingCustomText(customMeditationText)
                             showCustomMeditationOptions = false
                         }
                         .font(.caption)
@@ -311,10 +314,42 @@ struct ExpandingView: View {
         }
         .sheet(isPresented: $showCustomMeditationEditor) {
             NavigationView {
-                VStack {
+                VStack(alignment: .leading, spacing: 12) {
+                    // Instructions
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Enter your meditation text below.")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                        
+                        Text("Tip: Add pauses by putting (3s) after any sentence.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        
+                        Text("Example: \"Take a deep breath in. (3s)\"")
+                            .font(.caption)
+                            .italic()
+                            .foregroundColor(.secondary)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color.gray.opacity(0.1))
+                            .cornerRadius(4)
+                        
+                        Text("If you don't add pauses, the app will automatically add 2-second pauses between sentences.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.horizontal)
+                    .padding(.top, 8)
+                    
+                    // Text Editor
                     TextEditor(text: $customMeditationText)
                         .padding()
                         .font(.body)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                        )
+                        .padding(.horizontal)
                     
                     Spacer()
                     
