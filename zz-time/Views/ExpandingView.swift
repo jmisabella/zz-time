@@ -2,7 +2,7 @@ import SwiftUI
 
 struct ExpandingView: View {
     // Centralized dimming duration in minutes
-    private let defaultDimDurationMinutes: Double = 3
+    private let defaultDimDurationMinutes: Double = 10
     
     // Computed property to convert minutes to seconds
     private var defaultDimDurationSeconds: Double {
@@ -29,6 +29,11 @@ struct ExpandingView: View {
     @State private var remainingTimer: Timer? = nil
     // Text-to-speech manager
     @StateObject private var ttsManager = TextToSpeechManager()
+
+    // Custom meditation states
+    @State private var showCustomMeditationOptions: Bool = false
+    @State private var showCustomMeditationEditor: Bool = false
+    @State private var customMeditationText: String = UserDefaults.standard.string(forKey: "customMeditationText") ?? ""
     
     // Dictionary to map room indices (30-34) to custom titles
     private let customRoomTitles: [Int: String] = [
@@ -107,14 +112,8 @@ struct ExpandingView: View {
                 
                 HStack(spacing: 30) {
                     Button {
-                        dimMode = .duration(defaultDimDurationSeconds)
-                        dimOverlayOpacity = 0
-                        flashOverlayOpacity = 0.8
-                        withAnimation(.linear(duration: 0.5)) {
-                            flashOverlayOpacity = 0
-                        }
-                        withAnimation(.linear(duration: defaultDimDurationSeconds)) {
-                            dimOverlayOpacity = 1
+                        withAnimation {
+                            showCustomMeditationOptions.toggle()
                         }
                     } label: {
                         Image(systemName: "sun.max.fill")
@@ -126,32 +125,6 @@ struct ExpandingView: View {
                     .contentShape(Circle())
                     
                     Button {
-                        dimMode = .duration(4)
-                        dimOverlayOpacity = 0
-                        flashOverlayOpacity = 0
-                        withAnimation(.linear(duration: 4)) {
-                            dimOverlayOpacity = 1
-                        }
-                    } label: {
-                        Image(systemName: "moon.fill")
-                            .font(.title)
-                            .foregroundColor(Color(white: 0.7))
-                            .padding(10)
-                            .background(Circle().fill(Color.black.opacity(0.5)))
-                    }
-                    .contentShape(Circle())
-                    
-                    Button {
-//                        if let savedTime = UserDefaults.standard.object(forKey: "lastWakeTime") as? Date {
-//                            tempWakeTime = savedTime
-//                        } else {
-//                            let now = Date()
-//                            if durationMinutes > 0 {
-//                                tempWakeTime = now.addingTimeInterval(durationMinutes * 60)
-//                            } else {
-//                                tempWakeTime = Calendar.current.date(byAdding: .hour, value: 8, to: now) ?? now
-//                            }
-//                        }
                         let now = Date()
                         let calendar = Calendar.current
                         if let hour = UserDefaults.standard.object(forKey: "preferredWakeHour") as? Int,
@@ -164,6 +137,7 @@ struct ExpandingView: View {
                     } label: {
                         Image(systemName: "clock")
                             .font(.title)
+//                            .scaleEffect(1.2)
                             .foregroundColor(Color(white: 0.7))
                             .padding(10)
                             .background(Circle().fill(Color.black.opacity(0.5)))
@@ -173,10 +147,10 @@ struct ExpandingView: View {
                         if ttsManager.isSpeaking {
                             ttsManager.stopSpeaking()
                         } else {
-                            ttsManager.startSpeaking()
+                            ttsManager.startSpeakingRandomMeditation()
                         }
                     } label: {
-                        Image(systemName: ttsManager.isSpeaking ? "speaker.wave.3.fill" : "speaker.wave.2")
+                        Image(systemName: ttsManager.isSpeaking ? "leaf.fill" : "leaf")
                             .font(.title)
                             .foregroundColor(ttsManager.isSpeaking ? Color.green : Color(white: 0.7))
                             .padding(10)
@@ -184,9 +158,39 @@ struct ExpandingView: View {
                     }
                     .contentShape(Circle())
                 }
-                .padding(.bottom, 40)
+                
+                // Custom meditation option buttons
+                if showCustomMeditationOptions {
+                    HStack(spacing: 15) {
+                        Button("Enter Custom Meditation") {
+                            showCustomMeditationEditor = true
+                            showCustomMeditationOptions = false
+                        }
+                        .font(.caption)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(Color.white.opacity(0.2))
+                        .foregroundColor(.white)
+                        .cornerRadius(8)
+                        
+                        Button("Play Custom Meditation") {
+                            ttsManager.startSpeakingCustomText(customMeditationText)
+                            showCustomMeditationOptions = false
+                        }
+                        .font(.caption)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(customMeditationText.isEmpty ? Color.gray.opacity(0.3) : Color.white.opacity(0.2))
+                        .foregroundColor(customMeditationText.isEmpty ? Color.gray : .white)
+                        .cornerRadius(8)
+                        .disabled(customMeditationText.isEmpty)
+                    }
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                }
             }
+            .padding(.bottom, 40)
         }
+        
         .gesture(
             SimultaneousGesture(
                 TapGesture()
@@ -236,12 +240,6 @@ struct ExpandingView: View {
                     }
                 }
             }
-//            if let wakeDate = UserDefaults.standard.object(forKey: "lastWakeTime") as? Date, wakeDate > Date() {
-//                updateDurationToRemaining()
-//                remainingTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { _ in
-//                    updateDurationToRemaining()
-//                }
-//            }
         }
         .onDisappear {
             remainingTimer?.invalidate()
@@ -310,6 +308,39 @@ struct ExpandingView: View {
             }
             .padding()
             .presentationDetents([.medium])
+        }
+        .sheet(isPresented: $showCustomMeditationEditor) {
+            NavigationView {
+                VStack {
+                    TextEditor(text: $customMeditationText)
+                        .padding()
+                        .font(.body)
+                    
+                    Spacer()
+                    
+                    Button("Save") {
+                        UserDefaults.standard.set(customMeditationText, forKey: "customMeditationText")
+                        showCustomMeditationEditor = false
+                    }
+                    .font(.headline)
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(8)
+                    .padding(.horizontal)
+                }
+                .navigationTitle("Custom Meditation")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancel") {
+                            showCustomMeditationEditor = false
+                        }
+                    }
+                }
+            }
+            .presentationDetents([.large])
         }
     }
     

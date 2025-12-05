@@ -11,6 +11,7 @@ class TextToSpeechManager: ObservableObject {
     private let speechDelegate: SpeechDelegate
     private var repeatCount = 0
     private let maxRepeats = 10
+    private var isCustomMode: Bool = false
     
     init() {
         let delegate = SpeechDelegate()
@@ -24,9 +25,80 @@ class TextToSpeechManager: ObservableObject {
         guard !isSpeaking else { return }
         
         isSpeaking = true
+        isCustomMode = false
         repeatCount = 0
         speakNextPhrase()
     }
+    
+    /// Starts speaking custom text (only once, no repeating)
+    func startSpeakingCustomText(_ text: String) {
+        guard !isSpeaking else { return }
+        guard !text.isEmpty else { return }
+        
+        isSpeaking = true
+        isCustomMode = true
+        
+        let utterance = AVSpeechUtterance(string: text)
+        utterance.rate = AVSpeechUtteranceDefaultSpeechRate
+        utterance.pitchMultiplier = 1.0
+        utterance.volume = 0.3
+        
+        if let voice = AVSpeechSynthesisVoice(language: "en-US") {
+            utterance.voice = voice
+        }
+        
+        synthesizer.speak(utterance)
+    }
+    
+    /// Starts speaking a random meditation from text files
+    func startSpeakingRandomMeditation() {
+        guard !isSpeaking else { return }
+        
+        // Try to load a random meditation file
+        guard let meditationText = loadRandomMeditationFile() else {
+            print("No meditation files found")
+            return
+        }
+        
+        isSpeaking = true
+        isCustomMode = true  // Treat like custom - play once, don't repeat
+        
+        let utterance = AVSpeechUtterance(string: meditationText)
+        utterance.rate = AVSpeechUtteranceDefaultSpeechRate
+        utterance.pitchMultiplier = 1.0
+        utterance.volume = 0.3
+        
+        if let voice = AVSpeechSynthesisVoice(language: "en-US") {
+            utterance.voice = voice
+        }
+        
+        synthesizer.speak(utterance)
+    }
+        
+        /// Loads a random meditation text file from the bundle
+        private func loadRandomMeditationFile() -> String? {
+            // Get all .txt files from the Meditations folder
+            guard let urls = Bundle.main.urls(forResourcesWithExtension: "txt", subdirectory: nil) else {
+                print("Meditations folder not found")
+                return nil
+            }
+            
+            guard !urls.isEmpty else {
+                print("No meditation text files found")
+                return nil
+            }
+            
+            // Pick a random file
+            let randomURL = urls.randomElement()!
+            
+            // Load the text
+            guard let text = try? String(contentsOf: randomURL, encoding: .utf8) else {
+                print("Could not read meditation file")
+                return nil
+            }
+            
+            return text.trimmingCharacters(in: .whitespacesAndNewlines)
+        }
     
     /// Stops speaking immediately
     func stopSpeaking() {
@@ -46,7 +118,7 @@ class TextToSpeechManager: ObservableObject {
         // Configure the voice - using the default system voice
         utterance.rate = AVSpeechUtteranceDefaultSpeechRate
         utterance.pitchMultiplier = 1.0
-        utterance.volume = 0.8
+        utterance.volume = 0.3
         
         // Use default US English voice
         if let voice = AVSpeechSynthesisVoice(language: "en-US") {
@@ -59,6 +131,13 @@ class TextToSpeechManager: ObservableObject {
     
     // Called by the delegate when speech finishes
     fileprivate func didFinishSpeaking() {
+        // If custom mode, just stop - don't repeat
+        if isCustomMode {
+            isSpeaking = false
+            isCustomMode = false
+            return
+        }
+        
         if repeatCount < maxRepeats {
             // Small pause between repetitions
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
