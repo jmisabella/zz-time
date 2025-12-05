@@ -28,6 +28,16 @@ struct ExpandingView: View {
     @State private var usePlasmaStyle: Bool = Bool.random()
     @State private var remainingTimer: Timer? = nil
     
+    // Dictionary to map room indices (30-34) to custom titles
+    private let customRoomTitles: [Int: String] = [
+        30: "Satie: Trois Gymnopédies: No. 1, Lent et douloureux",
+        31: "J.S. Bach: Two-Part Invention No. 6 in E Major, BWV 777",
+        32: "Chopin: Prelude No. 2 in A minor, Op. 28, Lento",
+//        33: "Ravel: Piano Concerto in G Major, M. 83 – II. Adagio assai",
+        33: "J.S. Bach: Goldberg Variations 15, BWV 988",
+        34: "Schubert: Sonata No. 6 in E minor, II. Allegretto (excerpt)"
+    ]
+    
     var body: some View {
         ZStack {
             ZStack {
@@ -88,7 +98,7 @@ struct ExpandingView: View {
                 
                 Spacer()
                 
-                Text("room \(currentIndex + 1)")
+                Text(customRoomTitles[currentIndex] ?? "room \(currentIndex + 1)")
                     .font(.system(size: 14, weight: .light, design: .rounded))
                     .foregroundColor((currentIndex < 10) ? Color(white: 0.7) : Color(white: 0.3))
                     .padding(.bottom, 20)
@@ -286,6 +296,20 @@ struct ExpandingView: View {
         }
     }
     
+//    private func updateDurationToRemaining() {
+//        if let wakeDate = UserDefaults.standard.object(forKey: "lastWakeTime") as? Date {
+//            let now = Date()
+//            let remainingMinutes = wakeDate.timeIntervalSince(now) / 60
+//            if remainingMinutes > 0 {
+//                durationMinutes = min(1440, remainingMinutes)
+//            } else {
+//                durationMinutes = 0
+//                UserDefaults.standard.removeObject(forKey: "lastWakeTime")
+//            }
+//            UserDefaults.standard.set(durationMinutes, forKey: "durationMinutes")
+//        }
+//    }
+    
     private func updateDurationToRemaining() {
         if let wakeDate = UserDefaults.standard.object(forKey: "lastWakeTime") as? Date {
             let now = Date()
@@ -293,10 +317,16 @@ struct ExpandingView: View {
             if remainingMinutes > 0 {
                 durationMinutes = min(1440, remainingMinutes)
             } else {
+                // EXPIRED: Force infinite
                 durationMinutes = 0
+                UserDefaults.standard.set(0.0, forKey: "durationMinutes")
                 UserDefaults.standard.removeObject(forKey: "lastWakeTime")
+                UserDefaults.standard.removeObject(forKey: "selectedAlarmIndex") // Clear sticky alarm
             }
-            UserDefaults.standard.set(durationMinutes, forKey: "durationMinutes")
+        } else {
+            // NO WAKE TIME: Ensure infinite
+            durationMinutes = 0
+            UserDefaults.standard.set(0.0, forKey: "durationMinutes")
         }
     }
 }
