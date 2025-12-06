@@ -218,30 +218,33 @@ class TextToSpeechManager: ObservableObject {
         return result
     }
         
-        /// Loads a random meditation text file from the bundle
-        private func loadRandomMeditationFile() -> String? {
-            // Get all .txt files from the Meditations folder
-            guard let urls = Bundle.main.urls(forResourcesWithExtension: "txt", subdirectory: nil) else {
-                print("Meditations folder not found")
-                return nil
+    /// Loads a random meditation text file from the bundle (preset-meditation1.txt through preset-meditation10.txt only)
+    private func loadRandomMeditationFile() -> String? {
+        // Only load preset meditation files (preset-meditation1.txt through preset-meditation10.txt)
+        var validURLs: [URL] = []
+        
+        for i in 1...10 {
+            if let url = Bundle.main.url(forResource: "preset-meditation\(i)", withExtension: "txt") {
+                validURLs.append(url)
             }
-            
-            guard !urls.isEmpty else {
-                print("No meditation text files found")
-                return nil
-            }
-            
-            // Pick a random file
-            let randomURL = urls.randomElement()!
-            
-            // Load the text
-            guard let text = try? String(contentsOf: randomURL, encoding: .utf8) else {
-                print("Could not read meditation file")
-                return nil
-            }
-            
-            return text.trimmingCharacters(in: .whitespacesAndNewlines)
         }
+        
+        guard !validURLs.isEmpty else {
+            print("No preset meditation files found")
+            return nil
+        }
+        
+        // Pick a random preset meditation file
+        let randomURL = validURLs.randomElement()!
+        
+        // Load the text
+        guard let text = try? String(contentsOf: randomURL, encoding: .utf8) else {
+            print("Could not read preset meditation file")
+            return nil
+        }
+        
+        return text.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
     
     /// Stops speaking immediately
     func stopSpeaking() {

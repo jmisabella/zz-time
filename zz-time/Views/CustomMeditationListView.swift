@@ -85,6 +85,9 @@ struct CustomMeditationListView: View {
                     },
                     onEdit: {
                         editingMeditation = meditation
+                    },
+                    onDuplicate: {
+                        manager.duplicateMeditation(meditation)
                     }
                 )
             }
@@ -115,6 +118,7 @@ struct MeditationRowView: View {
     let meditation: CustomMeditation
     let onPlay: () -> Void
     let onEdit: () -> Void
+    let onDuplicate: () -> Void
     
     var body: some View {
         HStack {
@@ -129,6 +133,13 @@ struct MeditationRowView: View {
             }
             
             Spacer()
+            
+            Button(action: onDuplicate) {
+                Image(systemName: "doc.on.doc.fill")
+                    .font(.title3)
+                    .foregroundColor(.blue)
+            }
+            .buttonStyle(PlainButtonStyle())
             
             Button(action: onPlay) {
                 Image(systemName: "play.circle.fill")
