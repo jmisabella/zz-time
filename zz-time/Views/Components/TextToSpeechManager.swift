@@ -6,19 +6,52 @@ import SwiftUI
 @MainActor
 class TextToSpeechManager: ObservableObject {
     @Published var isSpeaking: Bool = false
+    @Published var isPlayingMeditation: Bool = false
+    @Published var audioBalance: Double = 0.0  // -1.0 (all ambient) to 1.0 (all voice), 0.0 = 50/50
     
-    private static let meditationSpeechRate: Float = 0.45  // Calm, slow rate for meditation
+    private static let meditationSpeechRate: Float = 0.33  // Calm, slow rate for meditation
     private let synthesizer = AVSpeechSynthesizer()
     private let speechDelegate: SpeechDelegate
     private var repeatCount = 0
     private let maxRepeats = 10
     private var isCustomMode: Bool = false
+    private var queuedUtteranceCount: Int = 0
+    
+    // Callback to notify when ambient volume changes
+    var onAmbientVolumeChanged: ((Float) -> Void)? = nil
+    
+    let voiceVolume: Float = 0.15
+    
+//    // Computed volume properties based on balance
+//    var voiceVolume: Float {
+//        // Balance ranges from -1 (all ambient) to 1 (all voice)
+//        // At -1: voice = 0.0
+//        // At 0: voice = 0.3 (50/50 mix)
+//        // At 1: voice = 0.6 (all voice)
+//        let normalizedBalance = (audioBalance + 1.0) / 2.0  // Convert -1...1 to 0...1
+////        return Float(normalizedBalance * 0.6)
+//        return Float(normalizedBalance * 0.6)
+//    }
+    
+    var ambientVolume: Float {
+        // Balance ranges from -1 (all ambient) to 1 (all voice)
+        // At -1: ambient = 0.6 (all ambient)
+        // At 0: ambient = 0.3 (50/50 mix)
+        // At 1: ambient = 0.0
+        let normalizedBalance = (audioBalance + 1.0) / 2.0  // Convert -1...1 to 0...1
+        return Float((1.0 - normalizedBalance) * 0.6)
+    }
     
     init() {
         let delegate = SpeechDelegate()
         speechDelegate = delegate
         synthesizer.delegate = speechDelegate
         delegate.manager = self
+    }
+    
+    /// Call this whenever the balance changes to notify the callback
+    func updateVolumesFromBalance() {
+        onAmbientVolumeChanged?(ambientVolume)
     }
     
     /// Starts speaking the test phrase, repeating 10 times
@@ -42,7 +75,7 @@ class TextToSpeechManager: ObservableObject {
         let utterance = AVSpeechUtterance(string: text)
         utterance.rate = AVSpeechUtteranceDefaultSpeechRate * Self.meditationSpeechRate
         utterance.pitchMultiplier = 1.0
-        utterance.volume = 0.3
+        utterance.volume = voiceVolume
         
         if let voice = AVSpeechSynthesisVoice(language: "en-US") {
             utterance.voice = voice
@@ -76,7 +109,7 @@ class TextToSpeechManager: ObservableObject {
         let utterance = AVSpeechUtterance(string: meditationText)
         utterance.rate = AVSpeechUtteranceDefaultSpeechRate * Self.meditationSpeechRate
         utterance.pitchMultiplier = 1.0
-        utterance.volume = 0.3
+        utterance.volume = voiceVolume
         
         if let voice = AVSpeechSynthesisVoice(language: "en-US") {
             utterance.voice = voice
@@ -126,11 +159,11 @@ class TextToSpeechManager: ObservableObject {
     }
     
     /// Starts speaking text with embedded pauses like "(4s)" – splits into utterances automatically
-    /// Starts speaking text with embedded pauses like "(4s)" – splits into utterances automatically
     func startSpeakingWithPauses(_ text: String) {
         guard !isSpeaking, !text.isEmpty else { return }
         
         isSpeaking = true
+        isPlayingMeditation = true
         isCustomMode = true
         
         // Check if text has any pause markers
@@ -143,21 +176,24 @@ class TextToSpeechManager: ObservableObject {
         // First, let's parse the text more carefully to handle mid-sentence pauses
         let phrases = extractPhrasesWithPauses(from: processedText)
         
+        // Reset and set the count of utterances we're about to queue
+        queuedUtteranceCount = 0
+        
         for (phrase, delay) in phrases {
             guard !phrase.isEmpty else { continue }
             
             let utterance = AVSpeechUtterance(string: phrase)
             utterance.rate = AVSpeechUtteranceDefaultSpeechRate * Self.meditationSpeechRate
             utterance.pitchMultiplier = 1.0
-            utterance.volume = 0.3
+            utterance.volume = voiceVolume
             utterance.postUtteranceDelay = delay
             utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
             
+            queuedUtteranceCount += 1
             synthesizer.speak(utterance)
         }
     }
 
-    /// Extracts phrases and their associated pauses from text
     /// Extracts phrases and their associated pauses from text
     private func extractPhrasesWithPauses(from text: String) -> [(phrase: String, delay: TimeInterval)] {
         var result: [(String, TimeInterval)] = []
@@ -250,7 +286,9 @@ class TextToSpeechManager: ObservableObject {
     func stopSpeaking() {
         synthesizer.stopSpeaking(at: .immediate)
         isSpeaking = false
+        isPlayingMeditation = false
         repeatCount = 0
+        queuedUtteranceCount = 0
     }
     
     private func speakNextPhrase() {
@@ -264,7 +302,7 @@ class TextToSpeechManager: ObservableObject {
         // Configure the voice - using the default system voice
         utterance.rate = AVSpeechUtteranceDefaultSpeechRate * Self.meditationSpeechRate
         utterance.pitchMultiplier = 1.0
-        utterance.volume = 0.3
+        utterance.volume = voiceVolume
         
         // Use default US English voice
         if let voice = AVSpeechSynthesisVoice(language: "en-US") {
@@ -277,10 +315,17 @@ class TextToSpeechManager: ObservableObject {
     
     // Called by the delegate when speech finishes
     fileprivate func didFinishSpeaking() {
-        // If custom mode, just stop - don't repeat
+        // If custom mode, decrement the queue counter
         if isCustomMode {
-            isSpeaking = false
-            isCustomMode = false
+            queuedUtteranceCount -= 1
+            
+            // Only stop when all utterances are done
+            if queuedUtteranceCount <= 0 {
+                isSpeaking = false
+                isPlayingMeditation = false
+                isCustomMode = false
+                queuedUtteranceCount = 0
+            }
             return
         }
         

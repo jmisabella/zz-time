@@ -17,8 +17,10 @@ struct ExpandingView: View {
     let currentIndex: Int
     let maxIndex: Int
     let selectAlarm: () -> Void
+    var onAmbientVolumeChanged: ((Float) -> Void)? = nil  // Callback to update ambient volume
 
     @State private var showLabel: Bool = false
+    @State private var showBalanceLabel: Bool = false
     @State private var dimOverlayOpacity: Double = 0.0
     @State private var flashOverlayOpacity: Double = 0.0
     @State private var dimMode: DimMode = .duration(0)  // Will be set in onAppear
@@ -69,6 +71,7 @@ struct ExpandingView: View {
             }
             
             VStack {
+                // Duration slider
                 CustomSlider(
                     value: $durationMinutes,
                     minValue: 0,
@@ -105,6 +108,35 @@ struct ExpandingView: View {
                     
                     Text(text)
                         .font(.title)
+                        .foregroundColor(.white)
+                        .padding()
+                        .background(Color.black.opacity(0.5))
+                        .cornerRadius(8)
+                }
+                
+                // Audio balance slider
+                BalanceSlider(
+                    value: $ttsManager.audioBalance,
+                    onEditingChanged: { editing in
+                        showBalanceLabel = editing
+                    }
+                )
+                .padding(.horizontal, 40)
+                .padding(.top, 8)
+                .onChange(of: ttsManager.audioBalance) { _, _ in
+                    ttsManager.updateVolumesFromBalance()
+                }
+                
+                if showBalanceLabel {
+                    let balanceText: String = {
+                        let balance = ttsManager.audioBalance
+                        let ambientPercent = Int((1.0 - balance) / 2.0 * 100)
+                        let voicePercent = Int((balance + 1.0) / 2.0 * 100)
+                        return "ambient \(ambientPercent)% • voice \(voicePercent)%"
+                    }()
+                    
+                    Text(balanceText)
+                        .font(.title3)
                         .foregroundColor(.white)
                         .padding()
                         .background(Color.black.opacity(0.5))
@@ -170,7 +202,7 @@ struct ExpandingView: View {
                     }
                     .contentShape(Circle())
                     Button {
-                        if ttsManager.isSpeaking {
+                        if ttsManager.isPlayingMeditation {
                             ttsManager.stopSpeaking()
                         } else {
                             guard let text = ttsManager.getRandomMeditation()
@@ -180,12 +212,12 @@ struct ExpandingView: View {
                         }
                     } label: {
                         Image(
-                            systemName: ttsManager.isSpeaking
+                            systemName: ttsManager.isPlayingMeditation
                             ? "leaf.fill" : "leaf"
                         )
                         .font(.title)
                         .foregroundColor(
-                            ttsManager.isSpeaking
+                            ttsManager.isPlayingMeditation
                             ? Color.green : Color(white: 0.7)
                         )
                         .padding(10)
@@ -227,6 +259,10 @@ struct ExpandingView: View {
             )
         )
         .onAppear {
+            // Set up the ambient volume callback
+            ttsManager.onAmbientVolumeChanged = onAmbientVolumeChanged
+            ttsManager.updateVolumesFromBalance()
+            
             dimMode = .duration(defaultDimDurationSeconds)
             if case .duration(let seconds) = dimMode {
                 flashOverlayOpacity = 0
@@ -349,21 +385,6 @@ struct ExpandingView: View {
                 }
             )
         }
-        
-        //    private func updateDurationToRemaining() {
-        //        if let wakeDate = UserDefaults.standard.object(forKey: "lastWakeTime") as? Date {
-        //            let now = Date()
-        //            let remainingMinutes = wakeDate.timeIntervalSince(now) / 60
-        //            if remainingMinutes > 0 {
-        //                durationMinutes = min(1440, remainingMinutes)
-        //            } else {
-        //                durationMinutes = 0
-        //                UserDefaults.standard.removeObject(forKey: "lastWakeTime")
-        //            }
-        //            UserDefaults.standard.set(durationMinutes, forKey: "durationMinutes")
-        //        }
-        //    }
-        
     }
     
     private func updateDurationToRemaining() {
@@ -388,3 +409,4 @@ struct ExpandingView: View {
         }
     }
 }
+
