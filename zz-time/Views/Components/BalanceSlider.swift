@@ -25,7 +25,7 @@ struct BalanceSlider: UIViewRepresentable {
     }
     
     func updateUIView(_ uiView: UISlider, context: Context) {
-        uiView.value = Float(value)
+        uiView.value = Float(-value)  // Invert the value
         uiView.setThumbImage(customThumbImage(), for: .normal)
     }
     
@@ -50,7 +50,7 @@ struct BalanceSlider: UIViewRepresentable {
         }
         
         @objc func valueChanged(_ sender: UISlider) {
-            parent.value = Double(sender.value)
+            parent.value = Double(-sender.value)  // Invert the value
         }
         
         @objc func touchDown(_ sender: UISlider) {

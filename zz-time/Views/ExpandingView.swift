@@ -132,7 +132,8 @@ struct ExpandingView: View {
                         let balance = ttsManager.audioBalance
                         let ambientPercent = Int((1.0 - balance) / 2.0 * 100)
                         let voicePercent = Int((balance + 1.0) / 2.0 * 100)
-                        return "ambient \(ambientPercent)% • voice \(voicePercent)%"
+//                        return "ambient \(ambientPercent)% • voice \(voicePercent)%"
+                        return "ambient \(ambientPercent)%"
                     }()
                     
                     Text(balanceText)
