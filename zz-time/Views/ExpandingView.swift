@@ -3,12 +3,12 @@ import SwiftUI
 struct ExpandingView: View {
     // Centralized dimming duration in minutes
     private let defaultDimDurationMinutes: Double = 10
-    
+
     // Computed property to convert minutes to seconds
     private var defaultDimDurationSeconds: Double {
         defaultDimDurationMinutes * 60
     }
-    
+
     let color: Color
     let dismiss: () -> Void
     @Binding var durationMinutes: Double
@@ -17,11 +17,11 @@ struct ExpandingView: View {
     let currentIndex: Int
     let maxIndex: Int
     let selectAlarm: () -> Void
-    
+
     @State private var showLabel: Bool = false
     @State private var dimOverlayOpacity: Double = 0.0
     @State private var flashOverlayOpacity: Double = 0.0
-    @State private var dimMode: DimMode = .duration(0) // Will be set in onAppear
+    @State private var dimMode: DimMode = .duration(0)  // Will be set in onAppear
     @State private var roomChangeTrigger: Bool = false
     @State private var showTimePicker: Bool = false
     @State private var tempWakeTime: Date = Date()
@@ -30,21 +30,20 @@ struct ExpandingView: View {
     // Text-to-speech manager
     @StateObject private var ttsManager = TextToSpeechManager()
 
-    // Custom meditation states
-    @State private var showCustomMeditationOptions: Bool = false
-    @State private var showCustomMeditationEditor: Bool = false
-    @State private var customMeditationText: String = UserDefaults.standard.string(forKey: "customMeditationText") ?? ""
-    
+    // Custom meditation manager
+    @StateObject private var meditationManager = CustomMeditationManager()
+    @State private var showMeditationList: Bool = false
+
     // Dictionary to map room indices (30-34) to custom titles
     private let customRoomTitles: [Int: String] = [
         30: "Satie: Trois Gymnopédies: No. 1, Lent et douloureux",
         31: "J.S. Bach: Two-Part Invention No. 6 in E Major, BWV 777",
         32: "Chopin: Prelude No. 2 in A minor, Op. 28, Lento",
-//        33: "Ravel: Piano Concerto in G Major, M. 83 – II. Adagio assai",
+        //        33: "Ravel: Piano Concerto in G Major, M. 83 – II. Adagio assai",
         33: "J.S. Bach: Goldberg Variations 15, BWV 988",
-        34: "Schubert: Sonata No. 6 in E minor, II. Allegretto (excerpt)"
+        34: "Schubert: Sonata No. 6 in E minor, II. Allegretto (excerpt)",
     ]
-    
+
     var body: some View {
         ZStack {
             ZStack {
@@ -55,7 +54,11 @@ struct ExpandingView: View {
                 }
                 
                 Rectangle()
-                    .fill(isAlarmActive ? Color(hue: 0.58, saturation: 0.3, brightness: 0.9) : .black)
+                    .fill(
+                        isAlarmActive
+                        ? Color(hue: 0.58, saturation: 0.3, brightness: 0.9)
+                        : .black
+                    )
                     .opacity(dimOverlayOpacity)
                     .ignoresSafeArea()
                 
@@ -69,7 +72,7 @@ struct ExpandingView: View {
                 CustomSlider(
                     value: $durationMinutes,
                     minValue: 0,
-                    maxValue: 1440, // 24 hours in minutes
+                    maxValue: 1440,  // 24 hours in minutes
                     step: 1,
                     onEditingChanged: { editing in
                         showLabel = editing
@@ -86,11 +89,16 @@ struct ExpandingView: View {
                             return "\(minutes) minute\(minutes == 1 ? "" : "s")"
                         } else {
                             let hours = Int(durationMinutes / 60)
-                            let minutes = Int(durationMinutes.truncatingRemainder(dividingBy: 60))
+                            let minutes = Int(
+                                durationMinutes.truncatingRemainder(
+                                    dividingBy: 60
+                                )
+                            )
                             if minutes == 0 {
                                 return "\(hours) hour\(hours == 1 ? "" : "s")"
                             } else {
-                                return "\(hours) hour\(hours == 1 ? "" : "s"), \(minutes) minute\(minutes == 1 ? "" : "s")"
+                                return
+                                "\(hours) hour\(hours == 1 ? "" : "s"), \(minutes) minute\(minutes == 1 ? "" : "s")"
                             }
                         }
                     }()
@@ -105,18 +113,20 @@ struct ExpandingView: View {
                 
                 Spacer()
                 
-                Text(customRoomTitles[currentIndex] ?? "room \(currentIndex + 1)")
-                    .font(.system(size: 14, weight: .light, design: .rounded))
-                    .foregroundColor((currentIndex < 10) ? Color(white: 0.7) : Color(white: 0.3))
-                    .padding(.bottom, 20)
+                Text(
+                    customRoomTitles[currentIndex] ?? "room \(currentIndex + 1)"
+                )
+                .font(.system(size: 14, weight: .light, design: .rounded))
+                .foregroundColor(
+                    (currentIndex < 10) ? Color(white: 0.7) : Color(white: 0.3)
+                )
+                .padding(.bottom, 20)
                 
                 HStack(spacing: 30) {
                     Button {
-                        withAnimation {
-                            showCustomMeditationOptions.toggle()
-                        }
+                        showMeditationList = true
                     } label: {
-                        Image(systemName: "sun.max.fill")
+                        Image(systemName: "text.quote")
                             .font(.title)
                             .foregroundColor(Color(white: 0.7))
                             .padding(10)
@@ -127,17 +137,33 @@ struct ExpandingView: View {
                     Button {
                         let now = Date()
                         let calendar = Calendar.current
-                        if let hour = UserDefaults.standard.object(forKey: "preferredWakeHour") as? Int,
-                           let minute = UserDefaults.standard.object(forKey: "preferredWakeMinute") as? Int {
-                            tempWakeTime = calendar.date(bySettingHour: hour, minute: minute, second: 0, of: now) ?? now
+                        if let hour = UserDefaults.standard.object(
+                            forKey: "preferredWakeHour"
+                        ) as? Int,
+                           let minute = UserDefaults.standard.object(
+                            forKey: "preferredWakeMinute"
+                           ) as? Int
+                        {
+                            tempWakeTime =
+                            calendar.date(
+                                bySettingHour: hour,
+                                minute: minute,
+                                second: 0,
+                                of: now
+                            ) ?? now
                         } else {
-                            tempWakeTime = calendar.date(byAdding: .hour, value: 8, to: now) ?? now
+                            tempWakeTime =
+                            calendar.date(
+                                byAdding: .hour,
+                                value: 8,
+                                to: now
+                            ) ?? now
                         }
                         showTimePicker = true
                     } label: {
                         Image(systemName: "clock")
                             .font(.title)
-//                            .scaleEffect(1.2)
+                        //                            .scaleEffect(1.2)
                             .foregroundColor(Color(white: 0.7))
                             .padding(10)
                             .background(Circle().fill(Color.black.opacity(0.5)))
@@ -147,116 +173,115 @@ struct ExpandingView: View {
                         if ttsManager.isSpeaking {
                             ttsManager.stopSpeaking()
                         } else {
-                            guard let text = ttsManager.getRandomMeditation() else { return }
+                            guard let text = ttsManager.getRandomMeditation()
+                            else { return }
                             ttsManager.startSpeakingWithPauses(text)
                             //ttsManager.startSpeakingRandomMeditation()
                         }
                     } label: {
-                        Image(systemName: ttsManager.isSpeaking ? "leaf.fill" : "leaf")
-                            .font(.title)
-                            .foregroundColor(ttsManager.isSpeaking ? Color.green : Color(white: 0.7))
-                            .padding(10)
-                            .background(Circle().fill(Color.black.opacity(0.5)))
+                        Image(
+                            systemName: ttsManager.isSpeaking
+                            ? "leaf.fill" : "leaf"
+                        )
+                        .font(.title)
+                        .foregroundColor(
+                            ttsManager.isSpeaking
+                            ? Color.green : Color(white: 0.7)
+                        )
+                        .padding(10)
+                        .background(Circle().fill(Color.black.opacity(0.5)))
                     }
                     .contentShape(Circle())
                 }
                 
-                // Custom meditation option buttons
-                if showCustomMeditationOptions {
-                    HStack(spacing: 15) {
-                        Button("Enter Custom Meditation") {
-                            showCustomMeditationEditor = true
-                            showCustomMeditationOptions = false
-                        }
-                        .font(.caption)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
-                        .background(Color.white.opacity(0.2))
-                        .foregroundColor(.white)
-                        .cornerRadius(8)
-                        
-                        Button("Play Custom Meditation") {
-                            ttsManager                                .startSpeakingWithPauses(customMeditationText)
-                        //    ttsManager.startSpeakingCustomText(customMeditationText)
-                            showCustomMeditationOptions = false
-                        }
-                        .font(.caption)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
-                        .background(customMeditationText.isEmpty ? Color.gray.opacity(0.3) : Color.white.opacity(0.2))
-                        .foregroundColor(customMeditationText.isEmpty ? Color.gray : .white)
-                        .cornerRadius(8)
-                        .disabled(customMeditationText.isEmpty)
-                    }
-                    .transition(.move(edge: .top).combined(with: .opacity))
-                }
             }
-            .padding(.bottom, 40)
-        }
-        
-        .gesture(
-            SimultaneousGesture(
-                TapGesture()
-                    .onEnded { _ in
-                        print("Background tapped")
-                        withAnimation(.easeInOut(duration: 0.3)) {
-                            dismiss()
-                        }
-                    },
-                DragGesture(minimumDistance: 20, coordinateSpace: .global)
-                    .onEnded { value in
-                        let translationHeight = value.translation.height
-                        let translationWidth = value.translation.width
-                        if translationHeight < -50 {
-                            selectAlarm()
-                        } else if translationHeight > 100 {
+            
+            .gesture(
+                SimultaneousGesture(
+                    TapGesture()
+                        .onEnded { _ in
+                            print("Background tapped")
                             withAnimation(.easeInOut(duration: 0.3)) {
                                 dismiss()
                             }
-                        } else if translationWidth < -50 {
-                            changeRoom(1)
-                            roomChangeTrigger.toggle()
-                        } else if translationWidth > 50 {
-                            changeRoom(-1)
-                            roomChangeTrigger.toggle()
+                        },
+                    DragGesture(minimumDistance: 20, coordinateSpace: .global)
+                        .onEnded { value in
+                            let translationHeight = value.translation.height
+                            let translationWidth = value.translation.width
+                            if translationHeight < -50 {
+                                selectAlarm()
+                            } else if translationHeight > 100 {
+                                withAnimation(.easeInOut(duration: 0.3)) {
+                                    dismiss()
+                                }
+                            } else if translationWidth < -50 {
+                                changeRoom(1)
+                                roomChangeTrigger.toggle()
+                            } else if translationWidth > 50 {
+                                changeRoom(-1)
+                                roomChangeTrigger.toggle()
+                            }
+                        }
+                )
+            )
+            .onAppear {
+                dimMode = .duration(defaultDimDurationSeconds)
+                if case .duration(let seconds) = dimMode {
+                    flashOverlayOpacity = 0
+                    withAnimation(.linear(duration: seconds)) {
+                        dimOverlayOpacity = 1
+                    }
+                }
+                // Always check lastWakeTime, even if past
+                if let wakeDate = UserDefaults.standard.object(
+                    forKey: "lastWakeTime"
+                ) as? Date {
+                    updateDurationToRemaining()  // Clear stale duration if past
+                    // After update, check if wake time is still future
+                    if let updatedWakeDate = UserDefaults.standard.object(
+                        forKey: "lastWakeTime"
+                    ) as? Date,
+                       updatedWakeDate > Date()
+                    {
+                        updateDurationToRemaining()  // Ensure sync
+                        remainingTimer = Timer.scheduledTimer(
+                            withTimeInterval: 60,
+                            repeats: true
+                        ) { _ in
+                            updateDurationToRemaining()
                         }
                     }
-            )
-        )
-        .onAppear {
-            dimMode = .duration(defaultDimDurationSeconds)
-            if case .duration(let seconds) = dimMode {
-                flashOverlayOpacity = 0
-                withAnimation(.linear(duration: seconds)) {
-                    dimOverlayOpacity = 1
                 }
             }
-            // Always check lastWakeTime, even if past
-            if let wakeDate = UserDefaults.standard.object(forKey: "lastWakeTime") as? Date {
-                updateDurationToRemaining() // Clear stale duration if past
-                // After update, check if wake time is still future
-                if let updatedWakeDate = UserDefaults.standard.object(forKey: "lastWakeTime") as? Date,
-                   updatedWakeDate > Date() {
-                    updateDurationToRemaining() // Ensure sync
-                    remainingTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { _ in
-                        updateDurationToRemaining()
+            .onDisappear {
+                remainingTimer?.invalidate()
+                remainingTimer = nil
+                ttsManager.stopSpeaking()
+            }
+            .onChange(of: isAlarmActive) { _, newValue in
+                if newValue {
+                    withAnimation(
+                        .easeInOut(duration: 1.5).repeatForever(autoreverses: true)
+                    ) {
+                        dimOverlayOpacity = 0.8
+                    }
+                } else {
+                    withAnimation(.none) {
+                        dimOverlayOpacity = 0
+                    }
+                    if case .duration(let seconds) = dimMode {
+                        withAnimation(.linear(duration: seconds)) {
+                            dimOverlayOpacity = 1
+                        }
                     }
                 }
             }
-        }
-        .onDisappear {
-            remainingTimer?.invalidate()
-            remainingTimer = nil
-            ttsManager.stopSpeaking()
-        }
-        .onChange(of: isAlarmActive) { _, newValue in
-            if newValue {
-                withAnimation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true)) {
-                    dimOverlayOpacity = 0.8
-                }
-            } else {
-                withAnimation(.none) {
-                    dimOverlayOpacity = 0
+            .onChange(of: roomChangeTrigger) { _, _ in
+                flashOverlayOpacity = 0.8
+                dimOverlayOpacity = 0
+                withAnimation(.linear(duration: 0.5)) {
+                    flashOverlayOpacity = 0
                 }
                 if case .duration(let seconds) = dimMode {
                     withAnimation(.linear(duration: seconds)) {
@@ -264,137 +289,88 @@ struct ExpandingView: View {
                     }
                 }
             }
-        }
-        .onChange(of: roomChangeTrigger) { _, _ in
-            flashOverlayOpacity = 0.8
-            dimOverlayOpacity = 0
-            withAnimation(.linear(duration: 0.5)) {
-                flashOverlayOpacity = 0
-            }
-            if case .duration(let seconds) = dimMode {
-                withAnimation(.linear(duration: seconds)) {
-                    dimOverlayOpacity = 1
-                }
-            }
-        }
-        .sheet(isPresented: $showTimePicker) {
-            VStack(spacing: 20) {
-                DatePicker("Wake Up Time", selection: $tempWakeTime, displayedComponents: .hourAndMinute)
+            .sheet(isPresented: $showTimePicker) {
+                VStack(spacing: 20) {
+                    DatePicker(
+                        "Wake Up Time",
+                        selection: $tempWakeTime,
+                        displayedComponents: .hourAndMinute
+                    )
                     .datePickerStyle(.wheel)
                     .labelsHidden()
-                
-                Button("Set") {
-                    let now = Date()
-                    let calendar = Calendar.current
-                    let components = calendar.dateComponents([.hour, .minute], from: tempWakeTime)
-                    var wakeDate = calendar.date(bySettingHour: components.hour ?? 0,
-                                                 minute: components.minute ?? 0,
-                                                 second: 0,
-                                                 of: now) ?? now
                     
-                    if wakeDate <= now {
-                        wakeDate = calendar.date(byAdding: .day, value: 1, to: wakeDate) ?? wakeDate
-                    }
-                    
-                    let durationSeconds = wakeDate.timeIntervalSince(now)
-                    durationMinutes = max(1, min(1440, durationSeconds / 60)) // Clamp to min 1 min, max 24 hours
-                    
-                    UserDefaults.standard.set(wakeDate, forKey: "lastWakeTime") // Save the absolute wake date
-                    
-                    showTimePicker = false
-                }
-                .font(.headline)
-                .padding()
-                .background(Color.blue)
-                .foregroundColor(.white)
-                .cornerRadius(8)
-            }
-            .padding()
-            .presentationDetents([.medium])
-        }
-        .sheet(isPresented: $showCustomMeditationEditor) {
-            NavigationView {
-                VStack(alignment: .leading, spacing: 12) {
-                    // Instructions
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Enter your meditation text below.")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                        
-                        Text("Tip: Add pauses by putting (3s) after any sentence.")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        
-                        Text("Example: \"Take a deep breath in. (3s)\"")
-                            .font(.caption)
-                            .italic()
-                            .foregroundColor(.secondary)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(Color.gray.opacity(0.1))
-                            .cornerRadius(4)
-                        
-                        Text("If you don't add pauses, the app will automatically add 2-second pauses between sentences.")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                    .padding(.horizontal)
-                    .padding(.top, 8)
-                    
-                    // Text Editor
-                    TextEditor(text: $customMeditationText)
-                        .padding()
-                        .font(.body)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                    Button("Set") {
+                        let now = Date()
+                        let calendar = Calendar.current
+                        let components = calendar.dateComponents(
+                            [.hour, .minute],
+                            from: tempWakeTime
                         )
-                        .padding(.horizontal)
-                    
-                    Spacer()
-                    
-                    Button("Save") {
-                        UserDefaults.standard.set(customMeditationText, forKey: "customMeditationText")
-                        showCustomMeditationEditor = false
+                        var wakeDate =
+                        calendar.date(
+                            bySettingHour: components.hour ?? 0,
+                            minute: components.minute ?? 0,
+                            second: 0,
+                            of: now
+                        ) ?? now
+                        
+                        if wakeDate <= now {
+                            wakeDate =
+                            calendar.date(
+                                byAdding: .day,
+                                value: 1,
+                                to: wakeDate
+                            ) ?? wakeDate
+                        }
+                        
+                        let durationSeconds = wakeDate.timeIntervalSince(now)
+                        durationMinutes = max(1, min(1440, durationSeconds / 60))  // Clamp to min 1 min, max 24 hours
+                        
+                        UserDefaults.standard.set(wakeDate, forKey: "lastWakeTime")  // Save the absolute wake date
+                        
+                        showTimePicker = false
                     }
                     .font(.headline)
                     .padding()
-                    .frame(maxWidth: .infinity)
                     .background(Color.blue)
                     .foregroundColor(.white)
                     .cornerRadius(8)
-                    .padding(.horizontal)
                 }
-                .navigationTitle("Custom Meditation")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .cancellationAction) {
-                        Button("Cancel") {
-                            showCustomMeditationEditor = false
-                        }
-                    }
-                }
+                .padding()
+                .presentationDetents([.medium])
             }
-            .presentationDetents([.large])
+            .sheet(isPresented: $showMeditationList) {
+                CustomMeditationListView(
+                    manager: meditationManager,
+                    isPresented: $showMeditationList,
+                    onPlay: { meditationText in
+                        ttsManager.startSpeakingWithPauses(meditationText)
+                    }
+                )
+            }
+            
         }
+        
+        //    private func updateDurationToRemaining() {
+        //        if let wakeDate = UserDefaults.standard.object(forKey: "lastWakeTime") as? Date {
+        //            let now = Date()
+        //            let remainingMinutes = wakeDate.timeIntervalSince(now) / 60
+        //            if remainingMinutes > 0 {
+        //                durationMinutes = min(1440, remainingMinutes)
+        //            } else {
+        //                durationMinutes = 0
+        //                UserDefaults.standard.removeObject(forKey: "lastWakeTime")
+        //            }
+        //            UserDefaults.standard.set(durationMinutes, forKey: "durationMinutes")
+        //        }
+        //    }
+        
     }
     
-//    private func updateDurationToRemaining() {
-//        if let wakeDate = UserDefaults.standard.object(forKey: "lastWakeTime") as? Date {
-//            let now = Date()
-//            let remainingMinutes = wakeDate.timeIntervalSince(now) / 60
-//            if remainingMinutes > 0 {
-//                durationMinutes = min(1440, remainingMinutes)
-//            } else {
-//                durationMinutes = 0
-//                UserDefaults.standard.removeObject(forKey: "lastWakeTime")
-//            }
-//            UserDefaults.standard.set(durationMinutes, forKey: "durationMinutes")
-//        }
-//    }
-    
     private func updateDurationToRemaining() {
-        if let wakeDate = UserDefaults.standard.object(forKey: "lastWakeTime") as? Date {
+        if let wakeDate = UserDefaults.standard.object(forKey: "lastWakeTime")
+            as? Date
+        {
             let now = Date()
             let remainingMinutes = wakeDate.timeIntervalSince(now) / 60
             if remainingMinutes > 0 {
@@ -404,7 +380,7 @@ struct ExpandingView: View {
                 durationMinutes = 0
                 UserDefaults.standard.set(0.0, forKey: "durationMinutes")
                 UserDefaults.standard.removeObject(forKey: "lastWakeTime")
-                UserDefaults.standard.removeObject(forKey: "selectedAlarmIndex") // Clear sticky alarm
+                UserDefaults.standard.removeObject(forKey: "selectedAlarmIndex")  // Clear sticky alarm
             }
         } else {
             // NO WAKE TIME: Ensure infinite
