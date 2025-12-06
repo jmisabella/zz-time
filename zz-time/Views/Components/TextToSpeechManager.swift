@@ -7,7 +7,7 @@ import SwiftUI
 class TextToSpeechManager: ObservableObject {
     @Published var isSpeaking: Bool = false
     @Published var isPlayingMeditation: Bool = false
-    @Published var audioBalance: Double = 0.0  // -1.0 (all ambient) to 1.0 (all voice), 0.0 = 50/50
+    @Published var audioBalance: Double = -1.0  // -1.0 (all ambient) to 1.0 (no ambient)
     
     private static let meditationSpeechRate: Float = 0.33  // Calm, slow rate for meditation
     private let synthesizer = AVSpeechSynthesizer()
@@ -16,6 +16,8 @@ class TextToSpeechManager: ObservableObject {
     private let maxRepeats = 10
     private var isCustomMode: Bool = false
     private var queuedUtteranceCount: Int = 0
+    private static let meditationPitchMultiplier: Float = 0.9  // Slightly lower pitch for calmer voice
+
     
     // Callback to notify when ambient volume changes
     var onAmbientVolumeChanged: ((Float) -> Void)? = nil
@@ -76,6 +78,7 @@ class TextToSpeechManager: ObservableObject {
         utterance.rate = AVSpeechUtteranceDefaultSpeechRate * Self.meditationSpeechRate
         utterance.pitchMultiplier = 1.0
         utterance.volume = voiceVolume
+        utterance.pitchMultiplier = Self.meditationPitchMultiplier
         
         if let voice = AVSpeechSynthesisVoice(language: "en-US") {
             utterance.voice = voice
@@ -110,6 +113,7 @@ class TextToSpeechManager: ObservableObject {
         utterance.rate = AVSpeechUtteranceDefaultSpeechRate * Self.meditationSpeechRate
         utterance.pitchMultiplier = 1.0
         utterance.volume = voiceVolume
+        utterance.pitchMultiplier = Self.meditationPitchMultiplier
         
         if let voice = AVSpeechSynthesisVoice(language: "en-US") {
             utterance.voice = voice
@@ -188,6 +192,7 @@ class TextToSpeechManager: ObservableObject {
             utterance.volume = voiceVolume
             utterance.postUtteranceDelay = delay
             utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
+            utterance.pitchMultiplier = Self.meditationPitchMultiplier
             
             queuedUtteranceCount += 1
             synthesizer.speak(utterance)
@@ -303,6 +308,7 @@ class TextToSpeechManager: ObservableObject {
         utterance.rate = AVSpeechUtteranceDefaultSpeechRate * Self.meditationSpeechRate
         utterance.pitchMultiplier = 1.0
         utterance.volume = voiceVolume
+        utterance.pitchMultiplier = Self.meditationPitchMultiplier
         
         // Use default US English voice
         if let voice = AVSpeechSynthesisVoice(language: "en-US") {
