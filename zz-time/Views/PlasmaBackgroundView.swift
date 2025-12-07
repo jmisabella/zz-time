@@ -57,38 +57,3 @@ struct PlasmaBackground: View {
     }
 }
 
-//import SwiftUI
-//
-//struct PlasmaBackground: View {
-//    let color: Color
-//    
-//    var body: some View {
-//        let hsba = color.hsba
-//        let baseHue = hsba.hue
-//        let baseSaturation = hsba.saturation
-//        let baseBrightness = hsba.brightness
-//        
-//        let color1 = Color(hue: baseHue, saturation: baseSaturation * 0.95, brightness: min(1, baseBrightness * 1.05))
-//        let color2 = Color(hue: (baseHue + 0.1).truncatingRemainder(dividingBy: 1), saturation: min(1, baseSaturation * 1.05), brightness: baseBrightness * 0.95)
-//        let color3 = Color(hue: (baseHue - CGFloat(0.1) + CGFloat(1)).truncatingRemainder(dividingBy: 1), saturation: baseSaturation * 0.9, brightness: min(1, baseBrightness * 1.1))
-//        
-//        TimelineView(.animation) { context in
-//            let t = context.date.timeIntervalSince1970
-//            
-//            GeometryReader { geo in
-//                Rectangle()
-//                    .fill(Color.white) // Input color is ignored in the shader, but required for colorEffect
-//                    .colorEffect(
-//                        ShaderLibrary.plasma(
-//                            .float(Float(t * 0.05)),
-//                            .float(1.0),
-//                            .color(color1),
-//                            .color(color2),
-//                            .color(color3)
-//                        )
-//                    )
-//            }
-//            .ignoresSafeArea()
-//        }
-//    }
-//}

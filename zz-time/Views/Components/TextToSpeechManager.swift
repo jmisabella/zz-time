@@ -9,31 +9,21 @@ class TextToSpeechManager: ObservableObject {
     @Published var isPlayingMeditation: Bool = false
     @Published var audioBalance: Double = -1.0  // -1.0 (all ambient) to 1.0 (no ambient)
     
-    private static let meditationSpeechRate: Float = 0.33  // Calm, slow rate for meditation
+    private static let meditationSpeechRate: Float = 0.45  // Calm, slow rate for meditation
     private let synthesizer = AVSpeechSynthesizer()
     private let speechDelegate: SpeechDelegate
     private var repeatCount = 0
     private let maxRepeats = 10
     private var isCustomMode: Bool = false
     private var queuedUtteranceCount: Int = 0
-    private static let meditationPitchMultiplier: Float = 0.9  // Slightly lower pitch for calmer voice
+    private var sessionId: UUID = UUID()  // Track current meditation session
+    private static let meditationPitchMultiplier: Float = 0.75  // Slightly lower pitch for calmer voice
 
     
     // Callback to notify when ambient volume changes
     var onAmbientVolumeChanged: ((Float) -> Void)? = nil
     
-    let voiceVolume: Float = 0.15
-    
-//    // Computed volume properties based on balance
-//    var voiceVolume: Float {
-//        // Balance ranges from -1 (all ambient) to 1 (all voice)
-//        // At -1: voice = 0.0
-//        // At 0: voice = 0.3 (50/50 mix)
-//        // At 1: voice = 0.6 (all voice)
-//        let normalizedBalance = (audioBalance + 1.0) / 2.0  // Convert -1...1 to 0...1
-////        return Float(normalizedBalance * 0.6)
-//        return Float(normalizedBalance * 0.6)
-//    }
+    let voiceVolume: Float = 0.32
     
     var ambientVolume: Float {
         // Balance ranges from -1 (all ambient) to 1 (all voice)
@@ -88,11 +78,13 @@ class TextToSpeechManager: ObservableObject {
     }
     
     func getRandomMeditation() -> String? {
+        print("🎲 getRandomMeditation called")
         // Try to load a random meditation file
         guard let meditationText = loadRandomMeditationFile() else {
-            print("No meditation files found")
+            print("❌ No meditation files found")
             return nil
         }
+        print("✅ Loaded meditation text with \(meditationText.count) characters")
         return meditationText
     }
     
@@ -164,38 +156,72 @@ class TextToSpeechManager: ObservableObject {
     
     /// Starts speaking text with embedded pauses like "(4s)" – splits into utterances automatically
     func startSpeakingWithPauses(_ text: String) {
-        guard !isSpeaking, !text.isEmpty else { return }
-        
+        print("🎯 startSpeakingWithPauses called with text length: \(text.count)")
+        guard !text.isEmpty else {
+            print("❌ Text is empty, returning")
+            return
+        }
+
+        print("🛑 Current state - isSpeaking: \(isSpeaking), isPlayingMeditation: \(isPlayingMeditation), synthesizer.isSpeaking: \(synthesizer.isSpeaking)")
+
+        // Stop any currently playing meditation first
+        if synthesizer.isSpeaking {
+            print("🛑 Stopping synthesizer...")
+            synthesizer.stopSpeaking(at: .immediate)
+        }
+
+        // Reset counters but keep the playing state
+        queuedUtteranceCount = 0
+        repeatCount = 0
+        sessionId = UUID()  // New session
+
+        // IMPORTANT: Set state to "playing" IMMEDIATELY (synchronously) before the delay
+        // This prevents race conditions where the UI thinks nothing is playing during the 50ms delay
         isSpeaking = true
         isPlayingMeditation = true
         isCustomMode = true
-        
-        // Check if text has any pause markers
-        let hasPauseMarkers = text.range(of: #"\(\d+(?:\.\d+)?[sm]\)"#, options: .regularExpression) != nil
-        
-        // If no pause markers found, add automatic ones
-        let processedText = hasPauseMarkers ? text : addAutomaticPauses(to: text)
-        
-        // Split by both newlines and pause markers
-        // First, let's parse the text more carefully to handle mid-sentence pauses
-        let phrases = extractPhrasesWithPauses(from: processedText)
-        
-        // Reset and set the count of utterances we're about to queue
-        queuedUtteranceCount = 0
-        
-        for (phrase, delay) in phrases {
-            guard !phrase.isEmpty else { continue }
-            
-            let utterance = AVSpeechUtterance(string: phrase)
-            utterance.rate = AVSpeechUtteranceDefaultSpeechRate * Self.meditationSpeechRate
-            utterance.pitchMultiplier = 1.0
-            utterance.volume = voiceVolume
-            utterance.postUtteranceDelay = delay
-            utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
-            utterance.pitchMultiplier = Self.meditationPitchMultiplier
-            
-            queuedUtteranceCount += 1
-            synthesizer.speak(utterance)
+
+        print("✅ State set to playing, starting meditation after brief delay...")
+
+        // Small delay to ensure synthesizer is fully stopped and cleared
+        // This prevents race conditions with delegate callbacks from stopped utterances
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self] in
+            guard let self = self else { return }
+
+            print("🚀 Queueing meditation utterances...")
+
+            // Check if text has any pause markers
+            let hasPauseMarkers = text.range(of: #"\(\d+(?:\.\d+)?[sm]\)"#, options: .regularExpression) != nil
+
+            // If no pause markers found, add automatic ones
+            let processedText = hasPauseMarkers ? text : self.addAutomaticPauses(to: text)
+
+            // Split by both newlines and pause markers
+            // First, let's parse the text more carefully to handle mid-sentence pauses
+            let phrases = self.extractPhrasesWithPauses(from: processedText)
+
+            // Filter out empty phrases first
+            let validPhrases = phrases.filter { !$0.phrase.isEmpty }
+
+            print("📝 Extracted \(validPhrases.count) valid phrases")
+
+            // Set the count of utterances we're about to queue
+            self.queuedUtteranceCount = validPhrases.count
+
+            for (index, (phrase, delay)) in validPhrases.enumerated() {
+                let utterance = AVSpeechUtterance(string: phrase)
+                utterance.rate = AVSpeechUtteranceDefaultSpeechRate * Self.meditationSpeechRate
+                utterance.pitchMultiplier = 1.0
+                utterance.volume = self.voiceVolume
+                utterance.postUtteranceDelay = delay
+                utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
+                utterance.pitchMultiplier = Self.meditationPitchMultiplier
+
+                print("🔊 Queueing utterance \(index + 1)/\(validPhrases.count): '\(phrase.prefix(30))...' (delay: \(delay)s)")
+                self.synthesizer.speak(utterance)
+            }
+
+            print("✅ All \(validPhrases.count) utterances queued")
         }
     }
 
@@ -259,13 +285,13 @@ class TextToSpeechManager: ObservableObject {
         return result
     }
         
-    /// Loads a random meditation text file from the bundle (preset-meditation1.txt through preset-meditation10.txt only)
+    /// Loads a random meditation text file from the bundle (preset_meditation1.txt through preset_meditation10.txt only)
     private func loadRandomMeditationFile() -> String? {
-        // Only load preset meditation files (preset-meditation1.txt through preset-meditation10.txt)
+        // Only load preset meditation files (preset_meditation1.txt through preset_meditation10.txt)
         var validURLs: [URL] = []
         
         for i in 1...10 {
-            if let url = Bundle.main.url(forResource: "preset-meditation\(i)", withExtension: "txt") {
+            if let url = Bundle.main.url(forResource: "preset_meditation\(i)", withExtension: "txt") {
                 validURLs.append(url)
             }
         }
@@ -289,11 +315,13 @@ class TextToSpeechManager: ObservableObject {
     
     /// Stops speaking immediately
     func stopSpeaking() {
+        print("🛑 stopSpeaking called - current state: isSpeaking=\(isSpeaking), isPlayingMeditation=\(isPlayingMeditation)")
         synthesizer.stopSpeaking(at: .immediate)
         isSpeaking = false
         isPlayingMeditation = false
         repeatCount = 0
         queuedUtteranceCount = 0
+        print("✅ stopSpeaking complete - state reset")
     }
     
     private func speakNextPhrase() {
@@ -321,12 +349,30 @@ class TextToSpeechManager: ObservableObject {
     
     // Called by the delegate when speech finishes
     fileprivate func didFinishSpeaking() {
+        print("🎤 didFinishSpeaking called - isSpeaking: \(isSpeaking), isCustomMode: \(isCustomMode), queuedCount: \(queuedUtteranceCount)")
+
+        // Ignore callbacks if we're not actually supposed to be speaking
+        // This prevents stale callbacks from stopped utterances
+        guard isSpeaking else {
+            print("⚠️ Ignoring callback - not in speaking state")
+            return
+        }
+
         // If custom mode, decrement the queue counter
         if isCustomMode {
+            // Extra safety: only decrement if count is positive
+            // This prevents stale callbacks from causing negative counts
+            guard queuedUtteranceCount > 0 else {
+                print("⚠️ Ignoring callback - queue count already at \(queuedUtteranceCount)")
+                return
+            }
+
             queuedUtteranceCount -= 1
-            
+            print("📉 Decremented queue count to \(queuedUtteranceCount)")
+
             // Only stop when all utterances are done
             if queuedUtteranceCount <= 0 {
+                print("✅ All utterances complete - stopping")
                 isSpeaking = false
                 isPlayingMeditation = false
                 isCustomMode = false
@@ -334,7 +380,7 @@ class TextToSpeechManager: ObservableObject {
             }
             return
         }
-        
+
         if repeatCount < maxRepeats {
             // Small pause between repetitions
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
