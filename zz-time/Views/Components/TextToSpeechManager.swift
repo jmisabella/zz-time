@@ -7,7 +7,7 @@ import SwiftUI
 class TextToSpeechManager: ObservableObject {
     @Published var isSpeaking: Bool = false
     @Published var isPlayingMeditation: Bool = false
-    @Published var audioBalance: Double = -1.0  // -1.0 (all ambient) to 1.0 (no ambient)
+    @Published var audioBalance: Double = 1.0  // 0.0 (0% ambient) to 1.0 (100% ambient)
 
     private static let meditationSpeechRate: Float = 0.55  // Calm, slow rate for meditation
     private let synthesizer = AVSpeechSynthesizer()
@@ -25,15 +25,13 @@ class TextToSpeechManager: ObservableObject {
     // Callback to notify when ambient volume changes
     var onAmbientVolumeChanged: ((Float) -> Void)? = nil
     
-    let voiceVolume: Float = 0.32
+    let voiceVolume: Float = 0.25
     
     var ambientVolume: Float {
-        // Balance ranges from -1 (all ambient) to 1 (all voice)
-        // At -1: ambient = 0.6 (all ambient)
-        // At 0: ambient = 0.3 (50/50 mix)
-        // At 1: ambient = 0.0
-        let normalizedBalance = (audioBalance + 1.0) / 2.0  // Convert -1...1 to 0...1
-        return Float((1.0 - normalizedBalance) * 0.6)
+        // Balance ranges from 0.0 (0% ambient) to 1.0 (100% ambient)
+        // At 0.0: ambient = 0.0
+        // At 1.0: ambient = 0.6 (max ambient volume)
+        return Float(audioBalance * 0.6)
     }
     
     init() {
@@ -214,11 +212,14 @@ class TextToSpeechManager: ObservableObject {
 
             print("🚀 Queueing meditation utterances...")
 
+            // Remove question marks to prevent voice inflection changes
+            let textWithoutQuestions = text.replacingOccurrences(of: "?", with: "")
+
             // Check if text has any pause markers
-            let hasPauseMarkers = text.range(of: #"\(\d+(?:\.\d+)?[sm]\)"#, options: .regularExpression) != nil
+            let hasPauseMarkers = textWithoutQuestions.range(of: #"\(\d+(?:\.\d+)?[sm]\)"#, options: .regularExpression) != nil
 
             // If no pause markers found, add automatic ones
-            let processedText = hasPauseMarkers ? text : self.addAutomaticPauses(to: text)
+            let processedText = hasPauseMarkers ? textWithoutQuestions : self.addAutomaticPauses(to: textWithoutQuestions)
 
             // Split by both newlines and pause markers
             // First, let's parse the text more carefully to handle mid-sentence pauses

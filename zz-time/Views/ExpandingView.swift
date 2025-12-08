@@ -129,10 +129,7 @@ struct ExpandingView: View {
                 
                 if showBalanceLabel {
                     let balanceText: String = {
-                        let balance = ttsManager.audioBalance
-                        let ambientPercent = Int((1.0 - balance) / 2.0 * 100)
-                        let voicePercent = Int((balance + 1.0) / 2.0 * 100)
-//                        return "ambient \(ambientPercent)% • voice \(voicePercent)%"
+                        let ambientPercent = Int(ttsManager.audioBalance * 100)
                         return "ambient \(ambientPercent)%"
                     }()
                     
