@@ -263,6 +263,10 @@ struct ExpandingView: View {
             // Set up the ambient volume callback
             ttsManager.onAmbientVolumeChanged = onAmbientVolumeChanged
             ttsManager.updateVolumesFromBalance()
+
+            // Connect the custom meditation manager to the TTS manager
+            // This allows the leaf button to randomly select from ALL meditations (presets + customs)
+            ttsManager.customMeditationManager = meditationManager
             
             dimMode = .duration(defaultDimDurationSeconds)
             if case .duration(let seconds) = dimMode {

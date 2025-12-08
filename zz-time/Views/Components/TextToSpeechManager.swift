@@ -8,8 +8,8 @@ class TextToSpeechManager: ObservableObject {
     @Published var isSpeaking: Bool = false
     @Published var isPlayingMeditation: Bool = false
     @Published var audioBalance: Double = -1.0  // -1.0 (all ambient) to 1.0 (no ambient)
-    
-    private static let meditationSpeechRate: Float = 0.45  // Calm, slow rate for meditation
+
+    private static let meditationSpeechRate: Float = 0.55  // Calm, slow rate for meditation
     private let synthesizer = AVSpeechSynthesizer()
     private let speechDelegate: SpeechDelegate
     private var repeatCount = 0
@@ -17,9 +17,11 @@ class TextToSpeechManager: ObservableObject {
     private var isCustomMode: Bool = false
     private var queuedUtteranceCount: Int = 0
     private var sessionId: UUID = UUID()  // Track current meditation session
-    private static let meditationPitchMultiplier: Float = 0.75  // Slightly lower pitch for calmer voice
+    private static let meditationPitchMultiplier: Float = 0.6  // Slightly lower pitch for calmer voice
 
-    
+    // Reference to custom meditation manager for random selection
+    weak var customMeditationManager: CustomMeditationManager?
+
     // Callback to notify when ambient volume changes
     var onAmbientVolumeChanged: ((Float) -> Void)? = nil
     
@@ -79,13 +81,35 @@ class TextToSpeechManager: ObservableObject {
     
     func getRandomMeditation() -> String? {
         print("🎲 getRandomMeditation called")
-        // Try to load a random meditation file
-        guard let meditationText = loadRandomMeditationFile() else {
-            print("❌ No meditation files found")
+
+        // Build pool of all available meditations (presets + customs)
+        var allMeditations: [(text: String, source: String)] = []
+
+        // Add all preset meditation files
+        for i in 1...10 {
+            if let url = Bundle.main.url(forResource: "preset_meditation\(i)", withExtension: "txt"),
+               let text = try? String(contentsOf: url, encoding: .utf8) {
+                allMeditations.append((text.trimmingCharacters(in: .whitespacesAndNewlines), "preset \(i)"))
+            }
+        }
+
+        // Add all custom meditations
+        if let customManager = customMeditationManager {
+            for meditation in customManager.meditations {
+                allMeditations.append((meditation.text, "custom: \(meditation.title)"))
+            }
+        }
+
+        guard !allMeditations.isEmpty else {
+            print("❌ No meditations found (neither preset nor custom)")
             return nil
         }
-        print("✅ Loaded meditation text with \(meditationText.count) characters")
-        return meditationText
+
+        // Randomly select one meditation from the combined pool
+        let selected = allMeditations.randomElement()!
+        print("✅ Randomly selected '\(selected.source)' (\(selected.text.count) characters) from pool of \(allMeditations.count) meditations")
+
+        return selected.text
     }
     
     /// Starts speaking a random meditation from text files

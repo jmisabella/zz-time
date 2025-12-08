@@ -76,6 +76,28 @@ struct CustomMeditationListView: View {
     
     private var meditationList: some View {
         List {
+            // Play Random button at the top
+            if manager.meditations.count > 1 {
+                Button {
+                    if let randomMeditation = manager.meditations.randomElement() {
+                        onPlay(randomMeditation.text)
+                        isPresented = false
+                    }
+                } label: {
+                    HStack {
+                        Image(systemName: "shuffle.circle.fill")
+                            .font(.title2)
+                            .foregroundColor(.purple)
+                        Text("Play Random Meditation")
+                            .font(.headline)
+                            .foregroundColor(.primary)
+                        Spacer()
+                    }
+                    .padding(.vertical, 8)
+                }
+                .listRowBackground(Color.purple.opacity(0.1))
+            }
+
             ForEach(manager.meditations) { meditation in
                 MeditationRowView(
                     meditation: meditation,
