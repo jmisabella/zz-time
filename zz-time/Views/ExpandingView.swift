@@ -36,6 +36,9 @@ struct ExpandingView: View {
     @StateObject private var meditationManager = CustomMeditationManager()
     @State private var showMeditationList: Bool = false
 
+    // Closed captioning toggle
+    @AppStorage("showMeditationText") private var showMeditationText: Bool = false
+
     // Dictionary to map room indices (30-34) to custom titles
     private let customRoomTitles: [Int: String] = [
         30: "Satie: Trois Gymnopédies: No. 1, Lent et douloureux",
@@ -54,7 +57,7 @@ struct ExpandingView: View {
                 } else {
                     BreathingBackground(color: color).ignoresSafeArea()
                 }
-                
+
                 Rectangle()
                     .fill(
                         isAlarmActive
@@ -63,96 +66,66 @@ struct ExpandingView: View {
                     )
                     .opacity(dimOverlayOpacity)
                     .ignoresSafeArea()
-                
+
                 Rectangle()
                     .fill(Color.white)
                     .opacity(flashOverlayOpacity)
                     .ignoresSafeArea()
             }
             
-            VStack {
-                // Duration slider
-                CustomSlider(
-                    value: $durationMinutes,
-                    minValue: 0,
-                    maxValue: 1440,  // 24 hours in minutes
-                    step: 1,
-                    onEditingChanged: { editing in
-                        showLabel = editing
-                    }
-                )
-                .padding(.horizontal, 40)
-                
-                if showLabel {
-                    let text: String = {
-                        if durationMinutes == 0 {
-                            return "infinite"
-                        } else if durationMinutes < 60 {
-                            let minutes = Int(durationMinutes)
-                            return "\(minutes) minute\(minutes == 1 ? "" : "s")"
-                        } else {
-                            let hours = Int(durationMinutes / 60)
-                            let minutes = Int(
-                                durationMinutes.truncatingRemainder(
-                                    dividingBy: 60
-                                )
-                            )
-                            if minutes == 0 {
-                                return "\(hours) hour\(hours == 1 ? "" : "s")"
-                            } else {
-                                return
-                                "\(hours) hour\(hours == 1 ? "" : "s"), \(minutes) minute\(minutes == 1 ? "" : "s")"
-                            }
+            ZStack {
+                VStack {
+                    // Duration slider
+                    CustomSlider(
+                        value: $durationMinutes,
+                        minValue: 0,
+                        maxValue: 1440,  // 24 hours in minutes
+                        step: 1,
+                        onEditingChanged: { editing in
+                            showLabel = editing
                         }
-                    }()
-                    
-                    Text(text)
-                        .font(.title)
-                        .foregroundColor(.white)
-                        .padding()
-                        .background(Color.black.opacity(0.5))
-                        .cornerRadius(8)
-                }
-                
-                // Audio balance slider
-                BalanceSlider(
-                    value: $ttsManager.audioBalance,
-                    onEditingChanged: { editing in
-                        showBalanceLabel = editing
+                    )
+                    .padding(.horizontal, 40)
+
+                    // Audio balance slider
+                    BalanceSlider(
+                        value: $ttsManager.audioBalance,
+                        onEditingChanged: { editing in
+                            showBalanceLabel = editing
+                        }
+                    )
+                    .padding(.horizontal, 40)
+                    .padding(.top, 8)
+                    .onChange(of: ttsManager.audioBalance) { _, _ in
+                        ttsManager.updateVolumesFromBalance()
                     }
-                )
-                .padding(.horizontal, 40)
-                .padding(.top, 8)
-                .onChange(of: ttsManager.audioBalance) { _, _ in
-                    ttsManager.updateVolumesFromBalance()
-                }
-                
-                if showBalanceLabel {
-                    let balanceText: String = {
-                        let ambientPercent = Int(ttsManager.audioBalance * 100)
-                        return "ambient \(ambientPercent)%"
-                    }()
-                    
-                    Text(balanceText)
-                        .font(.title3)
-                        .foregroundColor(.white)
-                        .padding()
-                        .background(Color.black.opacity(0.5))
-                        .cornerRadius(8)
-                }
-                
-                Spacer()
-                
-                Text(
-                    customRoomTitles[currentIndex] ?? "room \(currentIndex + 1)"
-                )
-                .font(.system(size: 14, weight: .light, design: .rounded))
-                .foregroundColor(
-                    (currentIndex < 10) ? Color(white: 0.7) : Color(white: 0.3)
-                )
-                .padding(.bottom, 20)
-                
-                HStack(spacing: 30) {
+
+                    if showBalanceLabel {
+                        let balanceText: String = {
+                            let ambientPercent = Int(ttsManager.audioBalance * 100)
+                            return "ambient \(ambientPercent)%"
+                        }()
+
+                        Text(balanceText)
+                            .font(.title3)
+                            .foregroundColor(.white)
+                            .padding()
+                            .background(Color.black.opacity(0.5))
+                            .cornerRadius(8)
+                    }
+
+                    Spacer()
+
+                    Text(
+                        customRoomTitles[currentIndex] ?? "room \(currentIndex + 1)"
+                    )
+                    .font(.system(size: 14, weight: .light, design: .rounded))
+                    .foregroundColor(
+                        (currentIndex < 10) ? Color(white: 0.7) : Color(white: 0.3)
+                    )
+                    .padding(.bottom, 20)
+
+                    HStack(spacing: 30) {
                     Button {
                         showMeditationList = true
                     } label: {
@@ -223,9 +196,57 @@ struct ExpandingView: View {
                     }
                     .contentShape(Circle())
                 }
-                
+
+                }
+
+                // Duration label overlay - appears on top without affecting layout
+                if showLabel {
+                    VStack {
+                        let text: String = {
+                            if durationMinutes == 0 {
+                                return "infinite"
+                            } else if durationMinutes < 60 {
+                                let minutes = Int(durationMinutes)
+                                return "\(minutes) minute\(minutes == 1 ? "" : "s")"
+                            } else {
+                                let hours = Int(durationMinutes / 60)
+                                let minutes = Int(
+                                    durationMinutes.truncatingRemainder(
+                                        dividingBy: 60
+                                    )
+                                )
+                                if minutes == 0 {
+                                    return "\(hours) hour\(hours == 1 ? "" : "s")"
+                                } else {
+                                    return
+                                    "\(hours) hour\(hours == 1 ? "" : "s"), \(minutes) minute\(minutes == 1 ? "" : "s")"
+                                }
+                            }
+                        }()
+
+                        Text(text)
+                            .font(.title)
+                            .foregroundColor(.white)
+                            .padding()
+                            .background(Color.black.opacity(0.5))
+                            .cornerRadius(8)
+                            .padding(.top, 60)
+
+                        Spacer()
+                    }
+                }
             }
-            
+
+            // Meditation text display (closed captioning)
+            if showMeditationText && ttsManager.isPlayingMeditation {
+                MeditationTextDisplay(
+                    currentPhrase: ttsManager.currentPhrase,
+                    previousPhrase: ttsManager.previousPhrase
+                )
+                .transition(.opacity.combined(with: .move(edge: .bottom)))
+                .animation(.easeInOut(duration: 0.4), value: ttsManager.currentPhrase)
+            }
+
         }
         .gesture(
             SimultaneousGesture(

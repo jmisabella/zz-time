@@ -4,8 +4,9 @@ struct CustomMeditationListView: View {
     @ObservedObject var manager: CustomMeditationManager
     @Binding var isPresented: Bool
     let onPlay: (String) -> Void
-    
+
     @State private var editingMeditation: CustomMeditation?
+    @AppStorage("showMeditationText") private var showMeditationText: Bool = false
     
     var body: some View {
         NavigationView {
@@ -25,11 +26,24 @@ struct CustomMeditationListView: View {
                     }
                 }
                 ToolbarItem(placement: .primaryAction) {
-                    if manager.canAddMore {
+                    HStack(spacing: 16) {
+                        // CC Toggle Button
                         Button {
-                            editingMeditation = CustomMeditation(title: "", text: "")
+                            showMeditationText.toggle()
                         } label: {
-                            Image(systemName: "plus.circle.fill")
+                            Image(systemName: "captions.bubble.fill")
+                                .font(.title3)
+                                .foregroundColor(showMeditationText ? Color(hex: 0x64B5F6) : Color(hex: 0x757575))
+                        }
+
+                        // Add Button
+                        if manager.canAddMore {
+                            Button {
+                                editingMeditation = CustomMeditation(title: "", text: "")
+                            } label: {
+                                Image(systemName: "plus.circle.fill")
+                                    .font(.title3)
+                            }
                         }
                     }
                 }

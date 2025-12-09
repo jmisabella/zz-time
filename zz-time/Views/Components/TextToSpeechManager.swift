@@ -9,6 +9,10 @@ class TextToSpeechManager: ObservableObject {
     @Published var isPlayingMeditation: Bool = false
     @Published var audioBalance: Double = 1.0  // 0.0 (0% ambient) to 1.0 (100% ambient)
 
+    // Closed captioning support
+    @Published var currentPhrase: String = ""
+    @Published var previousPhrase: String = ""
+
     private static let meditationSpeechRate: Float = 0.55  // Calm, slow rate for meditation
     private let synthesizer = AVSpeechSynthesizer()
     private let speechDelegate: SpeechDelegate
@@ -18,6 +22,10 @@ class TextToSpeechManager: ObservableObject {
     private var queuedUtteranceCount: Int = 0
     private var sessionId: UUID = UUID()  // Track current meditation session
     private static let meditationPitchMultiplier: Float = 0.6  // Slightly lower pitch for calmer voice
+
+    // Track phrases for closed captioning
+    private var allPhrases: [String] = []
+    private var currentPhraseIndex: Int = 0
 
     // Reference to custom meditation manager for random selection
     weak var customMeditationManager: CustomMeditationManager?
@@ -197,6 +205,12 @@ class TextToSpeechManager: ObservableObject {
         repeatCount = 0
         sessionId = UUID()  // New session
 
+        // Reset closed captioning
+        currentPhrase = ""
+        previousPhrase = ""
+        allPhrases = []
+        currentPhraseIndex = 0
+
         // IMPORTANT: Set state to "playing" IMMEDIATELY (synchronously) before the delay
         // This prevents race conditions where the UI thinks nothing is playing during the 50ms delay
         isSpeaking = true
@@ -232,6 +246,9 @@ class TextToSpeechManager: ObservableObject {
 
             // Set the count of utterances we're about to queue
             self.queuedUtteranceCount = validPhrases.count
+
+            // Store all phrases for closed captioning
+            self.allPhrases = validPhrases.map { $0.phrase }
 
             for (index, (phrase, delay)) in validPhrases.enumerated() {
                 let utterance = AVSpeechUtterance(string: phrase)
@@ -346,6 +363,8 @@ class TextToSpeechManager: ObservableObject {
         isPlayingMeditation = false
         repeatCount = 0
         queuedUtteranceCount = 0
+        currentPhrase = ""
+        previousPhrase = ""
         print("✅ stopSpeaking complete - state reset")
     }
     
@@ -372,6 +391,17 @@ class TextToSpeechManager: ObservableObject {
         repeatCount += 1
     }
     
+    // Called by the delegate when an utterance starts
+    fileprivate func didStartUtterance(_ utterance: AVSpeechUtterance) {
+        // Update closed captioning when a phrase starts speaking
+        if currentPhraseIndex < allPhrases.count {
+            let newPhrase = allPhrases[currentPhraseIndex]
+            previousPhrase = currentPhrase
+            currentPhrase = newPhrase
+            print("📺 CC Update: '\(currentPhrase.prefix(30))...'")
+        }
+    }
+
     // Called by the delegate when speech finishes
     fileprivate func didFinishSpeaking() {
         print("🎤 didFinishSpeaking called - isSpeaking: \(isSpeaking), isCustomMode: \(isCustomMode), queuedCount: \(queuedUtteranceCount)")
@@ -393,7 +423,8 @@ class TextToSpeechManager: ObservableObject {
             }
 
             queuedUtteranceCount -= 1
-            print("📉 Decremented queue count to \(queuedUtteranceCount)")
+            currentPhraseIndex += 1  // Move to next phrase for closed captioning
+            print("📉 Decremented queue count to \(queuedUtteranceCount), phraseIndex: \(currentPhraseIndex)")
 
             // Only stop when all utterances are done
             if queuedUtteranceCount <= 0 {
@@ -402,6 +433,8 @@ class TextToSpeechManager: ObservableObject {
                 isPlayingMeditation = false
                 isCustomMode = false
                 queuedUtteranceCount = 0
+                currentPhrase = ""
+                previousPhrase = ""
             }
             return
         }
@@ -420,11 +453,17 @@ class TextToSpeechManager: ObservableObject {
 // Delegate to handle speech events
 private class SpeechDelegate: NSObject, AVSpeechSynthesizerDelegate {
     weak var manager: TextToSpeechManager?
-    
+
     override init() {
         super.init()
     }
-    
+
+    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didStart utterance: AVSpeechUtterance) {
+        Task { @MainActor in
+            manager?.didStartUtterance(utterance)
+        }
+    }
+
     func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
         Task { @MainActor in
             manager?.didFinishSpeaking()
