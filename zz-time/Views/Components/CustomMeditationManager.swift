@@ -36,7 +36,7 @@ class CustomMeditationManager: ObservableObject {
     }
     
     private func loadDefaultMeditation() {
-        guard let url = Bundle.main.url(forResource: "default-custom-meditation", withExtension: "txt"),
+        guard let url = Bundle.main.url(forResource: "default_custom_meditation", withExtension: "txt"),
               let text = try? String(contentsOf: url, encoding: .utf8) else {
             return
         }

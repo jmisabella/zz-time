@@ -2,30 +2,30 @@ import SwiftUI
 import UIKit
 
 struct BalanceSlider: UIViewRepresentable {
-    @Binding var value: Double  // Range from -1.0 (all ambient) to 1.0 (all voice), 0.0 = 50/50
+    @Binding var value: Double  // Range from 0.0 (0% ambient) to 1.0 (100% ambient)
     var onEditingChanged: (Bool) -> Void = { _ in }
-    
+
     func makeCoordinator() -> Coordinator {
         Coordinator(parent: self)
     }
-    
+
     func makeUIView(context: Context) -> UISlider {
         let slider = UISlider()
-        slider.minimumValue = -1.0
+        slider.minimumValue = 0.0
         slider.maximumValue = 1.0
         slider.minimumTrackTintColor = UIColor(white: 0.95, alpha: 1.0)
         slider.maximumTrackTintColor = UIColor(white: 0.95, alpha: 0.3)
         slider.setThumbImage(customThumbImage(), for: .normal)
-        
+
         slider.addTarget(context.coordinator, action: #selector(Coordinator.valueChanged(_:)), for: .valueChanged)
         slider.addTarget(context.coordinator, action: #selector(Coordinator.touchDown(_:)), for: [.touchDown])
         slider.addTarget(context.coordinator, action: #selector(Coordinator.touchUp(_:)), for: [.touchUpInside, .touchUpOutside, .touchCancel])
-        
+
         return slider
     }
-    
+
     func updateUIView(_ uiView: UISlider, context: Context) {
-        uiView.value = Float(-value)  // Invert the value
+        uiView.value = Float(value)
         uiView.setThumbImage(customThumbImage(), for: .normal)
     }
     
@@ -50,7 +50,7 @@ struct BalanceSlider: UIViewRepresentable {
         }
         
         @objc func valueChanged(_ sender: UISlider) {
-            parent.value = Double(-sender.value)  // Invert the value
+            parent.value = Double(sender.value)
         }
         
         @objc func touchDown(_ sender: UISlider) {
