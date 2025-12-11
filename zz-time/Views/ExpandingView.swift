@@ -37,7 +37,7 @@ struct ExpandingView: View {
     @State private var showMeditationList: Bool = false
 
     // Closed captioning toggle
-    @AppStorage("showMeditationText") private var showMeditationText: Bool = false
+    @AppStorage("showMeditationText") private var showMeditationText: Bool = true
 
     // Dictionary to map room indices (30-34) to custom titles
     private let customRoomTitles: [Int: String] = [
@@ -245,6 +245,7 @@ struct ExpandingView: View {
                 )
                 .transition(.opacity.combined(with: .move(edge: .bottom)))
                 .animation(.easeInOut(duration: 0.4), value: ttsManager.currentPhrase)
+                .allowsHitTesting(false)  // Allow taps to pass through to buttons below
             }
 
         }

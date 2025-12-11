@@ -4,9 +4,9 @@ import SwiftUI
 @MainActor
 class CustomMeditationManager: ObservableObject {
     @Published var meditations: [CustomMeditation] = []
-    
+
     private let storageKey = "customMeditations"
-    private let maxMeditations = 10
+    private let maxMeditations = 35
     
     init() {
         loadMeditations()
@@ -80,9 +80,14 @@ class CustomMeditationManager: ObservableObject {
     
     func duplicateMeditation(_ meditation: CustomMeditation) {
         guard meditations.count < maxMeditations else { return }
-        
+
+        // Remove existing " (Copy)" suffix if present to avoid stacking
+        let baseTitle = meditation.title.hasSuffix(" (Copy)")
+            ? String(meditation.title.dropLast(7))
+            : meditation.title
+
         let duplicate = CustomMeditation(
-            title: "\(meditation.title) (Copy)",
+            title: "\(baseTitle) (Copy)",
             text: meditation.text
         )
         
