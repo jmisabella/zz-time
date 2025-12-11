@@ -29,7 +29,6 @@
 		0033F8DC2EE297CF006D3319 /* ExpandingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0033F8CC2EE297CF006D3319 /* ExpandingView.swift */; };
 		0033F8DD2EE297CF006D3319 /* PlasmaBackgroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0033F8CD2EE297CF006D3319 /* PlasmaBackgroundView.swift */; };
 		0033F8DE2EE297CF006D3319 /* TextToSpeechManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0033F8D12EE297CF006D3319 /* TextToSpeechManager.swift */; };
-		00C3BE3B5FABFD46F4B777F4 /* MeditationTextDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EF8E543D50C3461BA2D7C4 /* MeditationTextDisplay.swift */; };
 		0033F8DF2EE297CF006D3319 /* zz_timeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0033F8D22EE297CF006D3319 /* zz_timeApp.swift */; };
 		0033F8E02EE297CF006D3319 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0033F8CF2EE297CF006D3319 /* Assets.xcassets */; };
 		00371B012EAD71200037EDCF /* ambient_13.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 00371AE82EAD71200037EDCF /* ambient_13.m4a */; };
@@ -57,6 +56,7 @@
 		006D44792EDE9F6100264CFE /* ambient_04.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 006D44782EDE9F6100264CFE /* ambient_04.m4a */; };
 		009461872EDFEE5900DC9E82 /* ambient_02.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 009461862EDFEE5900DC9E82 /* ambient_02.m4a */; };
 		0094618B2EDFF40000DC9E82 /* ambient_03.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0094618A2EDFF40000DC9E82 /* ambient_03.m4a */; };
+		00C3BE3B5FABFD46F4B777F4 /* MeditationTextDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EF8E543D50C3461BA2D7C4 /* MeditationTextDisplay.swift */; };
 		00F91E912EE3C357002FD154 /* CustomMeditation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00F91E902EE3C357002FD154 /* CustomMeditation.swift */; };
 		00F91E932EE3C3FC002FD154 /* CustomMeditationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00F91E922EE3C3FC002FD154 /* CustomMeditationManager.swift */; };
 		00F91E952EE3C536002FD154 /* CustomMeditationListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00F91E942EE3C536002FD154 /* CustomMeditationListView.swift */; };
@@ -89,7 +89,6 @@
 		0033F8CF2EE297CF006D3319 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		0033F8D02EE297CF006D3319 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		0033F8D12EE297CF006D3319 /* TextToSpeechManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextToSpeechManager.swift; sourceTree = "<group>"; };
-		00EF8E543D50C3461BA2D7C4 /* MeditationTextDisplay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeditationTextDisplay.swift; sourceTree = "<group>"; };
 		0033F8D22EE297CF006D3319 /* zz_timeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = zz_timeApp.swift; sourceTree = "<group>"; };
 		00371AE62EAD71200037EDCF /* ambient_11.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_11.m4a; sourceTree = "<group>"; };
 		00371AE72EAD71200037EDCF /* ambient_12.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_12.m4a; sourceTree = "<group>"; };
@@ -117,6 +116,7 @@
 		006D44782EDE9F6100264CFE /* ambient_04.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_04.m4a; sourceTree = "<group>"; };
 		009461862EDFEE5900DC9E82 /* ambient_02.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_02.m4a; sourceTree = "<group>"; };
 		0094618A2EDFF40000DC9E82 /* ambient_03.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_03.m4a; sourceTree = "<group>"; };
+		00EF8E543D50C3461BA2D7C4 /* MeditationTextDisplay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeditationTextDisplay.swift; sourceTree = "<group>"; };
 		00F91E902EE3C357002FD154 /* CustomMeditation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomMeditation.swift; sourceTree = "<group>"; };
 		00F91E922EE3C3FC002FD154 /* CustomMeditationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomMeditationManager.swift; sourceTree = "<group>"; };
 		00F91E942EE3C536002FD154 /* CustomMeditationListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomMeditationListView.swift; sourceTree = "<group>"; };
@@ -547,7 +547,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.9;
+				MARKETING_VERSION = 2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.jmisabella.z-rooms";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -578,7 +578,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.9;
+				MARKETING_VERSION = 2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.jmisabella.z-rooms";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
