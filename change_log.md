@@ -1,5 +1,68 @@
 # Problems and Solutions
 
+## 2025-12-13: Closed Captioning Disappearing Mid-Meditation Bug
+
+### **THE PROBLEM**
+Closed captioning would turn off on its own approximately 4-5 minutes into a guided meditation, while the meditation voice continued speaking. This occurred consistently and was reproducible across different meditation sessions.
+
+**User Report:**
+- User enters room and toggles on a random meditation via the Leaf button
+- Closed caption displays correctly at the bottom of screen, synchronized with spoken meditation
+- About halfway through the meditation (4-5 minutes in), the closed caption text and gradient stop displaying
+- Meditation voice continues without captions for the remainder of the session
+
+### **ROOT CAUSE**
+The bug was in the utterance counting system in `TextToSpeechManager.swift`.
+
+When `startSpeakingWithPauses()` queues utterances:
+1. **Speech utterances** are queued for each meditation phrase
+2. **Silent utterances** (empty strings with volume 0.0) are queued for pauses between phrases
+   - These silent utterances were implemented to work around the iOS TTS bug where `postUtteranceDelay` > 10 seconds causes iOS to vocalize the delay (see 2025-12-11 entry)
+   - Long pauses are broken into 5-second chunks, creating multiple silent utterances per pause
+
+**The counting bug:**
+- Line 273 set `queuedUtteranceCount = ultraCleanedPhrases.count` (only counting speech utterances)
+- Lines 290-302 queued additional silent utterances for pauses (NOT counted)
+- When `didFinishSpeaking()` was called for each utterance (including silent ones), it decremented `queuedUtteranceCount`
+- When the counter hit zero prematurely (due to uncounted silent utterances), it set `isPlayingMeditation = false`
+- This caused the closed caption to disappear because it's conditionally rendered based on `isPlayingMeditation`
+
+**Why it occurred mid-meditation:**
+Meditations with many pauses or longer pauses generated more silent utterances. After enough silent utterances completed, `queuedUtteranceCount` would hit zero while the meditation was still playing, hiding the captions.
+
+### **THE SOLUTION**
+Modified `startSpeakingWithPauses()` in `TextToSpeechManager.swift` to correctly count ALL utterances (both speech and silent):
+
+**Changes made (lines 272-288):**
+1. Calculate total utterance count BEFORE queuing:
+   ```swift
+   var totalUtteranceCount = 0
+   for (ultraCleanPhrase, delay) in ultraCleanedPhrases {
+       totalUtteranceCount += 1  // Count the speech utterance
+
+       // Count silent pause utterances
+       if delay > 0 {
+           let numPauses = Int(ceil(delay / 5.0))
+           totalUtteranceCount += numPauses
+       }
+   }
+   ```
+
+2. Set `queuedUtteranceCount` to the total (not just speech phrases):
+   ```swift
+   self.queuedUtteranceCount = totalUtteranceCount
+   ```
+
+This ensures `isPlayingMeditation` remains `true` until ALL utterances (both speech and silent) have completed, keeping the closed captions visible for the entire meditation duration.
+
+**Files Modified:**
+- `zz-time/Views/Components/TextToSpeechManager.swift`
+
+**Verified Fix:**
+The closed captioning now persists for the entire duration of guided meditations, regardless of pause structure.
+
+---
+
 ## 2025-12-13: App Store Compliance Review for Guided Meditations
 
 ### **THE QUESTIONS**

@@ -66,6 +66,6 @@ Wiggle your fingers and toes… (1.5s)
 Take a full breath… (2.5s)
 And slowly open your eyes to continue your day. (4s)
 
-Or keep your eyes gently closed, (1s)
+Or (0.85s) keep your eyes gently closed, (1s)
 Breathing softly, (1s)
 Letting yourself slip into peaceful slumber. (5s)

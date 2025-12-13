@@ -269,11 +269,23 @@ class TextToSpeechManager: ObservableObject {
                 return ultraCleanPhrase.isEmpty ? nil : (ultraCleanPhrase, delay)
             }
 
-            // Set the count of utterances we're about to queue (using ultra-cleaned count)
-            self.queuedUtteranceCount = ultraCleanedPhrases.count
-
             // Store ULTRA-cleaned phrases for closed captioning (so VoiceOver doesn't read pause markers)
             self.allPhrases = ultraCleanedPhrases.map { $0.phrase }
+
+            // Calculate total utterance count (speech + silent pause utterances)
+            var totalUtteranceCount = 0
+            for (ultraCleanPhrase, delay) in ultraCleanedPhrases {
+                totalUtteranceCount += 1  // Count the speech utterance
+
+                // Count silent pause utterances
+                if delay > 0 {
+                    let numPauses = Int(ceil(delay / 5.0))  // Break into 5-second chunks
+                    totalUtteranceCount += numPauses
+                }
+            }
+
+            // Set the count of ALL utterances we're about to queue (speech + silent)
+            self.queuedUtteranceCount = totalUtteranceCount
 
             for (_, (ultraCleanPhrase, delay)) in ultraCleanedPhrases.enumerated() {
                 let utterance = AVSpeechUtterance(string: ultraCleanPhrase)
