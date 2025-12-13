@@ -186,17 +186,12 @@ class TextToSpeechManager: ObservableObject {
     
     /// Starts speaking text with embedded pauses like "(4s)" – splits into utterances automatically
     func startSpeakingWithPauses(_ text: String) {
-        print("🎯 startSpeakingWithPauses called with text length: \(text.count)")
         guard !text.isEmpty else {
-            print("❌ Text is empty, returning")
             return
         }
 
-        print("🛑 Current state - isSpeaking: \(isSpeaking), isPlayingMeditation: \(isPlayingMeditation), synthesizer.isSpeaking: \(synthesizer.isSpeaking)")
-
         // Stop any currently playing meditation first
         if synthesizer.isSpeaking {
-            print("🛑 Stopping synthesizer...")
             synthesizer.stopSpeaking(at: .immediate)
         }
 
@@ -217,14 +212,10 @@ class TextToSpeechManager: ObservableObject {
         isPlayingMeditation = true
         isCustomMode = true
 
-        print("✅ State set to playing, starting meditation after brief delay...")
-
         // Small delay to ensure synthesizer is fully stopped and cleared
         // This prevents race conditions with delegate callbacks from stopped utterances
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self] in
             guard let self = self else { return }
-
-            print("🚀 Queueing meditation utterances...")
 
             // Remove question marks to prevent voice inflection changes
             let textWithoutQuestions = text.replacingOccurrences(of: "?", with: "")
@@ -236,94 +227,159 @@ class TextToSpeechManager: ObservableObject {
             let processedText = hasPauseMarkers ? textWithoutQuestions : self.addAutomaticPauses(to: textWithoutQuestions)
 
             // Split by both newlines and pause markers
-            // First, let's parse the text more carefully to handle mid-sentence pauses
             let phrases = self.extractPhrasesWithPauses(from: processedText)
 
             // Filter out empty phrases first
             let validPhrases = phrases.filter { !$0.phrase.isEmpty }
 
-            print("📝 Extracted \(validPhrases.count) valid phrases")
+            // Clean all phrases and filter again (safety check for pause markers)
+            let cleanedPhrases: [(phrase: String, delay: TimeInterval)] = validPhrases.compactMap { (phrase, delay) in
+                // CRITICAL SAFETY CHECK: Remove any pause markers that might have slipped through
+                // This prevents iOS from speaking pause markers like "(14s)" as "pause equals fourteen thousand"
+                let cleanPhrase = phrase.replacingOccurrences(
+                    of: #"\(\d+(?:\.\d+)?[sm]\)"#,
+                    with: "",
+                    options: .regularExpression
+                ).trimmingCharacters(in: .whitespacesAndNewlines)
 
-            // Set the count of utterances we're about to queue
-            self.queuedUtteranceCount = validPhrases.count
+                return cleanPhrase.isEmpty ? nil : (cleanPhrase, delay)
+            }
 
-            // Store all phrases for closed captioning
-            self.allPhrases = validPhrases.map { $0.phrase }
+            // ULTRA-CLEAN all phrases one more time before using them
+            let ultraCleanedPhrases: [(phrase: String, delay: TimeInterval)] = cleanedPhrases.compactMap { (phrase, delay) in
+                // ULTRA-PARANOID SAFETY CHECK: Strip ALL parenthetical content
+                var ultraCleanPhrase = phrase
 
-            for (index, (phrase, delay)) in validPhrases.enumerated() {
-                let utterance = AVSpeechUtterance(string: phrase)
+                // First try the specific regex
+                ultraCleanPhrase = ultraCleanPhrase.replacingOccurrences(
+                    of: #"\(\d+(?:\.\d+)?[sm]\)"#,
+                    with: "",
+                    options: .regularExpression
+                )
+
+                // Nuclear option: remove ANY content in parentheses that looks like a pause
+                ultraCleanPhrase = ultraCleanPhrase.replacingOccurrences(
+                    of: #"\([0-9][^)]*\)"#,
+                    with: "",
+                    options: .regularExpression
+                )
+
+                ultraCleanPhrase = ultraCleanPhrase.trimmingCharacters(in: .whitespacesAndNewlines)
+
+                return ultraCleanPhrase.isEmpty ? nil : (ultraCleanPhrase, delay)
+            }
+
+            // Set the count of utterances we're about to queue (using ultra-cleaned count)
+            self.queuedUtteranceCount = ultraCleanedPhrases.count
+
+            // Store ULTRA-cleaned phrases for closed captioning (so VoiceOver doesn't read pause markers)
+            self.allPhrases = ultraCleanedPhrases.map { $0.phrase }
+
+            for (_, (ultraCleanPhrase, delay)) in ultraCleanedPhrases.enumerated() {
+                let utterance = AVSpeechUtterance(string: ultraCleanPhrase)
                 utterance.rate = AVSpeechUtteranceDefaultSpeechRate * Self.meditationSpeechRate
                 utterance.pitchMultiplier = 1.0
                 utterance.volume = self.voiceVolume
-                utterance.postUtteranceDelay = delay
                 utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
                 utterance.pitchMultiplier = Self.meditationPitchMultiplier
 
-                print("🔊 Queueing utterance \(index + 1)/\(validPhrases.count): '\(phrase.prefix(30))...' (delay: \(delay)s)")
                 self.synthesizer.speak(utterance)
-            }
 
-            print("✅ All \(validPhrases.count) utterances queued")
+                // For pauses, queue multiple silent utterances to create the pause
+                // This avoids the bug where postUtteranceDelay causes iOS to speak the delay value
+                if delay > 0 {
+                    let numPauses = Int(ceil(delay / 5.0))  // Break into 5-second chunks
+                    let pausePerChunk = delay / Double(numPauses)
+
+                    for _ in 0..<numPauses {
+                        let silentUtterance = AVSpeechUtterance(string: "")  // Empty string for silence
+                        silentUtterance.rate = AVSpeechUtteranceDefaultSpeechRate
+                        silentUtterance.volume = 0.0  // Silent
+                        silentUtterance.postUtteranceDelay = pausePerChunk
+                        silentUtterance.voice = AVSpeechSynthesisVoice(language: "en-US")
+                        self.synthesizer.speak(silentUtterance)
+                    }
+                }
+            }
         }
     }
 
     /// Extracts phrases and their associated pauses from text
     private func extractPhrasesWithPauses(from text: String) -> [(phrase: String, delay: TimeInterval)] {
         var result: [(String, TimeInterval)] = []
-        
+
         // Pattern to match pause markers anywhere in text: (3s), (2.5s), (1m), (1.5m), etc.
         let pattern = #"\((\d+(?:\.\d+)?)(s|m)\)"#
         guard let regex = try? NSRegularExpression(pattern: pattern) else {
             // If regex fails, return the whole text with no delay
             return [(text.trimmingCharacters(in: .whitespacesAndNewlines), 0.0)]
         }
-        
-        // Split the entire text by pause markers
-        let nsText = text as NSString
+
+        // First, let's extract all matches and their delays
         let matches = regex.matches(in: text, range: NSRange(text.startIndex..., in: text))
-        
-        var lastIndex = text.startIndex
-        
-        for match in matches {
-            // Get the phrase before this pause marker
-            if let matchRange = Range(match.range, in: text) {
-                let phraseBeforePause = String(text[lastIndex..<matchRange.lowerBound])
-                
-                // Get the pause duration and unit
-                if let durationRange = Range(match.range(at: 1), in: text),
-                   let unitRange = Range(match.range(at: 2), in: text),
-                   let value = Double(text[durationRange]) {
-                    
-                    let unit = String(text[unitRange])
-                    
-                    // Convert to seconds
-                    let seconds: TimeInterval = {
-                        switch unit {
-                        case "m":
-                            return value * 60.0  // Convert minutes to seconds
-                        case "s":
-                            return value
-                        default:
-                            return value  // Default to seconds
-                        }
-                    }()
-                    
-                    let trimmedPhrase = phraseBeforePause.trimmingCharacters(in: .whitespacesAndNewlines)
-                    if !trimmedPhrase.isEmpty {
-                        result.append((trimmedPhrase, seconds))
-                    }
-                }
-                
-                lastIndex = matchRange.upperBound
+
+        // If no matches, return the whole text
+        guard !matches.isEmpty else {
+            let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty {
+                return [(trimmed, 0.0)]
             }
+            return []
         }
-        
-        // Add any remaining text after the last pause marker
+
+        var lastIndex = text.startIndex
+
+        for match in matches {
+            guard let matchRange = Range(match.range, in: text) else { continue }
+
+            // Get the phrase before this pause marker
+            let phraseBeforePause = String(text[lastIndex..<matchRange.lowerBound])
+
+            // Get the pause duration and unit
+            guard let durationRange = Range(match.range(at: 1), in: text),
+                  let unitRange = Range(match.range(at: 2), in: text),
+                  let value = Double(text[durationRange]) else {
+                continue
+            }
+
+            let unit = String(text[unitRange])
+
+            // Convert to seconds
+            let seconds: TimeInterval = {
+                switch unit {
+                case "m":
+                    return value * 60.0  // Convert minutes to seconds
+                case "s":
+                    return value
+                default:
+                    return value  // Default to seconds
+                }
+            }()
+
+            let trimmedPhrase = phraseBeforePause.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmedPhrase.isEmpty {
+                result.append((trimmedPhrase, seconds))
+            }
+
+            // Move past this pause marker
+            lastIndex = matchRange.upperBound
+        }
+
+        // Add any remaining text after the last pause marker (with no delay)
         let remainingText = String(text[lastIndex...]).trimmingCharacters(in: .whitespacesAndNewlines)
-        if !remainingText.isEmpty {
-            result.append((remainingText, 0.0))
+
+        // CRITICAL: Remove any pause markers from remaining text as a safety check
+        // This ensures no pause markers accidentally get spoken
+        let cleanedRemainingText = remainingText.replacingOccurrences(
+            of: #"\(\d+(?:\.\d+)?[sm]\)"#,
+            with: "",
+            options: .regularExpression
+        ).trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if !cleanedRemainingText.isEmpty {
+            result.append((cleanedRemainingText, 0.0))
         }
-        
+
         return result
     }
         
@@ -393,23 +449,25 @@ class TextToSpeechManager: ObservableObject {
     
     // Called by the delegate when an utterance starts
     fileprivate func didStartUtterance(_ utterance: AVSpeechUtterance) {
+        // Only update closed captioning for actual speech (not silent utterances)
+        // Silent utterances have empty strings
+        guard !utterance.speechString.isEmpty else {
+            return
+        }
+
         // Update closed captioning when a phrase starts speaking
         if currentPhraseIndex < allPhrases.count {
             let newPhrase = allPhrases[currentPhraseIndex]
             previousPhrase = currentPhrase
             currentPhrase = newPhrase
-            print("📺 CC Update: '\(currentPhrase.prefix(30))...'")
         }
     }
 
     // Called by the delegate when speech finishes
-    fileprivate func didFinishSpeaking() {
-        print("🎤 didFinishSpeaking called - isSpeaking: \(isSpeaking), isCustomMode: \(isCustomMode), queuedCount: \(queuedUtteranceCount)")
-
+    fileprivate func didFinishSpeaking(_ utterance: AVSpeechUtterance) {
         // Ignore callbacks if we're not actually supposed to be speaking
         // This prevents stale callbacks from stopped utterances
         guard isSpeaking else {
-            print("⚠️ Ignoring callback - not in speaking state")
             return
         }
 
@@ -418,17 +476,18 @@ class TextToSpeechManager: ObservableObject {
             // Extra safety: only decrement if count is positive
             // This prevents stale callbacks from causing negative counts
             guard queuedUtteranceCount > 0 else {
-                print("⚠️ Ignoring callback - queue count already at \(queuedUtteranceCount)")
                 return
             }
 
             queuedUtteranceCount -= 1
-            currentPhraseIndex += 1  // Move to next phrase for closed captioning
-            print("📉 Decremented queue count to \(queuedUtteranceCount), phraseIndex: \(currentPhraseIndex)")
+
+            // Only increment phrase index for actual speech (not silent utterances)
+            if !utterance.speechString.isEmpty {
+                currentPhraseIndex += 1  // Move to next phrase for closed captioning
+            }
 
             // Only stop when all utterances are done
             if queuedUtteranceCount <= 0 {
-                print("✅ All utterances complete - stopping")
                 isSpeaking = false
                 isPlayingMeditation = false
                 isCustomMode = false
@@ -466,7 +525,7 @@ private class SpeechDelegate: NSObject, AVSpeechSynthesizerDelegate {
 
     func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
         Task { @MainActor in
-            manager?.didFinishSpeaking()
+            manager?.didFinishSpeaking(utterance)
         }
     }
 }
