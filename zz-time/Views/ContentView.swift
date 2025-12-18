@@ -27,7 +27,14 @@ struct ContentView: View {
     @State private var hapticGenerator: UINotificationFeedbackGenerator? = nil
     @State private var isAlarmActive: Bool = false
     @State private var backgroundOpacity: Double = UserDefaults.standard.bool(forKey: "hasLaunched") ? 1.0 : 0.0
-    @State private var selectedAlarmIndex: Int? = UserDefaults.standard.object(forKey: "selectedAlarmIndex") as? Int
+    @State private var selectedAlarmIndex: Int? = {
+        // First check if there's an active alarm selection
+        if let activeAlarm = UserDefaults.standard.object(forKey: "selectedAlarmIndex") as? Int {
+            return activeAlarm
+        }
+        // Otherwise, restore the last selected alarm from previous session
+        return UserDefaults.standard.object(forKey: "lastSelectedAlarmIndex") as? Int
+    }()
     @State private var showingAlarmSelection: Bool = false
 
     private func findNextValidIndex(from currentIndex: Int, direction: Int) -> Int? {
@@ -324,6 +331,10 @@ struct ContentView: View {
         }
         .onChange(of: selectedAlarmIndex) { _, new in
             UserDefaults.standard.set(new, forKey: "selectedAlarmIndex")
+            // Save as last selected alarm so it persists across sessions
+            if let alarm = new {
+                UserDefaults.standard.set(alarm, forKey: "lastSelectedAlarmIndex")
+            }
         }
         .sheet(isPresented: $showingAlarmSelection) {
             AlarmSelectionView(

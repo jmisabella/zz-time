@@ -1,5 +1,100 @@
 # Problems and Solutions
 
+## 2025-12-14 21:43: Alarm Sound Selection Persistence
+
+### **THE PROBLEM**
+When users started a new session, the selected "waking room" (alarm sound) would always default to silence, even if they had selected an alarm sound in a previous session. This created a poor user experience where users would need to re-select their preferred alarm sound every time they used the app.
+
+**User Report:**
+- User selects an alarm sound one evening (e.g., ambient_25)
+- Session completes and alarm plays (or is dismissed)
+- Next evening, user starts a new session
+- The alarm selection defaults back to silence instead of their previous choice
+- User must manually re-select their alarm sound each session
+
+### **ROOT CAUSE**
+The app was clearing `selectedAlarmIndex` from UserDefaults at the end of each session without preserving the user's preference for future sessions.
+
+**Specific clearing locations:**
+1. **Line 510 in ContentView.swift** - When alarm starts playing via `startAlarm()`
+2. **Line 558 in ContentView.swift** - When alarm is dismissed via `fadeOutAlarm()`
+3. **Line 427 in ExpandingView.swift** - When wake time expires via `updateDurationToRemaining()`
+
+While this cleanup made sense to reset the current session's alarm state, it resulted in losing the user's alarm preference entirely, causing every new session to default to silence (nil).
+
+### **THE SOLUTION**
+Implemented a two-key persistence system in UserDefaults to distinguish between current session state and user preferences:
+
+1. **`selectedAlarmIndex`** - The currently active alarm for the ongoing session (temporary, gets cleared after use)
+2. **`lastSelectedAlarmIndex`** - A persistent record of the user's last alarm selection (permanent, never cleared)
+
+**Changes Made:**
+
+**1. Updated initialization in ContentView.swift (lines 30-37):**
+```swift
+@State private var selectedAlarmIndex: Int? = {
+    // First check if there's an active alarm selection
+    if let activeAlarm = UserDefaults.standard.object(forKey: "selectedAlarmIndex") as? Int {
+        return activeAlarm
+    }
+    // Otherwise, restore the last selected alarm from previous session
+    return UserDefaults.standard.object(forKey: "lastSelectedAlarmIndex") as? Int
+}()
+```
+
+**2. Updated the onChange handler in ContentView.swift (lines 325-331):**
+```swift
+.onChange(of: selectedAlarmIndex) { _, new in
+    UserDefaults.standard.set(new, forKey: "selectedAlarmIndex")
+    // Save as last selected alarm so it persists across sessions
+    if let alarm = new {
+        UserDefaults.standard.set(alarm, forKey: "lastSelectedAlarmIndex")
+    }
+}
+```
+
+### **HOW IT WORKS**
+
+**When user selects an alarm:**
+- Both `selectedAlarmIndex` and `lastSelectedAlarmIndex` are saved to UserDefaults
+- `selectedAlarmIndex` = current session state
+- `lastSelectedAlarmIndex` = persistent user preference
+
+**When alarm plays or session ends:**
+- Only `selectedAlarmIndex` is cleared (existing cleanup logic at lines 510, 558, 427 unchanged)
+- `lastSelectedAlarmIndex` remains intact in UserDefaults
+
+**When starting a new session:**
+- App first checks for an active `selectedAlarmIndex`
+- If none exists (typical case after previous session ended), restores from `lastSelectedAlarmIndex`
+- User's preferred alarm sound is pre-selected automatically
+
+**When user selects silence:**
+- `selectedAlarmIndex` is set to `nil`
+- `lastSelectedAlarmIndex` is NOT updated (only non-nil values are saved)
+- This means if a user explicitly chooses silence for one session, their previous alarm preference is still remembered for future sessions
+
+### **USER EXPERIENCE IMPROVEMENT**
+
+**Before:**
+- User selects alarm → Session ends → Alarm cleared → Next session defaults to silence → Must re-select alarm
+
+**After:**
+- User selects alarm → Session ends → Current alarm cleared but preference saved → Next session restores previous selection → User can change it or keep it
+
+Users now have a consistent alarm selection that persists across sessions while still allowing full flexibility to change or disable alarms at any time.
+
+**Files Modified:**
+- `zz-time/Views/ContentView.swift` (lines 30-37, 325-331)
+
+**Testing Verified:**
+- ✅ Alarm selection persists across app restarts
+- ✅ Alarm selection persists after alarm plays and dismisses
+- ✅ User can still change alarm or select silence at any time
+- ✅ Selecting silence once doesn't prevent alarm from being restored next session
+
+---
+
 ## 2025-12-13: Closed Captioning Disappearing Mid-Meditation Bug
 
 ### **THE PROBLEM**
