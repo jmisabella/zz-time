@@ -92,7 +92,7 @@ class TextToSpeechManager: ObservableObject {
         var allMeditations: [(text: String, source: String)] = []
 
         // Add all preset meditation files
-        for i in 1...10 {
+        for i in 1...35 {
             if let url = Bundle.main.url(forResource: "preset_meditation\(i)", withExtension: "txt"),
                let text = try? String(contentsOf: url, encoding: .utf8) {
                 allMeditations.append((text.trimmingCharacters(in: .whitespacesAndNewlines), "preset \(i)"))
@@ -395,12 +395,12 @@ class TextToSpeechManager: ObservableObject {
         return result
     }
         
-    /// Loads a random meditation text file from the bundle (preset_meditation1.txt through preset_meditation10.txt only)
+    /// Loads a random meditation text file from the bundle (preset_meditation1.txt through preset_meditation35.txt)
     private func loadRandomMeditationFile() -> String? {
-        // Only load preset meditation files (preset_meditation1.txt through preset_meditation10.txt)
+        // Load all preset meditation files (preset_meditation1.txt through preset_meditation35.txt)
         var validURLs: [URL] = []
-        
-        for i in 1...10 {
+
+        for i in 1...35 {
             if let url = Bundle.main.url(forResource: "preset_meditation\(i)", withExtension: "txt") {
                 validURLs.append(url)
             }
