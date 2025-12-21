@@ -1,5 +1,158 @@
 # Problems and Solutions
 
+## 2025-12-21 15:45: Added Immediate Breathwork to 16 Preset Meditations
+
+### **THE PROBLEM**
+16 out of 35 preset meditations were missing grounding breathwork immediately after the opening quote/thought. Users would hear the teaser quote and then jump directly into the meditation's specific theme (visualization, body scan, etc.) without first settling into a calm, meditative state through breathwork.
+
+**Why this matters:**
+- Most guided meditation apps structure meditations as: Opening → Breathwork → Main content
+- Breathwork after the opening helps users:
+  - Lower anxiety by slowing their breath
+  - Transition from daily stress into a meditative headspace
+  - Ground themselves before the specific meditation practice begins
+- Without this transition, users may feel less prepared for the meditation
+
+**Meditations missing immediate breathwork:**
+- preset_meditation12.txt (Body gratitude)
+- preset_meditation16.txt (Progressive muscle relaxation)
+- preset_meditation20.txt (Simply being)
+- preset_meditation22.txt (Candle flame)
+- preset_meditation23.txt (Mountain metaphor)
+- preset_meditation24.txt (Walking meditation)
+- preset_meditation25.txt (Releasing control)
+- preset_meditation26.txt (Self-compassion)
+- preset_meditation27.txt (Vessel visualization)
+- preset_meditation28.txt (Stone releasing)
+- preset_meditation29.txt (Inner child)
+- preset_meditation30.txt (Expansive awareness)
+- preset_meditation31.txt (Inner voice)
+- preset_meditation32.txt (Body grounding)
+- preset_meditation33.txt (Gratitude practice)
+- preset_meditation34.txt (Ocean waves)
+- preset_meditation35.txt (Gap awareness)
+
+### **THE SOLUTION**
+Added breathwork immediately after the opening quote/thought and before the main meditation content in all 16 meditations. The breathwork follows the structure:
+
+**Pattern (most common):**
+```
+In… (4s)
+Out… (5s)
+In… (4s)
+Out… (5s)
+```
+
+**Variations used for diversity:**
+- "Breathe in slowly through your nose... And out through your mouth..."
+- "Let's begin with the breath..."
+- "Take a deep breath in... Let it out slowly..."
+- "Notice your breath... In... And out..."
+- "Breathe with me..."
+- "Start with your breath..."
+
+**Timing:**
+- ~4 seconds for inhales
+- ~4-5 seconds for exhales
+- Total breathwork section: ~20-25 seconds (2 full breath cycles)
+- Positioned immediately after "close your eyes" and before meditation description
+
+### **STRUCTURAL IMPROVEMENT**
+
+**Before (example from preset_meditation29.txt):**
+```
+Find a comfortable seat… or lie down… gently close your eyes. (4.5s)
+
+This is a meditation for your inner child. (2s)
+```
+
+**After:**
+```
+Find a comfortable seat… or lie down… gently close your eyes. (4.5s)
+
+Take a gentle breath in… (4s)
+And out… (5s)
+In… (4s)
+Out… (5s)
+
+This is a meditation for your inner child. (2s)
+```
+
+### **FILES MODIFIED**
+All 16 meditations now follow the proper structure: **Opening Quote → Breathwork → Main Meditation**
+
+- `zz-time/Meditations/preset_meditation12.txt`
+- `zz-time/Meditations/preset_meditation16.txt`
+- `zz-time/Meditations/preset_meditation20.txt`
+- `zz-time/Meditations/preset_meditation22.txt`
+- `zz-time/Meditations/preset_meditation23.txt`
+- `zz-time/Meditations/preset_meditation24.txt`
+- `zz-time/Meditations/preset_meditation25.txt`
+- `zz-time/Meditations/preset_meditation26.txt`
+- `zz-time/Meditations/preset_meditation27.txt`
+- `zz-time/Meditations/preset_meditation28.txt`
+- `zz-time/Meditations/preset_meditation29.txt`
+- `zz-time/Meditations/preset_meditation30.txt`
+- `zz-time/Meditations/preset_meditation31.txt`
+- `zz-time/Meditations/preset_meditation32.txt`
+- `zz-time/Meditations/preset_meditation33.txt`
+- `zz-time/Meditations/preset_meditation34.txt`
+- `zz-time/Meditations/preset_meditation35.txt`
+
+### **IMPACT**
+- ✅ All 35 preset meditations now have consistent structure
+- ✅ Users can immediately begin slowing their breath after the opening
+- ✅ Breathwork creates proper transition from daily stress to meditation
+- ✅ Anxiety-reducing foundation established before specific meditation techniques
+- ✅ Matches industry standard meditation app structure (Calm, Headspace, etc.)
+- ✅ Variety in breathwork phrasing prevents repetitive feel across different meditations
+- ✅ ~4 second breathing cycles promote calm, regulated breathing
+
+---
+
+## 2025-12-21 14:30: Fixed TTS Mispronunciation of "Lives" as Verb
+
+### **THE PROBLEM**
+Both iOS and Android text-to-speech engines were mispronouncing the word "lives" when used as a verb (present tense of "live") in guided meditations. The TTS was pronouncing it as the plural noun form of "life" instead of the verb, creating confusion and disrupting the meditation experience.
+
+**Examples of problematic phrases:**
+- "The child you were still **lives** inside you" - TTS said "lyves" (noun) instead of "livz" (verb)
+- "This is where your inner child **lives**" - Same mispronunciation
+- "That's where peace **lives**" - Same mispronunciation
+
+### **THE SOLUTION**
+Replaced the verb form of "lives" with alternative words that convey the same meaning but are pronounced correctly by TTS engines.
+
+**Changes Made:**
+
+1. **[preset_meditation29.txt:3](zz-time/Meditations/preset_meditation29.txt#L3):**
+   - **Before:** "The child you were still lives inside you."
+   - **After:** "The child you were still **resides** inside you."
+
+2. **[preset_meditation29.txt:43](zz-time/Meditations/preset_meditation29.txt#L43):**
+   - **Before:** "This is where your inner child lives."
+   - **After:** "This is where your inner child **exists**."
+   - **Note:** Used "exists" instead of "resides" to avoid repetition within the same meditation
+
+3. **[preset_meditation35.txt:45](zz-time/Meditations/preset_meditation35.txt#L45):**
+   - **Before:** "That's where peace lives."
+   - **After:** "That's where peace **resides**."
+
+**Not Changed:**
+- **[preset_meditation30.txt:37](zz-time/Meditations/preset_meditation30.txt#L37):** "All living their lives" - This uses "lives" as a noun (plural of "life"), which TTS pronounces correctly, so no change was needed.
+
+### **FILES MODIFIED**
+- `zz-time/Meditations/preset_meditation29.txt` (2 instances)
+- `zz-time/Meditations/preset_meditation35.txt` (1 instance)
+
+### **IMPACT**
+- ✅ All verb forms of "lives" replaced with correctly pronounced alternatives
+- ✅ Meaning preserved ("resides" and "exists" convey the same intent)
+- ✅ Improved meditation experience with natural-sounding narration
+- ✅ No impact on noun usage of "lives" (plural of life)
+
+---
+
 ## 2025-12-21 10:15: Removed Hardcoded Limits for Preset and Custom Meditations
 
 ### **ENHANCEMENTS MADE**
