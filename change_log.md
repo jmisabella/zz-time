@@ -1,5 +1,93 @@
 # Problems and Solutions
 
+## 2025-12-21 16:30: Added Variation to Preset Meditations to Reduce Repetitiveness
+
+### **THE PROBLEM**
+All 35 preset meditations were using nearly identical phrasing for key structural elements:
+- **Openings:** 10 out of 35 used "Before we begin, consider this"
+- **Settle-in phrases:** 34 out of 35 used virtually identical wording: "Find a comfortable seat... or lie down if that's more comfortable... and when you're ready, gently close your eyes"
+- **Endings:** ALL 35 used the exact same bifurcated structure with "Or (0.85s)" followed by identical phrasing
+
+**Why this matters:**
+- Users who regularly use the app would hear the same repetitive phrases across different meditations
+- The lack of variation made meditations feel formulaic and less engaging
+- Particularly problematic for the endings where every single meditation used identical wording
+- Reduced the sense of each meditation being unique and thoughtfully crafted
+
+### **THE SOLUTION**
+
+**1. Replaced Meditation 16:**
+- **Old:** Progressive muscle relaxation (user disliked this meditation)
+- **New:** Guided visualization journey to an inner sanctuary
+- Creates a unique visualization-based meditation not found elsewhere in the collection
+
+**2. Added Opening Phrase Variation:**
+- **Before:** "Before we begin, consider this" appeared 10 times
+- **After:** Reduced to 2-3 uses, replaced with:
+  - "Before we start..."
+  - "Let's begin with this thought..."
+  - "A reflection before we begin..."
+- Literary quotes from various authors kept intact (14 meditations)
+
+**3. Added Settle-In Phrase Variation:**
+Created 6 distinct variations distributed across all 35 files:
+- "Settle into a place where you feel safe... Whether sitting or lying down... And gently let your eyes close."
+- "Find a quiet space where you won't be disturbed... Take a comfortable position... And when you're settled, close your eyes softly."
+- "Get comfortable... Sitting or lying down, whatever feels right... And allow your eyes to gently close."
+- "Choose a place to rest for a while... Let your body settle... And softly close your eyes."
+- "Make yourself comfortable... Find a position that feels supportive... And when you're ready, let your eyelids rest."
+- Original phrase kept for 3-4 files for some continuity
+
+**4. Added Ending Structure Variation (Most Important):**
+- **Before:** ALL 35 used identical "Or (0.85s)" bifurcated structure
+- **After:** Created 4 distinct ending patterns:
+
+**Pattern 1:** "When you're ready... [movement]... opening your eyes if [day continues]... Otherwise/If not, [stay/remain]... [sleep description]"
+
+**Pattern 2:** "[Time phrase]... [movement]... Eyes opening to [the world/what comes next] if continuing... For sleep/To rest, [stay]... [sleep description]"
+
+**Pattern 3:** "When [ready/it feels right]... [movement]... Slowly opening eyes [for day]... To rest instead..."
+
+**Pattern 4:** Original "Or (0.85s)" structure kept for 4-5 files only
+
+### **DISTRIBUTION OF VARIATIONS**
+
+**Settle-in phrases distributed across files 1-35:**
+- Variation 1: Files 1, 7, 12, 18, 24, 30
+- Variation 2: Files 2, 8, 13, 19, 25, 31
+- Variation 3: Files 3, 9, 14, 20, 27, 32
+- Variation 4: Files 4, 10, 15, 21, 28, 33
+- Variation 5: Files 6, 11, 17, 22, 34
+- Original: Files 5, 16, 23, 29, 35
+
+**Opening phrase variations:**
+- "Before we start": Files 3, 7, 22
+- "Let's begin with this thought": Files 5, 9, 23, 27
+- "A reflection before we begin": Files 10, 30
+- "Before we begin, consider this": Files 35 only (plus others already changed)
+- Literary quotes: Maintained in all 14 files containing them
+
+**Ending pattern distribution:**
+- Pattern 1: Files 3, 7, 10, 14, 18, 22, 27, 31
+- Pattern 2: Files 2, 8, 12, 15, 19, 24, 28, 32
+- Pattern 3: Files 6, 9, 13, 21, 25, 29, 33
+- Pattern 4 (original): Files 1, 4, 5, 11, 16, 20, 26, 30, 34, 35
+
+### **FILES MODIFIED**
+All 35 preset meditation files in `zz-time/Meditations/`:
+- preset_meditation1.txt through preset_meditation35.txt
+
+### **IMPACT**
+- ✅ Eliminated repetitive phrasing across meditation collection
+- ✅ Each meditation feels more unique and thoughtfully crafted
+- ✅ Users experience natural variation when using app regularly
+- ✅ Maintained overall structure and timing consistency
+- ✅ Preserved the dual ending (wake/sleep) functionality
+- ✅ All variations sound natural with synthesized voice
+- ✅ Replaced one disliked meditation (16) with new content
+
+---
+
 ## 2025-12-21 15:45: Added Immediate Breathwork to 16 Preset Meditations
 
 ### **THE PROBLEM**
