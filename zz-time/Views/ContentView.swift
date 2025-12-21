@@ -36,6 +36,7 @@ struct ContentView: View {
         return UserDefaults.standard.object(forKey: "lastSelectedAlarmIndex") as? Int
     }()
     @State private var showingAlarmSelection: Bool = false
+    @StateObject private var ttsManager = TextToSpeechManager()
 
     private func findNextValidIndex(from currentIndex: Int, direction: Int) -> Int? {
         var newIndex = currentIndex + direction
@@ -484,6 +485,10 @@ struct ContentView: View {
         }
         fadeOutCurrent()
         UserDefaults.standard.removeObject(forKey: "lastWakeTime")
+
+        // Check if meditation was completed successfully for wake-up greeting
+        let meditationCompleted = UserDefaults.standard.bool(forKey: "meditationCompletedSuccessfully")
+
         do {
             try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
             try AVAudioSession.sharedInstance().setActive(true)
@@ -511,10 +516,25 @@ struct ContentView: View {
             self.alarmTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { _ in
                 self.hapticGenerator?.notificationOccurred(.warning)
             }
+
+            // Trigger wake-up greeting if meditation was completed successfully
+            // Only play if alarm is NOT silence (idx is valid and not nil means a sound is selected)
+            if meditationCompleted {
+                // Schedule greeting to play 5 seconds after alarm audio starts
+                DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+                    // Only speak if alarm is still active
+                    if self.isAlarmActive {
+                        self.ttsManager.speakWakeUpGreeting()
+                    }
+                }
+
+                // Clear the flag after using it
+                UserDefaults.standard.removeObject(forKey: "meditationCompletedSuccessfully")
+            }
         } catch {
             print("Error playing alarm: \(error.localizedDescription)")
         }
-        
+
         UserDefaults.standard.set(0.0, forKey: "durationMinutes")
         durationMinutes = 0
         UserDefaults.standard.removeObject(forKey: "lastWakeTime")

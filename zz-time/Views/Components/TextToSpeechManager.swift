@@ -23,6 +23,15 @@ class TextToSpeechManager: ObservableObject {
     private var sessionId: UUID = UUID()  // Track current meditation session
     private static let meditationPitchMultiplier: Float = 0.6  // Slightly lower pitch for calmer voice
 
+    // Wake-up greeting phrases (randomly selected when alarm triggers after meditation completion)
+    private static let wakeUpGreetings: [String] = [
+        "Welcome back",
+        "Greetings",
+        "Here we are",
+        "Returning to awareness",
+        "Welcome back to this space"
+    ]
+
     // Track phrases for closed captioning
     private var allPhrases: [String] = []
     private var currentPhraseIndex: Int = 0
@@ -211,6 +220,9 @@ class TextToSpeechManager: ObservableObject {
         isSpeaking = true
         isPlayingMeditation = true
         isCustomMode = true
+
+        // Clear any previous meditation completion flag when starting a new meditation
+        UserDefaults.standard.removeObject(forKey: "meditationCompletedSuccessfully")
 
         // Small delay to ensure synthesizer is fully stopped and cleared
         // This prevents race conditions with delegate callbacks from stopped utterances
@@ -423,6 +435,22 @@ class TextToSpeechManager: ObservableObject {
         return text.trimmingCharacters(in: .whitespacesAndNewlines)
     }
     
+    /// Speaks a random wake-up greeting (used when alarm triggers after meditation completion)
+    func speakWakeUpGreeting() {
+        guard let greeting = Self.wakeUpGreetings.randomElement() else { return }
+
+        let utterance = AVSpeechUtterance(string: greeting)
+        utterance.rate = AVSpeechUtteranceDefaultSpeechRate * Self.meditationSpeechRate
+        utterance.pitchMultiplier = Self.meditationPitchMultiplier
+        utterance.volume = voiceVolume
+
+        if let voice = AVSpeechSynthesisVoice(language: "en-US") {
+            utterance.voice = voice
+        }
+
+        synthesizer.speak(utterance)
+    }
+
     /// Stops speaking immediately
     func stopSpeaking() {
         print("🛑 stopSpeaking called - current state: isSpeaking=\(isSpeaking), isPlayingMeditation=\(isPlayingMeditation)")
@@ -433,6 +461,9 @@ class TextToSpeechManager: ObservableObject {
         queuedUtteranceCount = 0
         currentPhrase = ""
         previousPhrase = ""
+
+        // Clear meditation completion flag since it was stopped manually
+        UserDefaults.standard.removeObject(forKey: "meditationCompletedSuccessfully")
         print("✅ stopSpeaking complete - state reset")
     }
     
@@ -501,11 +532,16 @@ class TextToSpeechManager: ObservableObject {
             // Only stop when all utterances are done
             if queuedUtteranceCount <= 0 {
                 isSpeaking = false
-                isPlayingMeditation = false
+                // Keep isPlayingMeditation = true so the leaf stays green after completion
+                // This allows user to see that meditation completed successfully
+                // User can manually toggle leaf off if desired
                 isCustomMode = false
                 queuedUtteranceCount = 0
                 currentPhrase = ""
                 previousPhrase = ""
+
+                // Mark that a meditation completed successfully (for wake-up greeting feature)
+                UserDefaults.standard.set(true, forKey: "meditationCompletedSuccessfully")
             }
             return
         }

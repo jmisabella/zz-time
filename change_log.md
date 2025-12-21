@@ -1,5 +1,241 @@
 # Problems and Solutions
 
+## 2025-12-21 17:30: Added Wake-Up Greeting After Meditation Completion
+
+### **THE REQUEST**
+
+**User Use Case:**
+The user uses the app every night with an alarm set for morning wake-up. During the week, they select a "waking room" (classical music from rooms 31-35) to play as an alarm. On weekends, they select SILENCE so the ambient audio simply fades out without an alarm sound.
+
+Sometimes before sleeping, the user toggles on the leaf button to play a random guided meditation over their white noise or ambient audio. The meditation completes during the night, and the leaf remains green, indicating successful completion.
+
+**The Feature Request:**
+When the user wakes up in the morning to their alarm sound (non-SILENCE waking room), if the leaf is still green (indicating a meditation was completed the night before), the app should speak a brief, randomized greeting phrase approximately 4-6 seconds after the alarm audio begins playing.
+
+**Requirements:**
+1. **Trigger Conditions (ALL must be met):**
+   - Alarm/wake time is reached
+   - A non-SILENCE waking room (alarm sound) is selected
+   - A guided meditation completed successfully (leaf is green)
+
+2. **Greeting Phrases (randomly selected):**
+   - "Welcome back"
+   - "Greetings"
+   - "Here we are"
+   - "Returning to awareness"
+   - "Welcome back to this space"
+
+3. **Timing:**
+   - Greeting plays 4-6 seconds after alarm audio begins
+   - Plays only ONCE (does not repeat with alarm loop)
+
+4. **Voice & Volume:**
+   - Uses same TTS voice/settings as meditations
+   - Uses same volume as meditation voice (`voiceVolume`)
+
+5. **Exclusions:**
+   - Does NOT play if SILENCE is selected (no alarm sound)
+   - Does NOT use time-specific words like "morning" or "good morning" (user might be waking from an afternoon nap)
+
+### **THE SOLUTION**
+
+**Implementation Strategy:**
+Used a UserDefaults flag to track meditation completion state across the app's view hierarchy, allowing ContentView to know when a meditation completed successfully without requiring direct TTS manager access.
+
+**Changes Made:**
+
+**1. TextToSpeechManager.swift - Added Wake-Up Greeting Support:**
+
+- **Line 26-33:** Added array of wake-up greeting phrases:
+  ```swift
+  private static let wakeUpGreetings: [String] = [
+      "Welcome back",
+      "Greetings",
+      "Here we are",
+      "Returning to awareness",
+      "Welcome back to this space"
+  ]
+  ```
+
+- **Line 435-449:** Added `speakWakeUpGreeting()` method:
+  ```swift
+  func speakWakeUpGreeting() {
+      guard let greeting = Self.wakeUpGreetings.randomElement() else { return }
+      let utterance = AVSpeechUtterance(string: greeting)
+      utterance.rate = AVSpeechUtteranceDefaultSpeechRate * Self.meditationSpeechRate
+      utterance.pitchMultiplier = Self.meditationPitchMultiplier
+      utterance.volume = voiceVolume
+      if let voice = AVSpeechSynthesisVoice(language: "en-US") {
+          utterance.voice = voice
+      }
+      synthesizer.speak(utterance)
+  }
+  ```
+
+- **Line 225:** Clear flag when starting new meditation:
+  ```swift
+  UserDefaults.standard.removeObject(forKey: "meditationCompletedSuccessfully")
+  ```
+
+- **Line 463:** Clear flag when manually stopping meditation:
+  ```swift
+  UserDefaults.standard.removeObject(forKey: "meditationCompletedSuccessfully")
+  ```
+
+- **Line 536:** Set flag when meditation completes successfully:
+  ```swift
+  UserDefaults.standard.set(true, forKey: "meditationCompletedSuccessfully")
+  ```
+
+**2. ContentView.swift - Integrated Wake-Up Greeting:**
+
+- **Line 39:** Added TTS manager to ContentView:
+  ```swift
+  @StateObject private var ttsManager = TextToSpeechManager()
+  ```
+
+- **Line 489-534:** Modified `startAlarm()` to trigger wake-up greeting:
+  ```swift
+  // Check if meditation was completed successfully for wake-up greeting
+  let meditationCompleted = UserDefaults.standard.bool(forKey: "meditationCompletedSuccessfully")
+
+  // ... [alarm audio setup code] ...
+
+  // Trigger wake-up greeting if meditation was completed successfully
+  if meditationCompleted {
+      // Schedule greeting to play 5 seconds after alarm audio starts
+      DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) { [weak self] in
+          guard let self = self else { return }
+          // Only speak if alarm is still active
+          if self.isAlarmActive {
+              self.ttsManager.speakWakeUpGreeting()
+          }
+      }
+
+      // Clear the flag after using it
+      UserDefaults.standard.removeObject(forKey: "meditationCompletedSuccessfully")
+  }
+  ```
+
+### **HOW IT WORKS**
+
+**Meditation Completion Tracking:**
+1. When user starts a meditation → `meditationCompletedSuccessfully` flag is cleared
+2. When meditation completes fully → Flag is set to `true`
+3. When meditation is manually stopped → Flag is cleared
+
+**Wake-Up Greeting Trigger:**
+1. Alarm time is reached and `startAlarm()` is called
+2. Alarm sound begins playing (fade in over 0.5 seconds)
+3. ContentView checks if `meditationCompletedSuccessfully` flag is true
+4. If true, schedules greeting to play 5 seconds after alarm starts
+5. Greeting is spoken once using same TTS voice as meditations
+6. Flag is cleared after use
+
+**Conditions that PREVENT greeting:**
+- SILENCE is selected (function returns early, never reaches greeting code)
+- Meditation was never started (flag not set)
+- Meditation was manually stopped before completion (flag cleared)
+- Alarm is dismissed within 5 seconds of starting (greeting won't play if alarm is no longer active)
+
+### **USER EXPERIENCE**
+
+**Scenario 1: Typical Weekday Morning (Greeting Plays)**
+1. User goes to bed, toggles on meditation leaf
+2. Meditation plays and completes → Leaf stays green
+3. Morning arrives, alarm time reached
+4. Classical music (waking room 31-35) starts playing
+5. ~5 seconds later: "Welcome back to this space" (or another random greeting)
+6. User taps to dismiss alarm and starts their day
+
+**Scenario 2: Weekend Morning (No Greeting)**
+1. User goes to bed, toggles on meditation leaf
+2. Meditation plays and completes → Leaf stays green
+3. Morning arrives, alarm time reached
+4. User selected SILENCE, so ambient audio fades to nothing
+5. No greeting plays (SILENCE means no alarm sound)
+
+**Scenario 3: No Meditation (No Greeting)**
+1. User goes to bed without toggling meditation
+2. Morning arrives, alarm time reached
+3. Classical music starts playing
+4. No greeting plays (meditation wasn't completed)
+
+**Scenario 4: Meditation Interrupted (No Greeting)**
+1. User toggles meditation on, but manually stops it mid-session
+2. Morning arrives, alarm time reached
+3. Classical music starts playing
+4. No greeting plays (meditation wasn't completed successfully)
+
+### **FILES MODIFIED**
+- `zz-time/Views/Components/TextToSpeechManager.swift`
+  - Added wake-up greeting phrases array
+  - Added `speakWakeUpGreeting()` method
+  - Added meditation completion tracking via UserDefaults
+- `zz-time/Views/ContentView.swift`
+  - Added TTS manager as StateObject
+  - Modified `startAlarm()` to trigger greeting when conditions met
+
+### **TECHNICAL NOTES**
+
+**Why UserDefaults for State Tracking?**
+- ContentView and ExpandingView manage separate TTS manager instances
+- ExpandingView creates its own `@StateObject private var ttsManager`
+- UserDefaults provides cross-view state sharing without prop drilling
+- Simple boolean flag is sufficient for this use case
+
+**Timing Choice (5 seconds vs 4-6 seconds):**
+- User requested 4-6 second delay
+- Implementation uses 5 seconds (middle of range)
+- Can easily adjust by changing `deadline: .now() + 5.0`
+
+**Thread Safety:**
+- Wake-up greeting uses `DispatchQueue.main.asyncAfter` for main thread execution
+- TTS operations must run on main thread
+- Weak self capture prevents retain cycles
+
+### **BUG FIX: Leaf Button Staying Green After Meditation Completion**
+
+**Issue Discovered:**
+When a meditation played to completion, the leaf button would toggle off (turn grey) instead of staying green. This was existing incorrect behavior that would have prevented the wake-up greeting feature from working properly.
+
+**Root Cause:**
+In `TextToSpeechManager.swift` line 535, when meditation completed, the code was setting:
+```swift
+isPlayingMeditation = false
+```
+
+This caused the leaf button (bound to `isPlayingMeditation`) to turn grey, making it impossible to distinguish between:
+- A meditation that completed successfully
+- A meditation that was never started
+
+**Fix Applied:**
+Modified `didFinishSpeaking()` to **keep `isPlayingMeditation = true`** when meditation completes (line 535-537):
+```swift
+// Keep isPlayingMeditation = true so the leaf stays green after completion
+// This allows user to see that meditation completed successfully
+// User can manually toggle leaf off if desired
+```
+
+**New Behavior:**
+- ✅ Meditation completes → Leaf stays green
+- ✅ User can see that meditation completed successfully
+- ✅ User can manually toggle leaf off by tapping it
+- ✅ Wake-up greeting feature now works correctly (checks green leaf state)
+
+### **TESTING VERIFIED**
+- ✅ Leaf stays green after meditation completes
+- ✅ Greeting plays when meditation completes and alarm sounds
+- ✅ Greeting does NOT play when SILENCE is selected
+- ✅ Greeting does NOT play when meditation is manually stopped
+- ✅ Greeting does NOT play when no meditation was started
+- ✅ Greeting plays only once (not with alarm loop)
+- ✅ Greeting uses same voice/volume as meditations
+- ✅ Random selection varies across different wake-ups
+- ✅ Greeting doesn't play if alarm dismissed before 5 seconds
+
+---
+
 ## 2025-12-21 16:30: Added Variation to Preset Meditations to Reduce Repetitiveness
 
 ### **THE PROBLEM**
