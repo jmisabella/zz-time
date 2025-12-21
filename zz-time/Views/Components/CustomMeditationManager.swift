@@ -6,7 +6,6 @@ class CustomMeditationManager: ObservableObject {
     @Published var meditations: [CustomMeditation] = []
 
     private let storageKey = "customMeditations"
-    private let maxMeditations = 35
     
     init() {
         loadMeditations()
@@ -56,7 +55,6 @@ class CustomMeditationManager: ObservableObject {
     }
     
     func addMeditation(_ meditation: CustomMeditation) {
-        guard meditations.count < maxMeditations else { return }
         meditations.append(meditation)
         saveMeditations()
     }
@@ -79,8 +77,6 @@ class CustomMeditationManager: ObservableObject {
     }
     
     func duplicateMeditation(_ meditation: CustomMeditation) {
-        guard meditations.count < maxMeditations else { return }
-
         // Remove existing " (Copy)" suffix if present to avoid stacking
         let baseTitle = meditation.title.hasSuffix(" (Copy)")
             ? String(meditation.title.dropLast(7))
@@ -90,18 +86,18 @@ class CustomMeditationManager: ObservableObject {
             title: "\(baseTitle) (Copy)",
             text: meditation.text
         )
-        
+
         // Insert right after the original
         if let index = meditations.firstIndex(where: { $0.id == meditation.id }) {
             meditations.insert(duplicate, at: index + 1)
         } else {
             meditations.append(duplicate)
         }
-        
+
         saveMeditations()
     }
-    
+
     var canAddMore: Bool {
-        meditations.count < maxMeditations
+        true  // No limit on custom meditations
     }
 }

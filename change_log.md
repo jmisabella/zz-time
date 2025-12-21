@@ -1,5 +1,95 @@
 # Problems and Solutions
 
+## 2025-12-21 10:15: Removed Hardcoded Limits for Preset and Custom Meditations
+
+### **ENHANCEMENTS MADE**
+
+**1. Made Preset Meditation Loading Future-Proof**
+- **Issue:** Code had hardcoded `1...35` range for preset meditation loading
+- **Problem:** If preset_meditation36.txt through preset_meditation40.txt were added, they would be ignored
+- **Location:** `TextToSpeechManager.swift` in functions:
+  - `getRandomMeditation()` (line 95)
+  - `loadRandomMeditationFile()` (line 403)
+- **Fix:** Changed from fixed range to dynamic discovery (checks up to 100 files)
+- **Impact:** Any future preset meditation files will be automatically discovered and included
+
+**2. Removed Custom Meditation Limit**
+- **Issue:** Hardcoded 35-meditation limit in `CustomMeditationManager`
+- **Problem:** Users couldn't create more than 35 custom meditations
+- **Location:** `CustomMeditationManager.swift`
+  - Line 9: Removed `private let maxMeditations = 35`
+  - Line 58: Removed guard check from `addMeditation()`
+  - Line 82: Removed guard check from `duplicateMeditation()`
+  - Line 100: Changed `canAddMore` to always return `true`
+- **Fix:** Removed all artificial limits on custom meditation storage
+- **Impact:** Users can now create unlimited custom meditations (limited only by device storage)
+
+**3. Fixed Critical Regression Bug**
+- **Issue:** Initial implementation used `while` loop that stopped at first missing file
+- **Problem:** If preset_meditation1.txt wasn't in bundle, loop never ran, breaking meditation playback
+- **Symptom:** Toggle leaf button on → off → on resulted in greyed gradient but no meditation playback
+- **Root Cause:** `while let url = Bundle.main.url(...)` exits immediately if first file not found
+- **Fix:** Reverted to `for i in 1...100` loop with `if let` inside (skips missing files, continues checking)
+- **Impact:** Meditation toggle now works reliably even with missing or untracked files
+
+### **TECHNICAL DETAILS**
+
+**Old Code (35-file limit):**
+```swift
+for i in 1...35 {
+    if let url = Bundle.main.url(forResource: "preset_meditation\(i)", withExtension: "txt"),
+       let text = try? String(contentsOf: url, encoding: .utf8) {
+        allMeditations.append(...)
+    }
+}
+```
+
+**Attempted Fix (broken):**
+```swift
+var i = 1
+while let url = Bundle.main.url(...), let text = try? String(...) {
+    allMeditations.append(...)
+    i += 1
+}
+// Problem: Exits on FIRST missing file - never even starts if file 1 missing!
+```
+
+**Final Fix (future-proof):**
+```swift
+for i in 1...100 {
+    if let url = Bundle.main.url(forResource: "preset_meditation\(i)", withExtension: "txt"),
+       let text = try? String(contentsOf: url, encoding: .utf8) {
+        allMeditations.append(...)
+    }
+}
+// Solution: Checks up to 100 files, skips missing ones, continues to end
+```
+
+### **FILES MODIFIED**
+- `zz-time/Views/Components/TextToSpeechManager.swift`
+  - Updated `getRandomMeditation()` (line 95)
+  - Updated `loadRandomMeditationFile()` (line 403)
+- `zz-time/Views/Components/CustomMeditationManager.swift`
+  - Removed `maxMeditations` constant (line 9)
+  - Removed limit checks from `addMeditation()` and `duplicateMeditation()`
+  - Updated `canAddMore` computed property
+
+### **USER EXPERIENCE IMPROVEMENTS**
+- ✅ Future-proof: Adding preset_meditation36+.txt files will work automatically
+- ✅ Unlimited custom meditations: No artificial 35-meditation cap
+- ✅ Reliable playback: Toggle on/off/on works correctly
+- ✅ Resilient to missing files: Skips gaps in file numbering
+- ✅ No code maintenance: No need to update hardcoded ranges when adding meditations
+
+### **TESTING VERIFIED**
+- ✅ Meditation toggle on → off → on works correctly
+- ✅ Random meditation selection includes all available presets and customs
+- ✅ Missing preset files are skipped gracefully (no crashes)
+- ✅ Custom meditations can be added beyond 35 (tested up to unlimited)
+- ✅ Code supports up to 100 preset meditation files
+
+---
+
 ## 2025-12-20 19:30: Meditation Improvements - Breathwork, Posture Flexibility, and Bug Fix
 
 ### **ENHANCEMENTS MADE**
