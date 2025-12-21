@@ -1,5 +1,243 @@
 # Problems and Solutions
 
+## 2025-12-20 19:30: Meditation Improvements - Breathwork, Posture Flexibility, and Bug Fix
+
+### **ENHANCEMENTS MADE**
+
+**1. Fixed Critical Bug: Meditation Loading Range**
+- **Issue:** App was only loading preset meditations 1-10 instead of all 35
+- **Location:** `TextToSpeechManager.swift` lines 95 and 403
+- **Root Cause:** Both `getRandomMeditation()` and `loadRandomMeditationFile()` were looping through `1...10` instead of `1...35`
+- **Fix:** Updated both functions to loop through `1...35`
+- **Impact:** Users now have access to the full library of 35 preset meditations in random selection
+
+**2. Removed Emily Dickinson Quote**
+- **File:** `preset_meditation4.txt`
+- **Change:** Removed the "Hope is the thing with feathers" quote from Emily Dickinson
+- **Reason:** User preference
+
+**3. Added Posture Flexibility to All 35 Preset Meditations**
+- **Change:** Updated opening instructions to include lying down option
+- **Before (various formats):**
+  - "Find your seat…"
+  - "Settle in…"
+  - "Close your eyes…"
+- **After (standardized):**
+  - "Find a comfortable seat… or lie down if that's more comfortable… and when you're ready, gently close your eyes."
+- **Impact:** Provides users flexibility to meditate in their preferred posture (sitting or lying down)
+- **Files Modified:** All 35 preset meditation files (preset_meditation1.txt through preset_meditation35.txt)
+
+**4. Enhanced Breathwork Instructions**
+- **Addition:** Added structured 4-second breathing cycles to multiple meditations
+- **Pattern:** Follows the default meditation template:
+  ```
+  Inhale slowly through the nose…
+  Filling the belly first, then the chest…
+  And exhale just as slowly, letting everything soften.
+
+  Again… breathe in… (3.5s) and breathe out… (4.5s)
+  Breathe in (4s) and breathe out (4.5s)
+  In (4s) and out (5s)
+  ```
+- **Meditations Enhanced:** Added early breathwork sequences to:
+  - preset_meditation2.txt (Sky meditation)
+  - preset_meditation3.txt (Self-acceptance meditation)
+  - preset_meditation4.txt (Body scan meditation)
+  - preset_meditation5.txt (Listening meditation)
+  - preset_meditation7.txt (Noting practice meditation)
+- **Existing Breathwork Preserved:** Many meditations already contained specialized breathing techniques:
+  - Box breathing (4-4-4-4 pattern)
+  - 4-7-8 breathing
+  - Coherent breathing (5-5 pattern)
+  - Counted breath cycles
+
+**5. Maintained Meditation Diversity**
+- All unique themes, visualizations, and teaching content preserved
+- Each meditation retains its distinct character and purpose
+- Enhanced consistency in structure while preserving individual meditation styles
+
+### **SUMMARY**
+
+**Files Modified:**
+- `TextToSpeechManager.swift` (bug fix for meditation loading range)
+- All 35 preset meditation files in `zz-time/Meditations/` directory
+
+**User Experience Improvements:**
+- ✅ Fixed: Users can now access all 35 preset meditations (previously limited to 10)
+- ✅ Enhanced: More breathwork guidance with 4-second breathing cycles
+- ✅ Added: Flexibility to sit or lie down during meditations
+- ✅ Improved: Consistent opening structure across all meditations
+- ✅ Maintained: Unique content and themes of each meditation
+
+**Testing Verified:**
+- All 35 meditations now load correctly in random selection
+- Breathwork timing matches default meditation patterns (4-second cycles)
+- Opening instructions provide clear posture options
+- Meditation endings maintain ambiguity for wake/sleep transitions
+
+---
+
+## 2025-12-20 18:00: adjusted audio for Rooms 6 & 7
+
+
+## 2025-12-14 21:43: Alarm Sound Selection Persistence
+
+### **THE PROBLEM**
+When users started a new session, the selected "waking room" (alarm sound) would always default to silence, even if they had selected an alarm sound in a previous session. This created a poor user experience where users would need to re-select their preferred alarm sound every time they used the app.
+
+**User Report:**
+- User selects an alarm sound one evening (e.g., ambient_25)
+- Session completes and alarm plays (or is dismissed)
+- Next evening, user starts a new session
+- The alarm selection defaults back to silence instead of their previous choice
+- User must manually re-select their alarm sound each session
+
+### **ROOT CAUSE**
+The app was clearing `selectedAlarmIndex` from UserDefaults at the end of each session without preserving the user's preference for future sessions.
+
+**Specific clearing locations:**
+1. **Line 510 in ContentView.swift** - When alarm starts playing via `startAlarm()`
+2. **Line 558 in ContentView.swift** - When alarm is dismissed via `fadeOutAlarm()`
+3. **Line 427 in ExpandingView.swift** - When wake time expires via `updateDurationToRemaining()`
+
+While this cleanup made sense to reset the current session's alarm state, it resulted in losing the user's alarm preference entirely, causing every new session to default to silence (nil).
+
+### **THE SOLUTION**
+Implemented a two-key persistence system in UserDefaults to distinguish between current session state and user preferences:
+
+1. **`selectedAlarmIndex`** - The currently active alarm for the ongoing session (temporary, gets cleared after use)
+2. **`lastSelectedAlarmIndex`** - A persistent record of the user's last alarm selection (permanent, never cleared)
+
+**Changes Made:**
+
+**1. Updated initialization in ContentView.swift (lines 30-37):**
+```swift
+@State private var selectedAlarmIndex: Int? = {
+    // First check if there's an active alarm selection
+    if let activeAlarm = UserDefaults.standard.object(forKey: "selectedAlarmIndex") as? Int {
+        return activeAlarm
+    }
+    // Otherwise, restore the last selected alarm from previous session
+    return UserDefaults.standard.object(forKey: "lastSelectedAlarmIndex") as? Int
+}()
+```
+
+**2. Updated the onChange handler in ContentView.swift (lines 325-331):**
+```swift
+.onChange(of: selectedAlarmIndex) { _, new in
+    UserDefaults.standard.set(new, forKey: "selectedAlarmIndex")
+    // Save as last selected alarm so it persists across sessions
+    if let alarm = new {
+        UserDefaults.standard.set(alarm, forKey: "lastSelectedAlarmIndex")
+    }
+}
+```
+
+### **HOW IT WORKS**
+
+**When user selects an alarm:**
+- Both `selectedAlarmIndex` and `lastSelectedAlarmIndex` are saved to UserDefaults
+- `selectedAlarmIndex` = current session state
+- `lastSelectedAlarmIndex` = persistent user preference
+
+**When alarm plays or session ends:**
+- Only `selectedAlarmIndex` is cleared (existing cleanup logic at lines 510, 558, 427 unchanged)
+- `lastSelectedAlarmIndex` remains intact in UserDefaults
+
+**When starting a new session:**
+- App first checks for an active `selectedAlarmIndex`
+- If none exists (typical case after previous session ended), restores from `lastSelectedAlarmIndex`
+- User's preferred alarm sound is pre-selected automatically
+
+**When user selects silence:**
+- `selectedAlarmIndex` is set to `nil`
+- `lastSelectedAlarmIndex` is NOT updated (only non-nil values are saved)
+- This means if a user explicitly chooses silence for one session, their previous alarm preference is still remembered for future sessions
+
+### **USER EXPERIENCE IMPROVEMENT**
+
+**Before:**
+- User selects alarm → Session ends → Alarm cleared → Next session defaults to silence → Must re-select alarm
+
+**After:**
+- User selects alarm → Session ends → Current alarm cleared but preference saved → Next session restores previous selection → User can change it or keep it
+
+Users now have a consistent alarm selection that persists across sessions while still allowing full flexibility to change or disable alarms at any time.
+
+**Files Modified:**
+- `zz-time/Views/ContentView.swift` (lines 30-37, 325-331)
+
+**Testing Verified:**
+- ✅ Alarm selection persists across app restarts
+- ✅ Alarm selection persists after alarm plays and dismisses
+- ✅ User can still change alarm or select silence at any time
+- ✅ Selecting silence once doesn't prevent alarm from being restored next session
+
+---
+
+## 2025-12-13: Closed Captioning Disappearing Mid-Meditation Bug
+
+### **THE PROBLEM**
+Closed captioning would turn off on its own approximately 4-5 minutes into a guided meditation, while the meditation voice continued speaking. This occurred consistently and was reproducible across different meditation sessions.
+
+**User Report:**
+- User enters room and toggles on a random meditation via the Leaf button
+- Closed caption displays correctly at the bottom of screen, synchronized with spoken meditation
+- About halfway through the meditation (4-5 minutes in), the closed caption text and gradient stop displaying
+- Meditation voice continues without captions for the remainder of the session
+
+### **ROOT CAUSE**
+The bug was in the utterance counting system in `TextToSpeechManager.swift`.
+
+When `startSpeakingWithPauses()` queues utterances:
+1. **Speech utterances** are queued for each meditation phrase
+2. **Silent utterances** (empty strings with volume 0.0) are queued for pauses between phrases
+   - These silent utterances were implemented to work around the iOS TTS bug where `postUtteranceDelay` > 10 seconds causes iOS to vocalize the delay (see 2025-12-11 entry)
+   - Long pauses are broken into 5-second chunks, creating multiple silent utterances per pause
+
+**The counting bug:**
+- Line 273 set `queuedUtteranceCount = ultraCleanedPhrases.count` (only counting speech utterances)
+- Lines 290-302 queued additional silent utterances for pauses (NOT counted)
+- When `didFinishSpeaking()` was called for each utterance (including silent ones), it decremented `queuedUtteranceCount`
+- When the counter hit zero prematurely (due to uncounted silent utterances), it set `isPlayingMeditation = false`
+- This caused the closed caption to disappear because it's conditionally rendered based on `isPlayingMeditation`
+
+**Why it occurred mid-meditation:**
+Meditations with many pauses or longer pauses generated more silent utterances. After enough silent utterances completed, `queuedUtteranceCount` would hit zero while the meditation was still playing, hiding the captions.
+
+### **THE SOLUTION**
+Modified `startSpeakingWithPauses()` in `TextToSpeechManager.swift` to correctly count ALL utterances (both speech and silent):
+
+**Changes made (lines 272-288):**
+1. Calculate total utterance count BEFORE queuing:
+   ```swift
+   var totalUtteranceCount = 0
+   for (ultraCleanPhrase, delay) in ultraCleanedPhrases {
+       totalUtteranceCount += 1  // Count the speech utterance
+
+       // Count silent pause utterances
+       if delay > 0 {
+           let numPauses = Int(ceil(delay / 5.0))
+           totalUtteranceCount += numPauses
+       }
+   }
+   ```
+
+2. Set `queuedUtteranceCount` to the total (not just speech phrases):
+   ```swift
+   self.queuedUtteranceCount = totalUtteranceCount
+   ```
+
+This ensures `isPlayingMeditation` remains `true` until ALL utterances (both speech and silent) have completed, keeping the closed captions visible for the entire meditation duration.
+
+**Files Modified:**
+- `zz-time/Views/Components/TextToSpeechManager.swift`
+
+**Verified Fix:**
+The closed captioning now persists for the entire duration of guided meditations, regardless of pause structure.
+
+---
+
 ## 2025-12-13: App Store Compliance Review for Guided Meditations
 
 ### **THE QUESTIONS**

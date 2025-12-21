@@ -5,7 +5,7 @@ Old stress… (0.8s) forgotten worries… (1.2s)
 Stored in your muscles. (1.5s)
 Today, (0.4s) we let it go. (5s)
 
-Find your seat… (1.2s) and close your eyes. (4s)
+Find a comfortable seat… (0.5s) or lie down if that's more comfortable… (0.8s) and when you're ready, (0.5s) gently close your eyes. (4.5s)
 
 This practice is called progressive muscle relaxation. (2.5s)
 We'll tense and release different muscle groups… (1.2s)
@@ -74,6 +74,6 @@ Slowly bring movement back… (1.5s)
 Gentle stretches… (1.5s)
 And open your eyes to greet what's next. (4s)
 
-Or stay released, (1s)
+Or (0.85s) stay released, (1s)
 Body soft and heavy, (1s)
 Melting into sleep. (5s)

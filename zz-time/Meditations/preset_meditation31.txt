@@ -6,7 +6,7 @@ With patience. (1s)
 With kindness. (1s)
 With forgiveness. (5s)
 
-Close your eyes… (0.8s) and settle in. (4s)
+Find a comfortable seat… (0.5s) or lie down if that's more comfortable… (0.8s) and when you're ready, (0.5s) gently close your eyes. (4.5s)
 
 This meditation is about changing the voice inside. (2.5s)
 The one that criticizes. (1.2s)
@@ -88,6 +88,6 @@ Take one more deep breath… (4s)
 Gently open your eyes, (1.5s)
 Speaking kindly to yourself. (3.5s)
 
-Or let that kind voice stay with you, (1.5s)
+Or (0.85s) let that kind voice stay with you, (1.5s)
 Whispering comfort, (1s)
 As you ease into sleep. (5s)

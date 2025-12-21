@@ -7,7 +7,7 @@ Emotion. (1.2s)
 Nothing stays at its peak. (1.2s)
 Nothing stays in its depths. (5s)
 
-Close your eyes… (0.8s) and breathe. (3.5s)
+Find a comfortable seat… (0.5s) or lie down if that's more comfortable… (0.8s) and when you're ready, (0.5s) gently close your eyes. (4.5s)
 
 Imagine you're at the ocean. (2.5s)
 Sitting on the shore. (1.5s)
@@ -103,6 +103,6 @@ Imagine the wave dissolving, (1.5s)
 Calm water returning, (1.5s)
 And open your eyes to ride the next wave. (3s)
 
-Or let the waves keep moving, (1.5s)
+Or (0.85s) let the waves keep moving, (1.5s)
 While you rest as the deep ocean, (1.5s)
 Allowing sleep to wash over you. (5s)

@@ -92,7 +92,7 @@ class TextToSpeechManager: ObservableObject {
         var allMeditations: [(text: String, source: String)] = []
 
         // Add all preset meditation files
-        for i in 1...10 {
+        for i in 1...35 {
             if let url = Bundle.main.url(forResource: "preset_meditation\(i)", withExtension: "txt"),
                let text = try? String(contentsOf: url, encoding: .utf8) {
                 allMeditations.append((text.trimmingCharacters(in: .whitespacesAndNewlines), "preset \(i)"))
@@ -269,11 +269,23 @@ class TextToSpeechManager: ObservableObject {
                 return ultraCleanPhrase.isEmpty ? nil : (ultraCleanPhrase, delay)
             }
 
-            // Set the count of utterances we're about to queue (using ultra-cleaned count)
-            self.queuedUtteranceCount = ultraCleanedPhrases.count
-
             // Store ULTRA-cleaned phrases for closed captioning (so VoiceOver doesn't read pause markers)
             self.allPhrases = ultraCleanedPhrases.map { $0.phrase }
+
+            // Calculate total utterance count (speech + silent pause utterances)
+            var totalUtteranceCount = 0
+            for (ultraCleanPhrase, delay) in ultraCleanedPhrases {
+                totalUtteranceCount += 1  // Count the speech utterance
+
+                // Count silent pause utterances
+                if delay > 0 {
+                    let numPauses = Int(ceil(delay / 5.0))  // Break into 5-second chunks
+                    totalUtteranceCount += numPauses
+                }
+            }
+
+            // Set the count of ALL utterances we're about to queue (speech + silent)
+            self.queuedUtteranceCount = totalUtteranceCount
 
             for (_, (ultraCleanPhrase, delay)) in ultraCleanedPhrases.enumerated() {
                 let utterance = AVSpeechUtterance(string: ultraCleanPhrase)
@@ -383,12 +395,12 @@ class TextToSpeechManager: ObservableObject {
         return result
     }
         
-    /// Loads a random meditation text file from the bundle (preset_meditation1.txt through preset_meditation10.txt only)
+    /// Loads a random meditation text file from the bundle (preset_meditation1.txt through preset_meditation35.txt)
     private func loadRandomMeditationFile() -> String? {
-        // Only load preset meditation files (preset_meditation1.txt through preset_meditation10.txt)
+        // Load all preset meditation files (preset_meditation1.txt through preset_meditation35.txt)
         var validURLs: [URL] = []
-        
-        for i in 1...10 {
+
+        for i in 1...35 {
             if let url = Bundle.main.url(forResource: "preset_meditation\(i)", withExtension: "txt") {
                 validURLs.append(url)
             }
