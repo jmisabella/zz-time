@@ -23,6 +23,15 @@ class TextToSpeechManager: ObservableObject {
     private var sessionId: UUID = UUID()  // Track current meditation session
     private static let meditationPitchMultiplier: Float = 0.6  // Slightly lower pitch for calmer voice
 
+    // Wake-up greeting phrases (randomly selected when alarm triggers after meditation completion)
+    private static let wakeUpGreetings: [String] = [
+        "Welcome back",
+        "Greetings",
+        "Here we are",
+        "Returning to awareness",
+        "Welcome back to this space"
+    ]
+
     // Track phrases for closed captioning
     private var allPhrases: [String] = []
     private var currentPhraseIndex: Int = 0
@@ -91,8 +100,8 @@ class TextToSpeechManager: ObservableObject {
         // Build pool of all available meditations (presets + customs)
         var allMeditations: [(text: String, source: String)] = []
 
-        // Add all preset meditation files
-        for i in 1...35 {
+        // Add all preset meditation files (check up to 100 to future-proof)
+        for i in 1...100 {
             if let url = Bundle.main.url(forResource: "preset_meditation\(i)", withExtension: "txt"),
                let text = try? String(contentsOf: url, encoding: .utf8) {
                 allMeditations.append((text.trimmingCharacters(in: .whitespacesAndNewlines), "preset \(i)"))
@@ -211,6 +220,9 @@ class TextToSpeechManager: ObservableObject {
         isSpeaking = true
         isPlayingMeditation = true
         isCustomMode = true
+
+        // Clear any previous meditation completion flag when starting a new meditation
+        UserDefaults.standard.removeObject(forKey: "meditationCompletedSuccessfully")
 
         // Small delay to ensure synthesizer is fully stopped and cleared
         // This prevents race conditions with delegate callbacks from stopped utterances
@@ -395,12 +407,12 @@ class TextToSpeechManager: ObservableObject {
         return result
     }
         
-    /// Loads a random meditation text file from the bundle (preset_meditation1.txt through preset_meditation35.txt)
+    /// Loads a random meditation text file from the bundle (checks up to 100 preset files)
     private func loadRandomMeditationFile() -> String? {
-        // Load all preset meditation files (preset_meditation1.txt through preset_meditation35.txt)
+        // Load all available preset meditation files (check up to 100 to future-proof)
         var validURLs: [URL] = []
 
-        for i in 1...35 {
+        for i in 1...100 {
             if let url = Bundle.main.url(forResource: "preset_meditation\(i)", withExtension: "txt") {
                 validURLs.append(url)
             }
@@ -423,6 +435,22 @@ class TextToSpeechManager: ObservableObject {
         return text.trimmingCharacters(in: .whitespacesAndNewlines)
     }
     
+    /// Speaks a random wake-up greeting (used when alarm triggers after meditation completion)
+    func speakWakeUpGreeting() {
+        guard let greeting = Self.wakeUpGreetings.randomElement() else { return }
+
+        let utterance = AVSpeechUtterance(string: greeting)
+        utterance.rate = AVSpeechUtteranceDefaultSpeechRate * Self.meditationSpeechRate
+        utterance.pitchMultiplier = Self.meditationPitchMultiplier
+        utterance.volume = voiceVolume
+
+        if let voice = AVSpeechSynthesisVoice(language: "en-US") {
+            utterance.voice = voice
+        }
+
+        synthesizer.speak(utterance)
+    }
+
     /// Stops speaking immediately
     func stopSpeaking() {
         print("🛑 stopSpeaking called - current state: isSpeaking=\(isSpeaking), isPlayingMeditation=\(isPlayingMeditation)")
@@ -433,6 +461,9 @@ class TextToSpeechManager: ObservableObject {
         queuedUtteranceCount = 0
         currentPhrase = ""
         previousPhrase = ""
+
+        // Clear meditation completion flag since it was stopped manually
+        UserDefaults.standard.removeObject(forKey: "meditationCompletedSuccessfully")
         print("✅ stopSpeaking complete - state reset")
     }
     
@@ -501,11 +532,16 @@ class TextToSpeechManager: ObservableObject {
             // Only stop when all utterances are done
             if queuedUtteranceCount <= 0 {
                 isSpeaking = false
-                isPlayingMeditation = false
+                // Keep isPlayingMeditation = true so the leaf stays green after completion
+                // This allows user to see that meditation completed successfully
+                // User can manually toggle leaf off if desired
                 isCustomMode = false
                 queuedUtteranceCount = 0
                 currentPhrase = ""
                 previousPhrase = ""
+
+                // Mark that a meditation completed successfully (for wake-up greeting feature)
+                UserDefaults.standard.set(true, forKey: "meditationCompletedSuccessfully")
             }
             return
         }
