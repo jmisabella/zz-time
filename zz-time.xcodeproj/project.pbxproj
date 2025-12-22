@@ -54,7 +54,7 @@
 		006D44772EDE89EB00264CFE /* ambient_35.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 006D44762EDE89EB00264CFE /* ambient_35.m4a */; };
 		006D44792EDE9F6100264CFE /* ambient_04.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 006D44782EDE9F6100264CFE /* ambient_04.m4a */; };
 		0079DC1B2EF7611F006820B9 /* ambient_06.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0079DC1A2EF7611F006820B9 /* ambient_06.m4a */; };
-		0079DC652EF83DC3006820B9 /* ambient_07.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0079DC642EF83DC3006820B9 /* ambient_07.m4a */; };
+		0079DC752EF8B2CE006820B9 /* ambient_07.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0079DC742EF8B2CE006820B9 /* ambient_07.m4a */; };
 		0094618B2EDFF40000DC9E82 /* ambient_03.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0094618A2EDFF40000DC9E82 /* ambient_03.m4a */; };
 		00C3BE3B5FABFD46F4B777F4 /* MeditationTextDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EF8E543D50C3461BA2D7C4 /* MeditationTextDisplay.swift */; };
 		00F91E912EE3C357002FD154 /* CustomMeditation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00F91E902EE3C357002FD154 /* CustomMeditation.swift */; };
@@ -114,7 +114,7 @@
 		006D44762EDE89EB00264CFE /* ambient_35.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_35.m4a; sourceTree = "<group>"; };
 		006D44782EDE9F6100264CFE /* ambient_04.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_04.m4a; sourceTree = "<group>"; };
 		0079DC1A2EF7611F006820B9 /* ambient_06.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_06.m4a; sourceTree = "<group>"; };
-		0079DC642EF83DC3006820B9 /* ambient_07.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_07.m4a; sourceTree = "<group>"; };
+		0079DC742EF8B2CE006820B9 /* ambient_07.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_07.m4a; sourceTree = "<group>"; };
 		0094618A2EDFF40000DC9E82 /* ambient_03.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_03.m4a; sourceTree = "<group>"; };
 		00EF8E543D50C3461BA2D7C4 /* MeditationTextDisplay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeditationTextDisplay.swift; sourceTree = "<group>"; };
 		00F91E902EE3C357002FD154 /* CustomMeditation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomMeditation.swift; sourceTree = "<group>"; };
@@ -151,7 +151,7 @@
 				006D44782EDE9F6100264CFE /* ambient_04.m4a */,
 				0033F88D2EDFFD5B006D3319 /* ambient_05.m4a */,
 				0079DC1A2EF7611F006820B9 /* ambient_06.m4a */,
-				0079DC642EF83DC3006820B9 /* ambient_07.m4a */,
+				0079DC742EF8B2CE006820B9 /* ambient_07.m4a */,
 				0032BAC82EDAA4AB00837776 /* ambient_08.m4a */,
 				0069A9812EDFFB3300FFA508 /* ambient_09.m4a */,
 				0069A9822EDFFB3300FFA508 /* ambient_10.m4a */,
@@ -357,7 +357,7 @@
 				00371B0B2EAD71200037EDCF /* ambient_18.m4a in Resources */,
 				00371B0D2EAD71200037EDCF /* ambient_25.m4a in Resources */,
 				0069A9832EDFFB3300FFA508 /* ambient_10.m4a in Resources */,
-				0079DC652EF83DC3006820B9 /* ambient_07.m4a in Resources */,
+				0079DC752EF8B2CE006820B9 /* ambient_07.m4a in Resources */,
 				0069A9842EDFFB3300FFA508 /* ambient_09.m4a in Resources */,
 				00371B112EAD71200037EDCF /* ambient_12.m4a in Resources */,
 				00371B132EAD71200037EDCF /* ambient_22.m4a in Resources */,
@@ -547,7 +547,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.3;
+				MARKETING_VERSION = 2.4;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.jmisabella.z-rooms";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -578,7 +578,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.3;
+				MARKETING_VERSION = 2.4;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.jmisabella.z-rooms";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
