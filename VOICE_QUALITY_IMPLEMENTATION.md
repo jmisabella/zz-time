@@ -671,6 +671,9 @@ When implementing this feature on Android, use the following adjusted specificat
 
 **Info Section:**
 - Remove any mention of "doesn't increase app size"
+- Clarify that many voices come pre-installed on newer devices
+- Note that some voices may require download (100-500MB each)
 - Include storage estimates per quality level
 - Provide path to Android TTS settings
+- Explain how to delete voices to free up storage
 - Add "Get More Voices" button with deep link to TTS settings

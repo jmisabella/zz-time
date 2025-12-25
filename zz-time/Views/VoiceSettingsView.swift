@@ -84,11 +84,11 @@ struct VoiceSettingsView: View {
                         .padding(.horizontal)
 
                         VStack(alignment: .leading, spacing: 8) {
-                            InfoRow(text: "Enhanced voices are downloaded by iOS, not by this app")
-                            InfoRow(text: "Storage: Typically 100-500MB per voice")
-                            InfoRow(text: "These are system-level voices stored in iOS settings")
+                            InfoRow(text: "Enhanced voices are system-level, not bundled with this app")
+                            InfoRow(text: "Many enhanced voices come pre-installed on newer devices")
+                            InfoRow(text: "Some voices may require download (100-500MB each)")
 
-                            Text("You can manage downloaded voices in:")
+                            Text("To download or delete voices:")
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
                                 .padding(.top, 4)
@@ -96,6 +96,11 @@ struct VoiceSettingsView: View {
                             Text("Settings → Accessibility → Spoken Content → Voices")
                                 .font(.caption)
                                 .foregroundColor(.blue)
+                                .padding(.leading, 8)
+
+                            Text("Swipe left on any voice to delete and free up storage")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
                                 .padding(.leading, 8)
                         }
                         .padding()

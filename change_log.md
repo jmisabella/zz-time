@@ -42,7 +42,12 @@ Created a VoiceManager singleton to handle voice selection and preferences, with
   - Quality badges (Default/Enhanced/Premium with color coding)
   - Download status indicators ("May need download" for non-default voices)
   - Preview button for each voice (plays sample meditation phrase)
-  - Info section explaining system voices, storage, and iOS settings location
+  - Info section explaining:
+    - Enhanced voices are system-level (not bundled with app)
+    - Many come pre-installed on newer devices (e.g., iPhone 16)
+    - Some may require download (100-500MB each)
+    - How to manage voices in iOS Settings
+    - How to delete voices to free up storage
 - Preview uses same speech rate logic as actual meditations
 - Immediate preview switching (stops previous preview when new one starts)
 
@@ -132,8 +137,8 @@ Created a VoiceManager singleton to handle voice selection and preferences, with
 
 ### **FILES MODIFIED**
 - `zz-time/Views/Components/TextToSpeechManager.swift` (4 locations updated)
-- `zz-time/Views/ContentView.swift` (added gear icon + sheet)
-- `zz-time/Views/ExpandingView.swift` (added gear icon + sheet)
+- `zz-time/Views/ContentView.swift` (no changes - gear icon removed for cleaner UI)
+- `zz-time/Views/ExpandingView.swift` (added gear icon + sheet, leftmost position)
 
 ### **TECHNICAL NOTES**
 
@@ -152,9 +157,12 @@ Created a VoiceManager singleton to handle voice selection and preferences, with
 
 **Voice Download Handling:**
 - iOS manages downloads automatically via system prompts
-- App doesn't bundle voices (no size increase)
+- App doesn't bundle voices (no app size increase)
 - Voices stored in system settings (shared across apps)
-- Users can pre-download via Settings → Accessibility → Spoken Content → Voices
+- Many enhanced voices come pre-installed on newer devices (iPhone 16, etc.)
+- Some voices may require download if not already on device
+- Users can download/delete via Settings → Accessibility → Spoken Content → Voices
+- Swipe left on any voice to delete and free up storage (100-500MB per voice)
 
 **Type Corrections:**
 - Used `AVSpeechSynthesisVoiceQuality` instead of `AVSpeechSynthesisVoice.Quality`
@@ -167,10 +175,11 @@ Created a VoiceManager singleton to handle voice selection and preferences, with
 - App remains ~110MB regardless of voice feature usage
 
 **User Storage Impact:** 100-500MB per downloaded voice
-- Default voices: ~50-100MB (pre-installed)
-- Enhanced voices: ~100-300MB (downloadable)
-- Premium voices: ~300-500MB (downloadable)
-- Downloaded via iOS system, not in-app
+- Default voices: ~50-100MB (always pre-installed)
+- Enhanced voices: ~100-300MB (many pre-installed on newer devices, others downloadable)
+- Premium voices: ~300-500MB (many pre-installed on newer devices, others downloadable)
+- Newer devices (iPhone 16, etc.) come with many enhanced voices already installed
+- Downloads handled by iOS system, not in-app
 
 **Privacy:** No changes
 - App remains 100% offline
@@ -187,13 +196,13 @@ Created a VoiceManager singleton to handle voice selection and preferences, with
 - ✅ Default behavior unchanged (toggle OFF, default voice at 0.8x speed)
 - ✅ Enhanced voice toggle starts OFF
 - ✅ Voice selection persists across app restarts
-- ✅ Settings accessible from main grid (gear icon top-right)
-- ✅ Settings accessible from inside room (gear icon in bottom buttons)
+- ✅ Settings accessible from inside room (gear icon leftmost in bottom row)
+- ✅ Main grid remains clean and minimal (no gear icon)
 - ✅ Voice previews play with correct speech rate (0.8x for default, 1.0x for enhanced)
 - ✅ Multiple voice previews can be clicked rapidly (immediate switching)
 - ✅ Selected enhanced voice used in actual meditations at 1.0x speed
 - ✅ Fallback to default voice works when enhanced voice unavailable
-- ✅ Info section explains storage, system integration, iOS settings location
+- ✅ Info section explains storage, pre-installed voices, and how to delete
 - ✅ All voices use 1.0 pitch multiplier (no artificial pitch changes)
 
 ---
