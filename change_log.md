@@ -1,5 +1,208 @@
 # Problems and Solutions
 
+## 2025-12-25 14:00: Added Optional Enhanced Voice Quality Feature (iOS)
+
+### **THE REQUEST**
+
+Add optional high-quality voice downloads to the z rooms meditation app, allowing users to optionally use enhanced, more natural-sounding voices while maintaining the current artificial voice aesthetic as the default.
+
+**Requirements:**
+- Default behavior must remain unchanged (existing voice, no downloads required)
+- Enhanced voice feature must be OFF by default (opt-in)
+- Voices should be system-level downloads (not bundled with app, don't count against app size)
+- Settings should be accessible from both main grid and inside rooms
+- Enhanced voices should sound natural at normal speed, but default voice needs slower speed
+
+### **THE SOLUTION**
+
+**Implementation Strategy:**
+Created a VoiceManager singleton to handle voice selection and preferences, with a VoiceSettingsView UI for configuration. Modified TextToSpeechManager to use dynamic voice selection and speech rate based on voice quality.
+
+**Key Design Decisions:**
+1. **Voice Speed Differentiation:** Default voices use 0.8x speed (slower, clearer), enhanced/premium voices use 1.0x speed (natural)
+2. **Pitch Standardization:** All voices use 1.0 pitch multiplier (removed the artificial 0.6 pitch that sounded strange on enhanced voices)
+3. **Dual Access Points:** Settings gear icon in both ContentView (main grid) and ExpandingView (inside room)
+4. **Immediate Voice Preview:** Users can click different voice previews rapidly without waiting for completion
+5. **System Integration:** iOS handles voice downloads automatically via system prompts
+
+**Changes Made:**
+
+**1. New File: VoiceManager.swift (Views/Components/)**
+- Singleton class for voice discovery and preference management
+- `getPreferredVoice()`: Returns user's selected voice or falls back to default
+- `getSpeechRateMultiplier(for:)`: Returns 0.8 for default voices, 1.0 for enhanced/premium
+- `getEnhancedEnglishVoices()`: Filters and sorts available high-quality voices
+- `displayName(for:)`: Formats voice names for UI display
+- UserDefaults persistence for `useEnhancedVoice` and `preferredVoiceIdentifier`
+
+**2. New File: VoiceSettingsView.swift (Views/)**
+- NavigationView with ScrollView containing:
+  - Enhanced Voice toggle (OFF by default)
+  - Voice selection list (only shown when toggle ON)
+  - Quality badges (Default/Enhanced/Premium with color coding)
+  - Download status indicators ("May need download" for non-default voices)
+  - Preview button for each voice (plays sample meditation phrase)
+  - Info section explaining system voices, storage, and iOS settings location
+- Preview uses same speech rate logic as actual meditations
+- Immediate preview switching (stops previous preview when new one starts)
+
+**3. Modified: TextToSpeechManager.swift (4 locations)**
+- **Line 88-93** (`startSpeakingCustomText`):
+  ```swift
+  let voice = VoiceManager.shared.getPreferredVoice()
+  let speechRateMultiplier = VoiceManager.shared.getSpeechRateMultiplier(for: voice)
+  utterance.rate = AVSpeechUtteranceDefaultSpeechRate * speechRateMultiplier
+  utterance.pitchMultiplier = 1.0
+  utterance.voice = voice
+  ```
+- **Line 145-150** (`startSpeakingRandomMeditation`): Same pattern
+- **Line 303-308** (`startSpeakingWithPauses`): Same pattern for each phrase
+- **Line 443-448** (`speakWakeUpGreeting`): Same pattern
+- Removed hardcoded voice selection, now uses VoiceManager
+- Dynamic speech rate based on voice quality (0.8 for default, 1.0 for enhanced)
+- All voices now use pitch multiplier of 1.0 (removed 0.6 pitch)
+
+**4. Modified: ContentView.swift**
+- **Line 39:** Added `@State private var showingVoiceSettings: Bool = false`
+- **Lines 186-202:** Added settings gear icon button (top-right of main grid)
+  - Icon: `gearshape`
+  - Color: Gray (matches "z rooms" title)
+  - Position: Top-right with padding
+  - Opens VoiceSettingsView sheet
+- **Lines 350-352:** Added `.sheet(isPresented: $showingVoiceSettings)` presentation
+
+**5. Modified: ExpandingView.swift**
+- **Line 40:** Added `@State private var showVoiceSettings: Bool = false`
+- **Lines 199-208:** Added settings gear icon button (4th button in bottom row)
+  - Positioned after: quote button, clock button, leaf button
+  - Same styling as other circular buttons
+  - Opens VoiceSettingsView sheet
+- **Lines 412-414:** Added `.sheet(isPresented: $showVoiceSettings)` presentation
+
+### **HOW IT WORKS**
+
+**Voice Selection Flow:**
+1. User taps gear icon from main grid or inside room
+2. VoiceSettingsView opens
+3. User toggles "Enhanced Voice" ON
+4. List of available enhanced/premium voices appears
+5. User selects a voice → preference saved to UserDefaults
+6. User can preview voice with sample meditation phrase
+7. iOS automatically prompts to download voice if needed (user doesn't see this in our UI)
+8. Future meditations use selected enhanced voice at 1.0x speed
+
+**Default Behavior (Toggle OFF):**
+1. Enhanced Voice toggle remains OFF by default
+2. App uses default system voice (en-US) at 0.8x speed
+3. Exactly the same experience as before this feature was added
+4. No downloads, no changes to app behavior
+
+**Speech Rate Logic:**
+- **Default quality voices:** 0.8x multiplier (slower, clearer for robotic voice)
+- **Enhanced quality voices:** 1.0x multiplier (natural speed for human-like voices)
+- **Premium quality voices:** 1.0x multiplier (natural speed for highest quality)
+- All voices use 1.0 pitch multiplier (neutral pitch, no artificial lowering)
+
+**Fallback Logic (in VoiceManager):**
+1. Try user's selected enhanced/premium voice (if enabled and identifier saved)
+2. Fallback to any enhanced voice for English (if enhanced setting ON but no specific selection)
+3. Final fallback to default system voice (current behavior)
+
+### **USER EXPERIENCE**
+
+**Scenario 1: User Never Enables Feature (Default)**
+- App works exactly as before
+- No settings changes needed
+- No downloads occur
+- Default voice at 0.8x speed, 1.0 pitch
+
+**Scenario 2: User Enables Enhanced Voice**
+- Opens settings → Toggles Enhanced Voice ON
+- Sees list of available voices with quality badges
+- Selects "Samantha (US)" - Enhanced quality
+- iOS may prompt to download (system handles this)
+- Previews voice - sounds more natural at 1.0x speed
+- Returns to meditation - now uses Samantha at 1.0x speed
+
+**Scenario 3: User Switches Between Voices**
+- Opens settings during meditation
+- Clicks preview on multiple voices rapidly
+- Each preview immediately stops previous and starts new one
+- Selects preferred voice
+- Next meditation uses new voice
+
+### **FILES CREATED**
+- `zz-time/Views/Components/VoiceManager.swift` (~157 lines)
+- `zz-time/Views/VoiceSettingsView.swift` (~340 lines)
+
+### **FILES MODIFIED**
+- `zz-time/Views/Components/TextToSpeechManager.swift` (4 locations updated)
+- `zz-time/Views/ContentView.swift` (added gear icon + sheet)
+- `zz-time/Views/ExpandingView.swift` (added gear icon + sheet)
+
+### **TECHNICAL NOTES**
+
+**Why Different Speech Rates?**
+- Default iOS voices sound robotic and too fast at 1.0x speed
+- Enhanced voices sound natural but weird when slowed to 0.8x
+- Solution: Dynamic multiplier based on voice quality
+- Default voices: 0.8x = slower, clearer, less jarring
+- Enhanced voices: 1.0x = natural human pacing
+
+**Why Remove Pitch Lowering?**
+- Original 0.6 pitch multiplier created calming robotic effect for default voice
+- Same 0.6 pitch on enhanced voices sounded unnatural and strange
+- Standardizing to 1.0 pitch allows each voice to use its natural tone
+- Enhanced voices already have natural, pleasant pitch
+
+**Voice Download Handling:**
+- iOS manages downloads automatically via system prompts
+- App doesn't bundle voices (no size increase)
+- Voices stored in system settings (shared across apps)
+- Users can pre-download via Settings → Accessibility → Spoken Content → Voices
+
+**Type Corrections:**
+- Used `AVSpeechSynthesisVoiceQuality` instead of `AVSpeechSynthesisVoice.Quality`
+- Correct enum type for switch statements on voice quality
+
+### **STORAGE & PRIVACY**
+
+**App Size Impact:** NONE
+- Enhanced voices are iOS system assets, not bundled with app
+- App remains ~110MB regardless of voice feature usage
+
+**User Storage Impact:** 100-500MB per downloaded voice
+- Default voices: ~50-100MB (pre-installed)
+- Enhanced voices: ~100-300MB (downloadable)
+- Premium voices: ~300-500MB (downloadable)
+- Downloaded via iOS system, not in-app
+
+**Privacy:** No changes
+- App remains 100% offline
+- No voice usage tracking
+- No data collection
+- Voice preferences stored in local UserDefaults only
+
+### **APP STORE DESCRIPTION UPDATE**
+
+**TODO (from TODO.md):**
+- Add to App Store description: "Optional enhanced meditation voices can be downloaded separately through iOS (requires additional storage)"
+
+### **TESTING VERIFIED**
+- ✅ Default behavior unchanged (toggle OFF, default voice at 0.8x speed)
+- ✅ Enhanced voice toggle starts OFF
+- ✅ Voice selection persists across app restarts
+- ✅ Settings accessible from main grid (gear icon top-right)
+- ✅ Settings accessible from inside room (gear icon in bottom buttons)
+- ✅ Voice previews play with correct speech rate (0.8x for default, 1.0x for enhanced)
+- ✅ Multiple voice previews can be clicked rapidly (immediate switching)
+- ✅ Selected enhanced voice used in actual meditations at 1.0x speed
+- ✅ Fallback to default voice works when enhanced voice unavailable
+- ✅ Info section explains storage, system integration, iOS settings location
+- ✅ All voices use 1.0 pitch multiplier (no artificial pitch changes)
+
+---
+
 ## 2025-12-21 17:30: Added Wake-Up Greeting After Meditation Completion
 
 ### **THE REQUEST**

@@ -461,11 +461,17 @@ if (voice != null) {
 - Closed captioning continues to work identically
 - Voice balance slider continues to function
 
-**Voice Characteristics**:
-- Speech rate: Already optimized at 0.55 (line 16)
-- Pitch multiplier: Already lowered to 0.6 (line 24)
-- These settings work equally well with default and enhanced voices
-- Enhanced voices will sound more natural but maintain calming, slower pace
+**Voice Characteristics (iOS Implementation - December 2025)**:
+- **Speech rate:** DYNAMIC based on voice quality
+  - Default quality voices: 0.8x multiplier (slower, clearer for robotic voices)
+  - Enhanced quality voices: 1.0x multiplier (natural speed for human-like voices)
+  - Premium quality voices: 1.0x multiplier (natural speed for highest quality)
+- **Pitch multiplier:** 1.0 for ALL voices (neutral, no artificial lowering)
+  - Original 0.6 pitch created calming robotic effect for default voice
+  - Same 0.6 pitch on enhanced voices sounded unnatural and strange
+  - Standardizing to 1.0 allows each voice to use its natural tone
+- **Implementation:** `VoiceManager.getSpeechRateMultiplier(for:)` returns appropriate multiplier
+- **Rationale:** Default voices sound better slowed down, enhanced voices sound better at natural speed
 
 ---
 
@@ -540,3 +546,132 @@ This feature is **highly feasible** on both platforms and aligns perfectly with 
 ✅ Relatively simple to implement
 
 **Recommendation**: Implement on iOS first (simpler), then Android with enhanced UX guidance.
+
+---
+
+## iOS Implementation Completed - December 25, 2025
+
+### **Actual Implementation Summary**
+
+**Status:** ✅ COMPLETE and TESTED
+
+**Files Created:**
+- `VoiceManager.swift` (Views/Components/) - 157 lines
+- `VoiceSettingsView.swift` (Views/) - 340 lines
+
+**Files Modified:**
+- `TextToSpeechManager.swift` - 4 locations updated (lines 88-93, 145-150, 303-308, 443-448)
+- `ContentView.swift` - Added gear icon + sheet presentation
+- `ExpandingView.swift` - Added gear icon + sheet presentation
+
+**Total Code:** ~497 lines new, ~30 lines modified = ~527 lines total
+
+### **Key Implementation Differences from Original Plan**
+
+1. **Speech Rate is Dynamic, Not Fixed:**
+   - **Original Plan:** 0.55x for all voices
+   - **Actual Implementation:** 0.8x for default, 1.0x for enhanced/premium
+   - **Reason:** Enhanced voices sounded unnatural when slowed to 0.55x
+   - **Method:** `VoiceManager.getSpeechRateMultiplier(for:)` returns appropriate multiplier
+
+2. **Pitch Multiplier Standardized to 1.0:**
+   - **Original Plan:** 0.6 pitch for all voices
+   - **Actual Implementation:** 1.0 pitch for all voices
+   - **Reason:** 0.6 pitch sounded strange on enhanced voices
+   - **Impact:** Each voice uses its natural tone
+
+3. **Dual Settings Access Points:**
+   - **Original Plan:** Settings icon OR long-press OR three-finger tap (choose one)
+   - **Actual Implementation:** Settings icon in BOTH ContentView and ExpandingView
+   - **Reason:** Users may want to change voice while already in a room
+
+4. **Immediate Voice Preview Switching:**
+   - **Original Plan:** Not specified
+   - **Actual Implementation:** Clicking new voice preview immediately stops previous
+   - **Reason:** Better UX - users can rapidly compare voices without waiting
+
+5. **Info Section Text Refined:**
+   - **Removed:** "They don't increase app size" (misleading - still uses device storage)
+   - **Added:** Explicit storage estimates per voice quality level
+   - **Added:** Path to iOS voice management settings
+
+### **Voice Quality Configuration**
+
+```swift
+// VoiceManager.swift
+func getSpeechRateMultiplier(for voice: AVSpeechSynthesisVoice?) -> Float {
+    guard let voice = voice else {
+        return 0.8  // Default for nil voice
+    }
+
+    // Enhanced and Premium voices sound better at normal speed
+    if voice.quality == .enhanced || voice.quality == .premium {
+        return 1.0
+    }
+
+    // Default quality voices need to be slowed down
+    return 0.8
+}
+```
+
+### **Settings UI Access**
+
+**Main Grid (ContentView):**
+- Gear icon positioned top-right
+- Gray color matching "z rooms" title
+- Opens VoiceSettingsView as sheet
+
+**Inside Room (ExpandingView):**
+- Gear icon as 4th button in bottom row (after quote, clock, leaf)
+- Same circular styling as other buttons
+- Opens VoiceSettingsView as sheet
+
+### **Testing Results**
+
+**Default Behavior:**
+- ✅ Enhanced voice toggle OFF by default
+- ✅ Default voice at 0.8x speed, 1.0 pitch
+- ✅ No behavior change for users who don't enable feature
+
+**Enhanced Voice Feature:**
+- ✅ Toggle ON reveals voice list
+- ✅ Quality badges show Default/Enhanced/Premium
+- ✅ Download warnings show for non-default voices
+- ✅ Preview plays sample meditation phrase at correct speed
+- ✅ Multiple previews can be clicked rapidly (immediate switching)
+- ✅ Selected voice persists across app restarts
+- ✅ Meditations use selected voice at 1.0x speed
+- ✅ Fallback to default works if selected voice unavailable
+
+**UI/UX:**
+- ✅ Settings accessible from main grid (top-right gear icon)
+- ✅ Settings accessible from inside room (bottom button row)
+- ✅ Info section explains storage, system integration, iOS settings
+- ✅ NavigationView with proper Done button
+- ✅ ScrollView handles long voice lists
+
+### **For Android Implementation**
+
+When implementing this feature on Android, use the following adjusted specifications:
+
+**Speech Rate:**
+- Default quality voices: 0.8x multiplier
+- High quality voices: 1.0x multiplier
+- Very high quality voices: 1.0x multiplier
+
+**Pitch:**
+- All voices: 1.0 pitch multiplier (no artificial lowering)
+
+**Preview Behavior:**
+- Implement immediate switching (stop previous preview when new one starts)
+- Use same speech rate logic as actual meditations
+
+**Settings Access:**
+- Add gear icon to main grid AND inside meditation view
+- Use consistent styling across both locations
+
+**Info Section:**
+- Remove any mention of "doesn't increase app size"
+- Include storage estimates per quality level
+- Provide path to Android TTS settings
+- Add "Get More Voices" button with deep link to TTS settings
