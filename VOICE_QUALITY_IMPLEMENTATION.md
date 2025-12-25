@@ -617,15 +617,12 @@ func getSpeechRateMultiplier(for voice: AVSpeechSynthesisVoice?) -> Float {
 
 ### **Settings UI Access**
 
-**Main Grid (ContentView):**
-- Gear icon positioned top-right
-- Gray color matching "z rooms" title
-- Opens VoiceSettingsView as sheet
-
-**Inside Room (ExpandingView):**
-- Gear icon as 4th button in bottom row (after quote, clock, leaf)
+**Single Access Point - Inside Room Only (ExpandingView):**
+- Gear icon as leftmost button in bottom row (1st position)
+- Button order: gear → quote (custom meditation) → clock (alarm timer) → leaf (meditation toggle)
 - Same circular styling as other buttons
 - Opens VoiceSettingsView as sheet
+- **Design Rationale:** Cleaner, more minimal main screen; settings are contextual to meditation experience
 
 ### **Testing Results**
 
@@ -645,8 +642,8 @@ func getSpeechRateMultiplier(for voice: AVSpeechSynthesisVoice?) -> Float {
 - ✅ Fallback to default works if selected voice unavailable
 
 **UI/UX:**
-- ✅ Settings accessible from main grid (top-right gear icon)
-- ✅ Settings accessible from inside room (bottom button row)
+- ✅ Settings accessible from inside room (leftmost button in bottom row)
+- ✅ Main grid remains clean and minimal (no gear icon)
 - ✅ Info section explains storage, system integration, iOS settings
 - ✅ NavigationView with proper Done button
 - ✅ ScrollView handles long voice lists
@@ -668,8 +665,9 @@ When implementing this feature on Android, use the following adjusted specificat
 - Use same speech rate logic as actual meditations
 
 **Settings Access:**
-- Add gear icon to main grid AND inside meditation view
-- Use consistent styling across both locations
+- Add gear icon ONLY inside meditation view (inside room, not main grid)
+- Position as leftmost button for easy discovery
+- iOS implementation shows this creates cleaner main screen UX
 
 **Info Section:**
 - Remove any mention of "doesn't increase app size"
