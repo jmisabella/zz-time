@@ -36,7 +36,6 @@ struct ContentView: View {
         return UserDefaults.standard.object(forKey: "lastSelectedAlarmIndex") as? Int
     }()
     @State private var showingAlarmSelection: Bool = false
-    @State private var showingVoiceSettings: Bool = false
     @StateObject private var ttsManager = TextToSpeechManager()
 
     private func findNextValidIndex(from currentIndex: Int, direction: Int) -> Int? {
@@ -182,25 +181,6 @@ struct ContentView: View {
             if selectedItem == nil {
                 ZStack(alignment: .bottom) {
                     roomGrid
-
-                    // Settings button (top-right)
-                    VStack {
-                        HStack {
-                            Spacer()
-                            Button {
-                                showingVoiceSettings = true
-                            } label: {
-                                Image(systemName: "gearshape")
-                                    .font(.title2)
-                                    .foregroundColor(Color(white: 0.5))
-                                    .padding(12)
-                                    .background(Circle().fill(Color.black.opacity(0.2)))
-                            }
-                            .padding(.top, 60)
-                            .padding(.trailing, 20)
-                        }
-                        Spacer()
-                    }
 
                     VStack(spacing: 4) {
                         Text("z rooms")
@@ -367,9 +347,6 @@ struct ContentView: View {
                 }
             )
             .presentationDetents([.medium])
-        }
-        .sheet(isPresented: $showingVoiceSettings) {
-            VoiceSettingsView()
         }
     }
 

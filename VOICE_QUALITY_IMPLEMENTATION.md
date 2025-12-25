@@ -561,8 +561,8 @@ This feature is **highly feasible** on both platforms and aligns perfectly with 
 
 **Files Modified:**
 - `TextToSpeechManager.swift` - 4 locations updated (lines 88-93, 145-150, 303-308, 443-448)
-- `ContentView.swift` - Added gear icon + sheet presentation
-- `ExpandingView.swift` - Added gear icon + sheet presentation
+- `ContentView.swift` - No changes (gear icon removed for cleaner UI)
+- `ExpandingView.swift` - Added gear icon + sheet presentation (leftmost button position)
 
 **Total Code:** ~497 lines new, ~30 lines modified = ~527 lines total
 
@@ -580,10 +580,11 @@ This feature is **highly feasible** on both platforms and aligns perfectly with 
    - **Reason:** 0.6 pitch sounded strange on enhanced voices
    - **Impact:** Each voice uses its natural tone
 
-3. **Dual Settings Access Points:**
+3. **Single Settings Access Point:**
    - **Original Plan:** Settings icon OR long-press OR three-finger tap (choose one)
-   - **Actual Implementation:** Settings icon in BOTH ContentView and ExpandingView
-   - **Reason:** Users may want to change voice while already in a room
+   - **Actual Implementation:** Settings gear icon ONLY in ExpandingView (inside room view)
+   - **Position:** Leftmost button in bottom row (gear → quote → clock → leaf)
+   - **Reason:** Cleaner, more minimal main screen; settings are contextual to meditation experience
 
 4. **Immediate Voice Preview Switching:**
    - **Original Plan:** Not specified

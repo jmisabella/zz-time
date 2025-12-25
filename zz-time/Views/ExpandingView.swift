@@ -130,6 +130,17 @@ struct ExpandingView: View {
 
                     HStack(spacing: 30) {
                     Button {
+                        showVoiceSettings = true
+                    } label: {
+                        Image(systemName: "gearshape")
+                            .font(.title)
+                            .foregroundColor(Color(white: 0.7))
+                            .padding(10)
+                            .background(Circle().fill(Color.black.opacity(0.5)))
+                    }
+                    .contentShape(Circle())
+
+                    Button {
                         showMeditationList = true
                     } label: {
                         Image(systemName: "text.quote")
@@ -196,17 +207,6 @@ struct ExpandingView: View {
                         )
                         .padding(10)
                         .background(Circle().fill(Color.black.opacity(0.5)))
-                    }
-                    .contentShape(Circle())
-
-                    Button {
-                        showVoiceSettings = true
-                    } label: {
-                        Image(systemName: "gearshape")
-                            .font(.title)
-                            .foregroundColor(Color(white: 0.7))
-                            .padding(10)
-                            .background(Circle().fill(Color.black.opacity(0.5)))
                     }
                     .contentShape(Circle())
                 }

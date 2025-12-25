@@ -21,8 +21,6 @@ class TextToSpeechManager: ObservableObject {
     private var isCustomMode: Bool = false
     private var queuedUtteranceCount: Int = 0
     private var sessionId: UUID = UUID()  // Track current meditation session
-//    private static let meditationSpeechRate: Float = 0.55  // Calm, slow rate for meditation
-//    private static let meditationPitchMultiplier: Float = 0.6  // Slightly lower pitch for calmer voice
     private static let meditationSpeechRate: Float = 1.0  // Calm, slow rate for meditation
     private static let meditationPitchMultiplier: Float = 1.0  // Slightly lower pitch for calmer
 

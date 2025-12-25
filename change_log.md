@@ -21,7 +21,7 @@ Created a VoiceManager singleton to handle voice selection and preferences, with
 **Key Design Decisions:**
 1. **Voice Speed Differentiation:** Default voices use 0.8x speed (slower, clearer), enhanced/premium voices use 1.0x speed (natural)
 2. **Pitch Standardization:** All voices use 1.0 pitch multiplier (removed the artificial 0.6 pitch that sounded strange on enhanced voices)
-3. **Dual Access Points:** Settings gear icon in both ContentView (main grid) and ExpandingView (inside room)
+3. **Single Access Point:** Settings gear icon only in ExpandingView (inside room view), positioned as leftmost button for clean, minimal main screen
 4. **Immediate Voice Preview:** Users can click different voice previews rapidly without waiting for completion
 5. **System Integration:** iOS handles voice downloads automatically via system prompts
 
@@ -63,18 +63,13 @@ Created a VoiceManager singleton to handle voice selection and preferences, with
 - All voices now use pitch multiplier of 1.0 (removed 0.6 pitch)
 
 **4. Modified: ContentView.swift**
-- **Line 39:** Added `@State private var showingVoiceSettings: Bool = false`
-- **Lines 186-202:** Added settings gear icon button (top-right of main grid)
-  - Icon: `gearshape`
-  - Color: Gray (matches "z rooms" title)
-  - Position: Top-right with padding
-  - Opens VoiceSettingsView sheet
-- **Lines 350-352:** Added `.sheet(isPresented: $showingVoiceSettings)` presentation
+- **No changes:** Gear icon removed from main grid view for cleaner, more minimal UI
+- Settings access moved exclusively to ExpandingView (inside room view)
 
 **5. Modified: ExpandingView.swift**
 - **Line 40:** Added `@State private var showVoiceSettings: Bool = false`
-- **Lines 199-208:** Added settings gear icon button (4th button in bottom row)
-  - Positioned after: quote button, clock button, leaf button
+- **Lines 132-141:** Added settings gear icon button (1st button in bottom row, leftmost position)
+  - New button order: gear → quote (custom meditation) → clock (alarm timer) → leaf (meditation toggle)
   - Same styling as other circular buttons
   - Opens VoiceSettingsView sheet
 - **Lines 412-414:** Added `.sheet(isPresented: $showVoiceSettings)` presentation
@@ -82,7 +77,7 @@ Created a VoiceManager singleton to handle voice selection and preferences, with
 ### **HOW IT WORKS**
 
 **Voice Selection Flow:**
-1. User taps gear icon from main grid or inside room
+1. User enters a room (ExpandingView) and taps gear icon (leftmost button in bottom row)
 2. VoiceSettingsView opens
 3. User toggles "Enhanced Voice" ON
 4. List of available enhanced/premium voices appears
