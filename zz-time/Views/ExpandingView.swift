@@ -36,6 +36,9 @@ struct ExpandingView: View {
     @StateObject private var meditationManager = CustomMeditationManager()
     @State private var showMeditationList: Bool = false
 
+    // Voice settings
+    @State private var showVoiceSettings: Bool = false
+
     // Closed captioning toggle
     @AppStorage("showMeditationText") private var showMeditationText: Bool = true
 
@@ -127,6 +130,17 @@ struct ExpandingView: View {
 
                     HStack(spacing: 30) {
                     Button {
+                        showVoiceSettings = true
+                    } label: {
+                        Image(systemName: "gearshape")
+                            .font(.title)
+                            .foregroundColor(Color(white: 0.7))
+                            .padding(10)
+                            .background(Circle().fill(Color.black.opacity(0.5)))
+                    }
+                    .contentShape(Circle())
+
+                    Button {
                         showMeditationList = true
                     } label: {
                         Image(systemName: "text.quote")
@@ -136,7 +150,7 @@ struct ExpandingView: View {
                             .background(Circle().fill(Color.black.opacity(0.5)))
                     }
                     .contentShape(Circle())
-                    
+
                     Button {
                         let now = Date()
                         let calendar = Calendar.current
@@ -173,7 +187,8 @@ struct ExpandingView: View {
                     }
                     .contentShape(Circle())
                     Button {
-                        if ttsManager.isPlayingMeditation {
+                        // Check if actually speaking (not just showing as "played" after completion)
+                        if ttsManager.isSpeaking {
                             ttsManager.stopSpeaking()
                         } else {
                             guard let text = ttsManager.getRandomMeditation()
@@ -408,6 +423,9 @@ struct ExpandingView: View {
                     ttsManager.startSpeakingWithPauses(meditationText)
                 }
             )
+        }
+        .sheet(isPresented: $showVoiceSettings) {
+            VoiceSettingsView(ttsManager: ttsManager)
         }
     }
     

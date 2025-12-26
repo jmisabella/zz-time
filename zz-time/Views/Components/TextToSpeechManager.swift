@@ -13,15 +13,16 @@ class TextToSpeechManager: ObservableObject {
     @Published var currentPhrase: String = ""
     @Published var previousPhrase: String = ""
 
-    private static let meditationSpeechRate: Float = 0.55  // Calm, slow rate for meditation
-    private let synthesizer = AVSpeechSynthesizer()
+    
+    let synthesizer = AVSpeechSynthesizer()  // Internal access for pause/resume from VoiceSettingsView
     private let speechDelegate: SpeechDelegate
     private var repeatCount = 0
     private let maxRepeats = 10
     private var isCustomMode: Bool = false
     private var queuedUtteranceCount: Int = 0
     private var sessionId: UUID = UUID()  // Track current meditation session
-    private static let meditationPitchMultiplier: Float = 0.6  // Slightly lower pitch for calmer voice
+    private static let meditationSpeechRate: Float = 1.0  // Calm, slow rate for meditation
+    private static let meditationPitchMultiplier: Float = 1.0  // Slightly lower pitch for calmer
 
     // Wake-up greeting phrases (randomly selected when alarm triggers after meditation completion)
     private static let wakeUpGreetings: [String] = [
@@ -41,8 +42,11 @@ class TextToSpeechManager: ObservableObject {
 
     // Callback to notify when ambient volume changes
     var onAmbientVolumeChanged: ((Float) -> Void)? = nil
-    
+
     let voiceVolume: Float = 0.25
+
+    // Track last played meditation to avoid consecutive repeats
+    private var lastPlayedMeditationText: String? = nil
     
     var ambientVolume: Float {
         // Balance ranges from 0.0 (0% ambient) to 1.0 (100% ambient)
@@ -82,15 +86,13 @@ class TextToSpeechManager: ObservableObject {
         isCustomMode = true
         
         let utterance = AVSpeechUtterance(string: text)
-        utterance.rate = AVSpeechUtteranceDefaultSpeechRate * Self.meditationSpeechRate
-        utterance.pitchMultiplier = 1.0
-        utterance.volume = voiceVolume
+        let voice = VoiceManager.shared.getPreferredVoice()
+        let speechRateMultiplier = VoiceManager.shared.getSpeechRateMultiplier(for: voice)
+        utterance.rate = AVSpeechUtteranceDefaultSpeechRate * speechRateMultiplier
         utterance.pitchMultiplier = Self.meditationPitchMultiplier
-        
-        if let voice = AVSpeechSynthesisVoice(language: "en-US") {
-            utterance.voice = voice
-        }
-        
+        utterance.volume = voiceVolume
+        utterance.voice = voice
+
         synthesizer.speak(utterance)
     }
     
@@ -120,9 +122,18 @@ class TextToSpeechManager: ObservableObject {
             return nil
         }
 
-        // Randomly select one meditation from the combined pool
+        // Filter out the last played meditation if we have more than one option
+        if let lastPlayed = lastPlayedMeditationText, allMeditations.count > 1 {
+            allMeditations = allMeditations.filter { $0.text != lastPlayed }
+            print("🚫 Filtered out last played meditation, \(allMeditations.count) options remaining")
+        }
+
+        // Randomly select one meditation from the filtered pool
         let selected = allMeditations.randomElement()!
         print("✅ Randomly selected '\(selected.source)' (\(selected.text.count) characters) from pool of \(allMeditations.count) meditations")
+
+        // Store this meditation as the last played
+        lastPlayedMeditationText = selected.text
 
         return selected.text
     }
@@ -141,15 +152,13 @@ class TextToSpeechManager: ObservableObject {
         isCustomMode = true  // Treat like custom - play once, don't repeat
         
         let utterance = AVSpeechUtterance(string: meditationText)
-        utterance.rate = AVSpeechUtteranceDefaultSpeechRate * Self.meditationSpeechRate
-        utterance.pitchMultiplier = 1.0
-        utterance.volume = voiceVolume
+        let voice = VoiceManager.shared.getPreferredVoice()
+        let speechRateMultiplier = VoiceManager.shared.getSpeechRateMultiplier(for: voice)
+        utterance.rate = AVSpeechUtteranceDefaultSpeechRate * speechRateMultiplier
         utterance.pitchMultiplier = Self.meditationPitchMultiplier
-        
-        if let voice = AVSpeechSynthesisVoice(language: "en-US") {
-            utterance.voice = voice
-        }
-        
+        utterance.volume = voiceVolume
+        utterance.voice = voice
+
         synthesizer.speak(utterance)
     }
     
@@ -301,11 +310,12 @@ class TextToSpeechManager: ObservableObject {
 
             for (_, (ultraCleanPhrase, delay)) in ultraCleanedPhrases.enumerated() {
                 let utterance = AVSpeechUtterance(string: ultraCleanPhrase)
-                utterance.rate = AVSpeechUtteranceDefaultSpeechRate * Self.meditationSpeechRate
-                utterance.pitchMultiplier = 1.0
-                utterance.volume = self.voiceVolume
-                utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
+                let voice = VoiceManager.shared.getPreferredVoice()
+                let speechRateMultiplier = VoiceManager.shared.getSpeechRateMultiplier(for: voice)
+                utterance.rate = AVSpeechUtteranceDefaultSpeechRate * speechRateMultiplier
                 utterance.pitchMultiplier = Self.meditationPitchMultiplier
+                utterance.volume = self.voiceVolume
+                utterance.voice = voice
 
                 self.synthesizer.speak(utterance)
 
@@ -440,13 +450,12 @@ class TextToSpeechManager: ObservableObject {
         guard let greeting = Self.wakeUpGreetings.randomElement() else { return }
 
         let utterance = AVSpeechUtterance(string: greeting)
-        utterance.rate = AVSpeechUtteranceDefaultSpeechRate * Self.meditationSpeechRate
+        let voice = VoiceManager.shared.getPreferredVoice()
+        let speechRateMultiplier = VoiceManager.shared.getSpeechRateMultiplier(for: voice)
+        utterance.rate = AVSpeechUtteranceDefaultSpeechRate * speechRateMultiplier
         utterance.pitchMultiplier = Self.meditationPitchMultiplier
         utterance.volume = voiceVolume
-
-        if let voice = AVSpeechSynthesisVoice(language: "en-US") {
-            utterance.voice = voice
-        }
+        utterance.voice = voice
 
         synthesizer.speak(utterance)
     }

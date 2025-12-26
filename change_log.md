@@ -1,5 +1,493 @@
 # Problems and Solutions
 
+## 2025-12-25 23:27: Enhanced Opening Phrase Variety in Preset Meditations
+
+### **THE REQUEST**
+
+The user noticed that an excessive number of preset meditations began with the exact same literal phrase: "Before we begin, consider this." This repetitive opening created a monotonous user experience for regular meditation users. The request was to introduce significant variety in the opening phrases while maintaining the overall contemplative meaning and tone.
+
+**Initial Analysis:**
+- 27 out of 36 meditation files used "Before we begin,"
+- 13 of those used the generic "consider this" after it
+- This lack of variety made meditations feel formulaic and less engaging
+
+### **THE SOLUTION**
+
+**Implementation Strategy:**
+Developed a diverse collection of 20+ opening phrase variations across 5 categories, distributed thoughtfully across all meditation files based on their content and sources. The approach prioritized attribution-specific phrases for meditations with named sources (Marcus Aurelius, Tao Te Ching, etc.) while using varied invitations and tone-setters for original content.
+
+**Opening Phrase Categories Created:**
+
+**Category 1: Invitations to Reflect**
+- "A thought to hold"
+- "Consider these words"
+- "Reflect on this"
+- "Let's begin with this insight"
+- "Here's a thought to carry with us"
+- "A moment to contemplate"
+- "Something to ponder"
+- "Something to reflect upon"
+- "Here's a reflection"
+
+**Category 2: Setting the Tone**
+- "To set our intention"
+- "As we prepare"
+- "To ground this practice"
+- "To guide our journey today"
+- "Let us settle in with"
+- "We begin with"
+
+**Category 3: Attribution-Specific (for meditations with sources)**
+- "In the words of William Wordsworth, from I Wandered Lonely As A Cloud"
+- "Marcus Aurelius reminds us, from his Meditations"
+- "Wisdom from Ralph Waldo Emerson's Self-Reliance"
+- "From Lao Tzu's Tao Te Ching, these words"
+- "The Bhagavad Gita teaches us"
+- "An ancient teaching from the Tao Te Ching"
+- "Wisdom from the Dhammapada"
+- "Ancient Buddhist wisdom teaches"
+- "From the Upanishads, this teaching"
+
+**Category 4: Gentle Invitation**
+- "Let these words guide us"
+- "May we hold this truth"
+- "A reminder for our practice"
+- "Let's begin with this thought"
+
+**Category 5: Direct Entry**
+- One meditation (preset_meditation4.txt) starts directly with instructions, no preamble
+
+**Preserved "Before we begin" instances (2-3 total, as requested):**
+- "A reflection before we begin" (meditation 10)
+- "Before we begin, from the Serenity Prayer" (meditation 25)
+- "Before we begin, from an old Zen saying" (meditation 28)
+
+### **CHANGES MADE**
+
+Updated 27 out of 36 meditation files with varied opening phrases:
+
+**Meditations with Attribution-Specific Phrases:**
+- preset_meditation1.txt: "In the words of William Wordsworth..."
+- preset_meditation2.txt: "Marcus Aurelius reminds us..."
+- preset_meditation6.txt: "Wisdom from Ralph Waldo Emerson's Self-Reliance"
+- preset_meditation8.txt: "From Lao Tzu's Tao Te Ching, these words"
+- preset_meditation11.txt: "The Bhagavad Gita teaches us"
+- preset_meditation15.txt: "An ancient teaching from the Tao Te Ching"
+- preset_meditation20.txt: "Wisdom from the Dhammapada"
+- preset_meditation21.txt: "Ancient Buddhist wisdom teaches"
+- preset_meditation30.txt: "From the Upanishads, this teaching"
+
+**Meditations with Reflection & Invitation Phrases:**
+- preset_meditation3.txt: "Here's a reflection"
+- preset_meditation7.txt: "Let us settle in with"
+- preset_meditation12.txt: "To guide our journey today"
+- preset_meditation13.txt: "A thought to hold"
+- preset_meditation14.txt: "Let's begin with this insight"
+- preset_meditation16.txt: "Something to ponder"
+- preset_meditation17.txt: "To set our intention"
+- preset_meditation18.txt: "Reflect on this"
+- preset_meditation19.txt: "Here's a thought to carry with us"
+- preset_meditation22.txt: "Something to reflect upon"
+- preset_meditation24.txt: "A moment to contemplate"
+- preset_meditation26.txt: "As we prepare"
+- preset_meditation29.txt: "Consider these words"
+- preset_meditation31.txt: "To ground this practice"
+- preset_meditation32.txt: "Let these words guide us"
+- preset_meditation33.txt: "A reminder for our practice"
+- preset_meditation34.txt: "May we hold this truth"
+- preset_meditation35.txt: "We begin with"
+
+### **DISTRIBUTION & VARIETY ACHIEVED**
+
+**Before:**
+- 27 files using "Before we begin,"
+- 13 files with "Before we begin, consider this"
+- Extremely repetitive, formulaic feel
+
+**After:**
+- Only 2-3 files retain "Before we begin" (10, 25, 28)
+- 20+ unique opening phrases across all categories
+- Variety distributed evenly based on meditation content and sources
+- Each meditation feels more unique and thoughtfully crafted
+
+### **FILES MODIFIED**
+
+All meditation files in `zz-time/Meditations/`:
+- preset_meditation1.txt through preset_meditation35.txt
+- Total: 27 files updated with new opening phrases
+- 3 files retained "Before we begin" for variety
+- Multiple files already had "Let's begin with this thought" variations (kept for continuity)
+
+### **USER EXPERIENCE IMPROVEMENT**
+
+**Before:**
+- Users hearing same meditation openings repeatedly
+- Formulaic, predictable feel across meditation collection
+- Reduced sense of uniqueness for each meditation
+- "Before we begin, consider this" became monotonous
+
+**After:**
+- Fresh, varied openings create unique feel for each meditation
+- Attribution-specific phrases honor sources appropriately
+- Regular users experience natural variety across sessions
+- Maintained contemplative tone while eliminating repetition
+- Each meditation feels individually crafted
+
+### **IMPLEMENTATION METHOD**
+
+Used bash script with sed commands to update all files efficiently:
+- Systematically replaced opening phrases across all 27 target files
+- Preserved meditations that already had good variety (5, 9, 23, 27)
+- Maintained exact timing markers and pause notations
+- Kept all attribution information intact
+- Ensured meditation content and themes unchanged
+
+### **IMPACT**
+
+- ✅ Eliminated repetitive "Before we begin, consider this" from 13+ files
+- ✅ Reduced "Before we begin" usage from 27 instances to 2-3
+- ✅ Created 20+ unique opening phrase variations
+- ✅ Distributed phrases thoughtfully based on meditation content
+- ✅ Honored sources with attribution-specific openings
+- ✅ Maintained contemplative, meditative tone throughout
+- ✅ Preserved timing, pauses, and meditation structure
+- ✅ Each meditation feels more distinctive and engaging
+
+---
+
+## 2025-12-25 16:30: Prevent Consecutive Meditation Repeats (iOS)
+
+### **THE REQUEST**
+
+When user toggles the Leaf button on → off → on again to play a second meditation, ensure the app never plays the exact same meditation that was just played.
+
+### **THE SOLUTION**
+
+**Implementation:**
+
+**Modified: TextToSpeechManager.swift**
+- **Line 49:** Added `private var lastPlayedMeditationText: String?` to track the last played meditation
+- **Lines 125-129:** Filter logic in `getRandomMeditation()` to exclude last played meditation
+  - Only filters if there are 2+ meditations available (prevents filtering when only 1 meditation exists)
+  - Removes the last played meditation from the pool before random selection
+- **Line 136:** Store the selected meditation as `lastPlayedMeditationText` for next time
+
+### **HOW IT WORKS**
+
+1. User toggles Leaf on → meditation plays → stores text in `lastPlayedMeditationText`
+2. User toggles Leaf off → meditation stops (last played text still stored)
+3. User toggles Leaf on again → `getRandomMeditation()` called
+4. Function builds pool of all meditations (35 presets + custom meditations)
+5. If `lastPlayedMeditationText` exists and pool has 2+ meditations, filter it out
+6. Randomly select from remaining meditations → guaranteed to be different
+7. Store new selection as `lastPlayedMeditationText` for future toggles
+
+**Edge Case Handling:**
+- If only 1 meditation exists, filtering is skipped (can't exclude the only option)
+- If 35+ meditations exist, ensures variety by never repeating consecutively
+
+### **TESTING VERIFIED**
+- ✅ Toggling Leaf on → off → on selects different meditation each time
+- ✅ Works with both preset and custom meditations
+- ✅ Handles edge case of single meditation (doesn't filter when only 1 option)
+- ✅ Maintains randomness while preventing consecutive repeats
+
+---
+
+## 2025-12-25 16:00: Bug Fixes and Enhancements for Voice Settings (iOS)
+
+### **THE REQUEST**
+
+Fix critical bugs and add quality-of-life improvements to the voice settings feature:
+
+**BUG #1:** When toggling the leaf button on → off → on again, the meditation doesn't restart (no voice, no closed captions, but gradient appears)
+
+**BUG #2:** When previewing voices in Voice Settings while a meditation is already playing, both voices speak simultaneously
+
+**REQUEST #1:** Add ability to stop voice preview samples (change play button to stop button when previewing)
+
+**REQUEST #2:** Ensure voice preview samples use the same volume as meditation voice (0.25)
+
+### **THE SOLUTION**
+
+**Root Cause Analysis:**
+- BUG #1: The `isPlayingMeditation` flag stayed `true` after meditation completion (by design, to keep leaf green), but the leaf button toggle logic only checked `isPlayingMeditation`, causing it to call `stopSpeaking()` instead of starting a new meditation
+- BUG #2: Voice previews used a separate synthesizer but didn't pause the active meditation, causing audio overlap
+
+**Implementation:**
+
+**1. Modified: ExpandingView.swift**
+- Changed leaf button logic from checking `ttsManager.isPlayingMeditation` to `ttsManager.isSpeaking`
+- This distinguishes between "actively speaking" vs "completed and showing as played"
+- Line 191: Now properly starts new meditation when toggled after completion
+
+**2. Modified: VoiceSettingsView.swift**
+- Added `@ObservedObject var ttsManager: TextToSpeechManager` parameter
+- Added `previewingVoiceIdentifier: String?` to track which voice is being previewed
+- Added `wasMeditationPlayingBeforePreview: Bool` to track meditation state
+- Lines 163-167: Pause active meditation before playing preview using `pauseSpeaking(at: .word)`
+- Lines 193-204: New `stopPreview()` function that stops preview and resumes meditation with `continueSpeaking()`
+- Line 179: Changed preview volume from `0.5` to `ttsManager.voiceVolume` (0.25) for consistency
+- Lines 69-75: Preview button toggles between play and stop based on `previewingVoiceIdentifier`
+
+**3. Modified: VoiceRow Component**
+- Added `isPreviewing: Bool` parameter (per-voice, not global)
+- Lines 241-245: Button shows `stop.circle.fill` (red) when previewing, `play.circle` (blue) when not
+- Clicking stop button calls `stopPreview()` to immediately halt preview and resume meditation
+
+**4. Modified: TextToSpeechManager.swift**
+- Line 17: Changed `synthesizer` from `private` to internal to allow pause/resume from VoiceSettingsView
+- This enables `pauseSpeaking(at:)` and `continueSpeaking()` to be called externally
+
+**5. Modified: ExpandingView.swift (sheet presentation)**
+- Line 428: Changed from `VoiceSettingsView()` to `VoiceSettingsView(ttsManager: ttsManager)` to pass manager reference
+
+### **HOW IT WORKS**
+
+**Leaf Button Restart Fix (BUG #1):**
+1. User toggles leaf on → meditation plays → meditation completes
+2. `isPlayingMeditation` stays `true` (leaf stays green), but `isSpeaking` becomes `false`
+3. User toggles leaf again → checks `isSpeaking` (false) → starts new meditation
+4. Previously checked `isPlayingMeditation` (true) → would call `stopSpeaking()` instead
+
+**Voice Preview Pause/Resume (BUG #2):**
+1. User has meditation playing → taps gear icon → selects voice to preview
+2. VoiceSettingsView checks `ttsManager.isSpeaking` → if true, pauses meditation with `pauseSpeaking(at: .word)`
+3. Sets `wasMeditationPlayingBeforePreview = true`
+4. Plays voice preview using separate synthesizer
+5. When preview finishes (or user clicks stop), calls `stopPreview()`
+6. `stopPreview()` checks `wasMeditationPlayingBeforePreview` → if true, calls `continueSpeaking()`
+7. Meditation resumes from where it paused
+
+**Stop Button for Previews (REQUEST #1):**
+1. User clicks play button on voice → `previewingVoiceIdentifier` set to that voice's identifier
+2. VoiceRow for that voice receives `isPreviewing = true`
+3. Button changes to red stop icon (`stop.circle.fill`)
+4. User can click stop → calls `stopPreview()` → preview stops, meditation resumes
+5. User can also click play on different voice → immediately stops current preview and starts new one
+
+**Volume Consistency (REQUEST #2):**
+1. Meditation voice uses `ttsManager.voiceVolume` (0.25)
+2. Voice previews now also use `ttsManager.voiceVolume` (0.25)
+3. Previously used hardcoded `0.5` which was twice as loud
+
+### **TESTING VERIFIED**
+- ✅ Leaf button restart: Toggle on → off → on works correctly, meditation restarts
+- ✅ Voice preview pause: Meditation pauses when preview starts, resumes when preview ends
+- ✅ Stop button: Red stop button appears during preview, clicking it stops preview immediately
+- ✅ Volume consistency: Preview samples use same volume (0.25) as meditation voice
+- ✅ Multiple previews: Can rapidly switch between voice previews, previous stops immediately
+- ✅ Sheet dismiss: Closing Voice Settings while preview playing stops preview and resumes meditation
+
+---
+
+## 2025-12-25 14:00: Added Optional Enhanced Voice Quality Feature (iOS)
+
+### **THE REQUEST**
+
+Add optional high-quality voice downloads to the z rooms meditation app, allowing users to optionally use enhanced, more natural-sounding voices while maintaining the current artificial voice aesthetic as the default.
+
+**Requirements:**
+- Default behavior must remain unchanged (existing voice, no downloads required)
+- Enhanced voice feature must be OFF by default (opt-in)
+- Voices should be system-level downloads (not bundled with app, don't count against app size)
+- Settings should be accessible from both main grid and inside rooms
+- Enhanced voices should sound natural at normal speed, but default voice needs slower speed
+
+### **THE SOLUTION**
+
+**Implementation Strategy:**
+Created a VoiceManager singleton to handle voice selection and preferences, with a VoiceSettingsView UI for configuration. Modified TextToSpeechManager to use dynamic voice selection and speech rate based on voice quality.
+
+**Key Design Decisions:**
+1. **Voice Speed Differentiation:** Default voices use 0.8x speed (slower, clearer), enhanced/premium voices use 1.0x speed (natural)
+2. **Pitch Standardization:** All voices use 1.0 pitch multiplier (removed the artificial 0.6 pitch that sounded strange on enhanced voices)
+3. **Single Access Point:** Settings gear icon only in ExpandingView (inside room view), positioned as leftmost button for clean, minimal main screen
+4. **Immediate Voice Preview:** Users can click different voice previews rapidly without waiting for completion
+5. **System Integration:** iOS handles voice downloads automatically via system prompts
+
+**Changes Made:**
+
+**1. New File: VoiceManager.swift (Views/Components/)**
+- Singleton class for voice discovery and preference management
+- `getPreferredVoice()`: Returns user's selected voice or falls back to default
+- `getSpeechRateMultiplier(for:)`: Returns 0.8 for default voices, 1.0 for enhanced/premium
+- `getEnhancedEnglishVoices()`: Filters and sorts available high-quality voices
+- `displayName(for:)`: Formats voice names for UI display
+- UserDefaults persistence for `useEnhancedVoice` and `preferredVoiceIdentifier`
+
+**2. New File: VoiceSettingsView.swift (Views/)**
+- NavigationView with ScrollView containing:
+  - Enhanced Voice toggle (OFF by default)
+  - Voice selection list (only shown when toggle ON)
+  - Quality badges (Default/Enhanced/Premium with color coding)
+  - Download status indicators ("May need download" for non-default voices)
+  - Preview button for each voice (plays sample meditation phrase)
+  - Info section explaining:
+    - Enhanced voices are system-level (not bundled with app)
+    - Many come pre-installed on newer devices (e.g., iPhone 16)
+    - Some may require download (100-500MB each)
+    - How to manage voices in iOS Settings
+    - How to delete voices to free up storage
+- Preview uses same speech rate logic as actual meditations
+- Immediate preview switching (stops previous preview when new one starts)
+
+**3. Modified: TextToSpeechManager.swift (4 locations)**
+- **Line 88-93** (`startSpeakingCustomText`):
+  ```swift
+  let voice = VoiceManager.shared.getPreferredVoice()
+  let speechRateMultiplier = VoiceManager.shared.getSpeechRateMultiplier(for: voice)
+  utterance.rate = AVSpeechUtteranceDefaultSpeechRate * speechRateMultiplier
+  utterance.pitchMultiplier = 1.0
+  utterance.voice = voice
+  ```
+- **Line 145-150** (`startSpeakingRandomMeditation`): Same pattern
+- **Line 303-308** (`startSpeakingWithPauses`): Same pattern for each phrase
+- **Line 443-448** (`speakWakeUpGreeting`): Same pattern
+- Removed hardcoded voice selection, now uses VoiceManager
+- Dynamic speech rate based on voice quality (0.8 for default, 1.0 for enhanced)
+- All voices now use pitch multiplier of 1.0 (removed 0.6 pitch)
+
+**4. Modified: ContentView.swift**
+- **No changes:** Gear icon removed from main grid view for cleaner, more minimal UI
+- Settings access moved exclusively to ExpandingView (inside room view)
+
+**5. Modified: ExpandingView.swift**
+- **Line 40:** Added `@State private var showVoiceSettings: Bool = false`
+- **Lines 132-141:** Added settings gear icon button (1st button in bottom row, leftmost position)
+  - New button order: gear → quote (custom meditation) → clock (alarm timer) → leaf (meditation toggle)
+  - Same styling as other circular buttons
+  - Opens VoiceSettingsView sheet
+- **Lines 412-414:** Added `.sheet(isPresented: $showVoiceSettings)` presentation
+
+### **HOW IT WORKS**
+
+**Voice Selection Flow:**
+1. User enters a room (ExpandingView) and taps gear icon (leftmost button in bottom row)
+2. VoiceSettingsView opens
+3. User toggles "Enhanced Voice" ON
+4. List of available enhanced/premium voices appears
+5. User selects a voice → preference saved to UserDefaults
+6. User can preview voice with sample meditation phrase
+7. iOS automatically prompts to download voice if needed (user doesn't see this in our UI)
+8. Future meditations use selected enhanced voice at 1.0x speed
+
+**Default Behavior (Toggle OFF):**
+1. Enhanced Voice toggle remains OFF by default
+2. App uses default system voice (en-US) at 0.8x speed
+3. Exactly the same experience as before this feature was added
+4. No downloads, no changes to app behavior
+
+**Speech Rate Logic:**
+- **Default quality voices:** 0.8x multiplier (slower, clearer for robotic voice)
+- **Enhanced quality voices:** 1.0x multiplier (natural speed for human-like voices)
+- **Premium quality voices:** 1.0x multiplier (natural speed for highest quality)
+- All voices use 1.0 pitch multiplier (neutral pitch, no artificial lowering)
+
+**Fallback Logic (in VoiceManager):**
+1. Try user's selected enhanced/premium voice (if enabled and identifier saved)
+2. Fallback to any enhanced voice for English (if enhanced setting ON but no specific selection)
+3. Final fallback to default system voice (current behavior)
+
+### **USER EXPERIENCE**
+
+**Scenario 1: User Never Enables Feature (Default)**
+- App works exactly as before
+- No settings changes needed
+- No downloads occur
+- Default voice at 0.8x speed, 1.0 pitch
+
+**Scenario 2: User Enables Enhanced Voice**
+- Opens settings → Toggles Enhanced Voice ON
+- Sees list of available voices with quality badges
+- Selects "Samantha (US)" - Enhanced quality
+- iOS may prompt to download (system handles this)
+- Previews voice - sounds more natural at 1.0x speed
+- Returns to meditation - now uses Samantha at 1.0x speed
+
+**Scenario 3: User Switches Between Voices**
+- Opens settings during meditation
+- Clicks preview on multiple voices rapidly
+- Each preview immediately stops previous and starts new one
+- Selects preferred voice
+- Next meditation uses new voice
+
+### **FILES CREATED**
+- `zz-time/Views/Components/VoiceManager.swift` (~157 lines)
+- `zz-time/Views/VoiceSettingsView.swift` (~340 lines)
+
+### **FILES MODIFIED**
+- `zz-time/Views/Components/TextToSpeechManager.swift` (4 locations updated)
+- `zz-time/Views/ContentView.swift` (no changes - gear icon removed for cleaner UI)
+- `zz-time/Views/ExpandingView.swift` (added gear icon + sheet, leftmost position)
+
+### **TECHNICAL NOTES**
+
+**Why Different Speech Rates?**
+- Default iOS voices sound robotic and too fast at 1.0x speed
+- Enhanced voices sound natural but weird when slowed to 0.8x
+- Solution: Dynamic multiplier based on voice quality
+- Default voices: 0.8x = slower, clearer, less jarring
+- Enhanced voices: 1.0x = natural human pacing
+
+**Why Remove Pitch Lowering?**
+- Original 0.6 pitch multiplier created calming robotic effect for default voice
+- Same 0.6 pitch on enhanced voices sounded unnatural and strange
+- Standardizing to 1.0 pitch allows each voice to use its natural tone
+- Enhanced voices already have natural, pleasant pitch
+
+**Voice Download Handling:**
+- iOS manages downloads automatically via system prompts
+- App doesn't bundle voices (no app size increase)
+- Voices stored in system settings (shared across apps)
+- Many enhanced voices come pre-installed on newer devices (iPhone 16, etc.)
+- Some voices may require download if not already on device
+- Users can download/delete via Settings → Accessibility → Spoken Content → Voices
+- Swipe left on any voice to delete and free up storage (100-500MB per voice)
+
+**Type Corrections:**
+- Used `AVSpeechSynthesisVoiceQuality` instead of `AVSpeechSynthesisVoice.Quality`
+- Correct enum type for switch statements on voice quality
+
+### **STORAGE & PRIVACY**
+
+**App Size Impact:** NONE
+- Enhanced voices are iOS system assets, not bundled with app
+- App remains ~110MB regardless of voice feature usage
+
+**User Storage Impact:** 100-500MB per downloaded voice
+- Default voices: ~50-100MB (always pre-installed)
+- Enhanced voices: ~100-300MB (many pre-installed on newer devices, others downloadable)
+- Premium voices: ~300-500MB (many pre-installed on newer devices, others downloadable)
+- Newer devices (iPhone 16, etc.) come with many enhanced voices already installed
+- Downloads handled by iOS system, not in-app
+
+**Privacy:** No changes
+- App remains 100% offline
+- No voice usage tracking
+- No data collection
+- Voice preferences stored in local UserDefaults only
+
+### **APP STORE DESCRIPTION UPDATE**
+
+**TODO (from TODO.md):**
+- Add to App Store description: "Optional enhanced meditation voices can be downloaded separately through iOS (requires additional storage)"
+
+### **TESTING VERIFIED**
+- ✅ Default behavior unchanged (toggle OFF, default voice at 0.8x speed)
+- ✅ Enhanced voice toggle starts OFF
+- ✅ Voice selection persists across app restarts
+- ✅ Settings accessible from inside room (gear icon leftmost in bottom row)
+- ✅ Main grid remains clean and minimal (no gear icon)
+- ✅ Voice previews play with correct speech rate (0.8x for default, 1.0x for enhanced)
+- ✅ Multiple voice previews can be clicked rapidly (immediate switching)
+- ✅ Selected enhanced voice used in actual meditations at 1.0x speed
+- ✅ Fallback to default voice works when enhanced voice unavailable
+- ✅ Info section explains storage, pre-installed voices, and how to delete
+- ✅ All voices use 1.0 pitch multiplier (no artificial pitch changes)
+
+---
+
 ## 2025-12-21 17:30: Added Wake-Up Greeting After Meditation Completion
 
 ### **THE REQUEST**

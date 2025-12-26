@@ -181,6 +181,7 @@ struct ContentView: View {
             if selectedItem == nil {
                 ZStack(alignment: .bottom) {
                     roomGrid
+
                     VStack(spacing: 4) {
                         Text("z rooms")
                             .font(.system(size: 18, weight: .bold, design: .rounded))
