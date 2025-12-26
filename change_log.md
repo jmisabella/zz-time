@@ -1,5 +1,92 @@
 # Problems and Solutions
 
+## 2025-12-25 16:00: Bug Fixes and Enhancements for Voice Settings (iOS)
+
+### **THE REQUEST**
+
+Fix critical bugs and add quality-of-life improvements to the voice settings feature:
+
+**BUG #1:** When toggling the leaf button on → off → on again, the meditation doesn't restart (no voice, no closed captions, but gradient appears)
+
+**BUG #2:** When previewing voices in Voice Settings while a meditation is already playing, both voices speak simultaneously
+
+**REQUEST #1:** Add ability to stop voice preview samples (change play button to stop button when previewing)
+
+**REQUEST #2:** Ensure voice preview samples use the same volume as meditation voice (0.25)
+
+### **THE SOLUTION**
+
+**Root Cause Analysis:**
+- BUG #1: The `isPlayingMeditation` flag stayed `true` after meditation completion (by design, to keep leaf green), but the leaf button toggle logic only checked `isPlayingMeditation`, causing it to call `stopSpeaking()` instead of starting a new meditation
+- BUG #2: Voice previews used a separate synthesizer but didn't pause the active meditation, causing audio overlap
+
+**Implementation:**
+
+**1. Modified: ExpandingView.swift**
+- Changed leaf button logic from checking `ttsManager.isPlayingMeditation` to `ttsManager.isSpeaking`
+- This distinguishes between "actively speaking" vs "completed and showing as played"
+- Line 191: Now properly starts new meditation when toggled after completion
+
+**2. Modified: VoiceSettingsView.swift**
+- Added `@ObservedObject var ttsManager: TextToSpeechManager` parameter
+- Added `previewingVoiceIdentifier: String?` to track which voice is being previewed
+- Added `wasMeditationPlayingBeforePreview: Bool` to track meditation state
+- Lines 163-167: Pause active meditation before playing preview using `pauseSpeaking(at: .word)`
+- Lines 193-204: New `stopPreview()` function that stops preview and resumes meditation with `continueSpeaking()`
+- Line 179: Changed preview volume from `0.5` to `ttsManager.voiceVolume` (0.25) for consistency
+- Lines 69-75: Preview button toggles between play and stop based on `previewingVoiceIdentifier`
+
+**3. Modified: VoiceRow Component**
+- Added `isPreviewing: Bool` parameter (per-voice, not global)
+- Lines 241-245: Button shows `stop.circle.fill` (red) when previewing, `play.circle` (blue) when not
+- Clicking stop button calls `stopPreview()` to immediately halt preview and resume meditation
+
+**4. Modified: TextToSpeechManager.swift**
+- Line 17: Changed `synthesizer` from `private` to internal to allow pause/resume from VoiceSettingsView
+- This enables `pauseSpeaking(at:)` and `continueSpeaking()` to be called externally
+
+**5. Modified: ExpandingView.swift (sheet presentation)**
+- Line 428: Changed from `VoiceSettingsView()` to `VoiceSettingsView(ttsManager: ttsManager)` to pass manager reference
+
+### **HOW IT WORKS**
+
+**Leaf Button Restart Fix (BUG #1):**
+1. User toggles leaf on → meditation plays → meditation completes
+2. `isPlayingMeditation` stays `true` (leaf stays green), but `isSpeaking` becomes `false`
+3. User toggles leaf again → checks `isSpeaking` (false) → starts new meditation
+4. Previously checked `isPlayingMeditation` (true) → would call `stopSpeaking()` instead
+
+**Voice Preview Pause/Resume (BUG #2):**
+1. User has meditation playing → taps gear icon → selects voice to preview
+2. VoiceSettingsView checks `ttsManager.isSpeaking` → if true, pauses meditation with `pauseSpeaking(at: .word)`
+3. Sets `wasMeditationPlayingBeforePreview = true`
+4. Plays voice preview using separate synthesizer
+5. When preview finishes (or user clicks stop), calls `stopPreview()`
+6. `stopPreview()` checks `wasMeditationPlayingBeforePreview` → if true, calls `continueSpeaking()`
+7. Meditation resumes from where it paused
+
+**Stop Button for Previews (REQUEST #1):**
+1. User clicks play button on voice → `previewingVoiceIdentifier` set to that voice's identifier
+2. VoiceRow for that voice receives `isPreviewing = true`
+3. Button changes to red stop icon (`stop.circle.fill`)
+4. User can click stop → calls `stopPreview()` → preview stops, meditation resumes
+5. User can also click play on different voice → immediately stops current preview and starts new one
+
+**Volume Consistency (REQUEST #2):**
+1. Meditation voice uses `ttsManager.voiceVolume` (0.25)
+2. Voice previews now also use `ttsManager.voiceVolume` (0.25)
+3. Previously used hardcoded `0.5` which was twice as loud
+
+### **TESTING VERIFIED**
+- ✅ Leaf button restart: Toggle on → off → on works correctly, meditation restarts
+- ✅ Voice preview pause: Meditation pauses when preview starts, resumes when preview ends
+- ✅ Stop button: Red stop button appears during preview, clicking it stops preview immediately
+- ✅ Volume consistency: Preview samples use same volume (0.25) as meditation voice
+- ✅ Multiple previews: Can rapidly switch between voice previews, previous stops immediately
+- ✅ Sheet dismiss: Closing Voice Settings while preview playing stops preview and resumes meditation
+
+---
+
 ## 2025-12-25 14:00: Added Optional Enhanced Voice Quality Feature (iOS)
 
 ### **THE REQUEST**

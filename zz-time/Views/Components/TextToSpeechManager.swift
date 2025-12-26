@@ -14,7 +14,7 @@ class TextToSpeechManager: ObservableObject {
     @Published var previousPhrase: String = ""
 
     
-    private let synthesizer = AVSpeechSynthesizer()
+    let synthesizer = AVSpeechSynthesizer()  // Internal access for pause/resume from VoiceSettingsView
     private let speechDelegate: SpeechDelegate
     private var repeatCount = 0
     private let maxRepeats = 10

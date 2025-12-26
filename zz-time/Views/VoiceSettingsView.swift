@@ -3,10 +3,12 @@ import AVFoundation
 
 struct VoiceSettingsView: View {
     @Environment(\.dismiss) var dismiss
+    @ObservedObject var ttsManager: TextToSpeechManager
     @State private var useEnhancedVoice: Bool = VoiceManager.shared.useEnhancedVoice
     @State private var selectedVoiceIdentifier: String? = VoiceManager.shared.preferredVoiceIdentifier
     @State private var availableVoices: [AVSpeechSynthesisVoice] = []
-    @State private var isPreviewingVoice: Bool = false
+    @State private var previewingVoiceIdentifier: String? = nil  // Track which voice is being previewed
+    @State private var wasMeditationPlayingBeforePreview: Bool = false  // Track if meditation was playing
 
     // TTS for preview
     @State private var previewSynthesizer: AVSpeechSynthesizer? = nil
@@ -59,14 +61,18 @@ struct VoiceSettingsView: View {
                                     VoiceRow(
                                         voice: voice,
                                         isSelected: selectedVoiceIdentifier == voice.identifier,
+                                        isPreviewing: previewingVoiceIdentifier == voice.identifier,
                                         onSelect: {
                                             selectedVoiceIdentifier = voice.identifier
                                             VoiceManager.shared.preferredVoiceIdentifier = voice.identifier
                                         },
                                         onPreview: {
-                                            previewVoice(voice)
-                                        },
-                                        isPreviewing: isPreviewingVoice
+                                            if previewingVoiceIdentifier == voice.identifier {
+                                                stopPreview()
+                                            } else {
+                                                previewVoice(voice)
+                                            }
+                                        }
                                     )
                                 }
                             }
@@ -135,9 +141,8 @@ struct VoiceSettingsView: View {
             }
         }
         .onDisappear {
-            // Stop any playing preview
-            previewSynthesizer?.stopSpeaking(at: .immediate)
-            previewSynthesizer = nil
+            // Stop any playing preview and resume meditation if needed
+            stopPreview()
         }
     }
 
@@ -155,7 +160,13 @@ struct VoiceSettingsView: View {
         // Stop any currently playing preview immediately
         previewSynthesizer?.stopSpeaking(at: .immediate)
 
-        isPreviewingVoice = true
+        // Pause meditation if it's playing
+        if ttsManager.isSpeaking {
+            wasMeditationPlayingBeforePreview = true
+            ttsManager.synthesizer.pauseSpeaking(at: .word)
+        }
+
+        previewingVoiceIdentifier = voice.identifier
 
         let synthesizer = AVSpeechSynthesizer()
         let utterance = AVSpeechUtterance(string: previewText)
@@ -165,24 +176,30 @@ struct VoiceSettingsView: View {
         let speechRateMultiplier = VoiceManager.shared.getSpeechRateMultiplier(for: voice)
         utterance.rate = AVSpeechUtteranceDefaultSpeechRate * speechRateMultiplier
         utterance.pitchMultiplier = 1.0  // Same as meditation pitch
-        utterance.volume = 0.5
+        utterance.volume = ttsManager.voiceVolume  // Use same volume as meditation (0.25)
 
         // Set up delegate to detect when preview finishes
         let delegate = PreviewDelegate {
             DispatchQueue.main.async {
-                self.isPreviewingVoice = false
+                self.stopPreview()
             }
         }
         synthesizer.delegate = delegate
 
         synthesizer.speak(utterance)
         previewSynthesizer = synthesizer
+    }
 
-        // Safety timeout to reset preview state
-        DispatchQueue.main.asyncAfter(deadline: .now() + 15) {
-            if self.isPreviewingVoice {
-                self.isPreviewingVoice = false
-            }
+    private func stopPreview() {
+        // Stop the preview synthesizer
+        previewSynthesizer?.stopSpeaking(at: .immediate)
+        previewSynthesizer = nil
+        previewingVoiceIdentifier = nil
+
+        // Resume meditation if it was playing before preview
+        if wasMeditationPlayingBeforePreview {
+            ttsManager.synthesizer.continueSpeaking()
+            wasMeditationPlayingBeforePreview = false
         }
     }
 }
@@ -191,9 +208,9 @@ struct VoiceSettingsView: View {
 struct VoiceRow: View {
     let voice: AVSpeechSynthesisVoice
     let isSelected: Bool
+    let isPreviewing: Bool
     let onSelect: () -> Void
     let onPreview: () -> Void
-    let isPreviewing: Bool
 
     var body: some View {
         HStack {
@@ -220,11 +237,11 @@ struct VoiceRow: View {
 
             Spacer()
 
-            // Preview button
+            // Preview/Stop button - changes based on isPreviewing state
             Button(action: onPreview) {
-                Image(systemName: "play.circle")
+                Image(systemName: isPreviewing ? "stop.circle.fill" : "play.circle")
                     .font(.title2)
-                    .foregroundColor(.blue)
+                    .foregroundColor(isPreviewing ? .red : .blue)
             }
             .buttonStyle(PlainButtonStyle())
 

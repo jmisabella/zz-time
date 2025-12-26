@@ -187,7 +187,8 @@ struct ExpandingView: View {
                     }
                     .contentShape(Circle())
                     Button {
-                        if ttsManager.isPlayingMeditation {
+                        // Check if actually speaking (not just showing as "played" after completion)
+                        if ttsManager.isSpeaking {
                             ttsManager.stopSpeaking()
                         } else {
                             guard let text = ttsManager.getRandomMeditation()
@@ -424,7 +425,7 @@ struct ExpandingView: View {
             )
         }
         .sheet(isPresented: $showVoiceSettings) {
-            VoiceSettingsView()
+            VoiceSettingsView(ttsManager: ttsManager)
         }
     }
     
