@@ -42,6 +42,9 @@ struct ExpandingView: View {
     // Closed captioning toggle
     @AppStorage("showMeditationText") private var showMeditationText: Bool = true
 
+    // Long-press hint for Leaf button
+    @State private var showLeafHint: Bool = false
+
     // Dictionary to map room indices (30-34) to custom titles
     private let customRoomTitles: [Int: String] = [
         30: "Satie: Trois Gymnopédies: No. 1, Lent et douloureux",
@@ -186,18 +189,8 @@ struct ExpandingView: View {
                             .background(Circle().fill(Color.black.opacity(0.5)))
                     }
                     .contentShape(Circle())
-                    Button {
-                        // Check if actually speaking - if not, start new meditation
-                        // (isPlayingMeditation can be true after completion while isSpeaking is false)
-                        if ttsManager.isSpeaking {
-                            ttsManager.stopSpeaking()
-                        } else {
-                            guard let text = ttsManager.getRandomMeditation()
-                            else { return }
-
-                            ttsManager.startSpeakingWithPauses(text)
-                        }
-                    } label: {
+                    // Leaf button with tap and long-press support
+                    Button {} label: {
                         Image(
                             systemName: ttsManager.isPlayingMeditation
                             ? "leaf.fill" : "leaf"
@@ -211,6 +204,57 @@ struct ExpandingView: View {
                         .background(Circle().fill(Color.black.opacity(0.5)))
                     }
                     .contentShape(Circle())
+                    .simultaneousGesture(
+                        TapGesture().onEnded { _ in
+                            // Regular tap: toggle meditation on/off
+                            if ttsManager.isSpeaking {
+                                ttsManager.stopSpeaking()
+                            } else {
+                                guard let text = ttsManager.getRandomMeditation()
+                                else { return }
+
+                                ttsManager.startSpeakingWithPauses(text)
+
+                                // Show hint when meditation starts
+                                withAnimation(.easeIn(duration: 0.3)) {
+                                    showLeafHint = true
+                                }
+
+                                // Fade out gradually over 3 seconds
+                                withAnimation(.easeOut(duration: 2.5).delay(0.5)) {
+                                    showLeafHint = false
+                                }
+                            }
+                        }
+                    )
+                    .simultaneousGesture(
+                        LongPressGesture(minimumDuration: 0.5).onEnded { _ in
+                            // Long-press: skip to new random meditation (only when actively speaking)
+                            // Use isSpeaking instead of isPlayingMeditation to avoid timing issues
+                            if ttsManager.isSpeaking {
+                                ttsManager.stopSpeaking()
+
+                                // Small delay to ensure stop completes before starting new meditation
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                    // Get and start a new meditation
+                                    guard let text = ttsManager.getRandomMeditation()
+                                    else { return }
+
+                                    ttsManager.startSpeakingWithPauses(text)
+
+                                    // Show hint again when skipping
+                                    withAnimation(.easeIn(duration: 0.3)) {
+                                        showLeafHint = true
+                                    }
+
+                                    // Fade out gradually over 3 seconds
+                                    withAnimation(.easeOut(duration: 2.5).delay(0.5)) {
+                                        showLeafHint = false
+                                    }
+                                }
+                            }
+                        }
+                    )
                 }
 
                 }
@@ -262,6 +306,26 @@ struct ExpandingView: View {
                 .transition(.opacity.combined(with: .move(edge: .bottom)))
                 .animation(.easeInOut(duration: 0.4), value: ttsManager.currentPhrase)
                 .allowsHitTesting(false)  // Allow taps to pass through to buttons below
+            }
+
+            // Long-press hint label (frosted glass) - placed AFTER meditation text so it renders on top
+            if showLeafHint {
+                VStack {
+                    Spacer()
+                    Text("Long-press Leaf for new meditation")
+                        .font(.system(size: 13, weight: .medium, design: .rounded))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+                        .background(
+                            Capsule()
+                                .fill(.ultraThinMaterial)
+                        )
+                        .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
+                        .padding(.bottom, 220) // Position above meditation text gradient (200px) + some spacing
+                        .transition(.opacity.combined(with: .move(edge: .bottom)))
+                }
+                .allowsHitTesting(false) // Allow taps to pass through
             }
 
         }

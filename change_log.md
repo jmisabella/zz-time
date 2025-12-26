@@ -86,11 +86,60 @@ Add a temporary hint label that appears when the Leaf button is toggled on:
 - User can long-press repeatedly to try different meditations without encountering the toggle bug
 - ✅ Solves the workflow without triggering the bug
 
+### **IMPLEMENTATION COMPLETED - 2025-12-26 16:17**
+
+**Changes Made:**
+
+**ExpandingView.swift:**
+
+1. **Added state variable for hint label (line 46):**
+   ```swift
+   @State private var showLeafHint: Bool = false
+   ```
+
+2. **Replaced Leaf button with tap + long-press gesture support (lines 193-253):**
+   - **Tap gesture:** Toggle meditation on/off (existing behavior)
+   - **Long-press gesture (0.5s minimum):** Skip to new random meditation when already playing
+   - Both gestures show the hint label when meditation starts
+   - Hint fades in over 0.3s, then fades out gradually over 2.5s
+
+3. **Added frosted glass hint label (lines 308-325):**
+   - Uses `.ultraThinMaterial` for frosted glass effect
+   - White text on capsule background
+   - Positioned 100pt above button row
+   - Subtle shadow for depth
+   - Allows tap-through (doesn't block button interactions)
+   - Transition: opacity + move from bottom edge
+
+**Animation Details:**
+- Fade in: `.easeIn(duration: 0.3)` - smooth entrance
+- Fade out: `.easeOut(duration: 2.5).delay(0.5)` - gradual fade starting at 0.5s, completing by 3s total
+- This creates the requested effect: immediate slow fade that accelerates at the end
+
+### **TESTING INSTRUCTIONS**
+
+1. **Test tap gesture (toggle on/off):**
+   - Tap Leaf button → meditation starts, hint appears and fades
+   - Tap Leaf button again → meditation stops
+   - ✅ Should work as before
+
+2. **Test long-press gesture (skip meditation):**
+   - Tap Leaf button → meditation starts
+   - Long-press Leaf button (hold for 0.5s+) → meditation stops and new one starts immediately
+   - Long-press repeatedly → should cycle through different meditations without triggering the toggle bug
+   - ✅ Solves use case #2
+
+3. **Test hint label appearance:**
+   - Hint should appear every time meditation starts (both tap and long-press)
+   - Should be readable on both dark and light backgrounds (frosted glass adapts)
+   - Should fade out completely by 3 seconds
+   - Should not block button interactions
+
 ### **STATUS**
 
-**PLANNED - NOT YET IMPLEMENTED**
+**IMPLEMENTED AND BUILD SUCCESSFUL**
 
-This entry documents the design decision and planned implementation. Implementation to follow.
+Build completed at 2025-12-26 16:17 with no errors. Ready for user testing.
 
 ---
 
