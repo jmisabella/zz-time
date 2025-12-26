@@ -7,20 +7,9 @@ class VoiceManager {
     static let shared = VoiceManager()
 
     // UserDefaults keys
-    private let useEnhancedVoiceKey = "useEnhancedVoice"
     private let preferredVoiceIdentifierKey = "preferredVoiceIdentifier"
 
     private init() {}
-
-    /// Whether the user has enabled enhanced voice (default: false)
-    var useEnhancedVoice: Bool {
-        get {
-            UserDefaults.standard.bool(forKey: useEnhancedVoiceKey)
-        }
-        set {
-            UserDefaults.standard.set(newValue, forKey: useEnhancedVoiceKey)
-        }
-    }
 
     /// The user's preferred voice identifier (if any)
     var preferredVoiceIdentifier: String? {
@@ -32,40 +21,83 @@ class VoiceManager {
         }
     }
 
+    /// List of voice names to exclude from all voice offerings
+    /// These are novelty/robotic voices unsuitable for meditation
+    private let excludedVoiceNames: [String] = [
+        "albert", "bad news", "bahh", "bells", "boing", "bubbles", "cellos",
+        "eddy", "flo", "fred", "good news", "grandma", "grandpa", "jester",
+        "junior", "kathy", "organ", "ralph", "reed", "rocco", "sandy",
+        "superstar", "trinoids", "whisper", "wobble", "zarvox"
+    ]
+
+    /// Checks if a voice should be excluded based on the exclusion list
+    private func isVoiceExcluded(_ voice: AVSpeechSynthesisVoice) -> Bool {
+        let nameLower = voice.name.lowercased()
+
+        for excludedName in excludedVoiceNames {
+            if nameLower.contains(excludedName) {
+                return true
+            }
+        }
+
+        return false
+    }
+
+    /// Returns meditation-appropriate voices (all quality levels)
+    /// Filters out novelty/robotic voices to ensure a calming experience
+    /// For first-time users, a random voice from this list will be selected
+    func getMeditationAppropriateVoices() -> [AVSpeechSynthesisVoice] {
+        // Get ALL English voices (includes compact/default, enhanced, and premium)
+        let allEnglishVoices = AVSpeechSynthesisVoice.speechVoices()
+            .filter { $0.language.hasPrefix("en") }
+
+        // Filter out excluded novelty voices
+        let meditationVoices = allEnglishVoices.filter { !isVoiceExcluded($0) }
+
+        return meditationVoices
+    }
+
     /// Returns the voice to use for speech based on user preferences
     /// Priority order:
-    /// 1. User's selected enhanced/premium voice (if enabled and available)
-    /// 2. Any downloaded enhanced voice for "en-US" (if enhanced setting is on)
-    /// 3. Default compact system voice (current behavior)
+    /// 1. User's selected voice (if they have one saved)
+    /// 2. Random selection from meditation-appropriate voices (for first-time users)
+    /// 3. System default voice (fallback if no voices available - should never happen)
     func getPreferredVoice() -> AVSpeechSynthesisVoice? {
-        // If enhanced voice is disabled, return default
-        guard useEnhancedVoice else {
-            return AVSpeechSynthesisVoice(language: "en-US")
+        // Check if user explicitly selected system default
+        if let identifier = preferredVoiceIdentifier {
+            if identifier == "SYSTEM_DEFAULT" {
+                return AVSpeechSynthesisVoice(language: "en-US")
+            }
+
+            // Try to get the user's preferred voice
+            if let voice = AVSpeechSynthesisVoice(identifier: identifier) {
+                return voice
+            }
         }
 
-        // Try user's preferred voice
-        if let identifier = preferredVoiceIdentifier,
-           let voice = AVSpeechSynthesisVoice(identifier: identifier) {
-            return voice
+        // For first-time users: randomly select from meditation-appropriate voices
+        let meditationVoices = getMeditationAppropriateVoices()
+
+        if !meditationVoices.isEmpty {
+            // Use explicit random index selection
+            let randomIndex = Int.random(in: 0..<meditationVoices.count)
+            let randomVoice = meditationVoices[randomIndex]
+
+            // Save this as the user's preferred voice so they get consistency
+            preferredVoiceIdentifier = randomVoice.identifier
+
+            return randomVoice
         }
 
-        // Fallback to any enhanced voice for English
-        let enhancedVoices = AVSpeechSynthesisVoice.speechVoices()
-            .filter { $0.language.hasPrefix("en") &&
-                      ($0.quality == .enhanced || $0.quality == .premium) }
-
-        if let voice = enhancedVoices.first {
-            return voice
-        }
-
-        // Final fallback to default
+        // Final fallback to system default if no voices available (should never happen)
+        preferredVoiceIdentifier = "SYSTEM_DEFAULT"
         return AVSpeechSynthesisVoice(language: "en-US")
     }
 
-    /// Returns all available English voices on the device
+    /// Returns all available English voices on the device (excluding novelty voices)
     func getAvailableEnglishVoices() -> [AVSpeechSynthesisVoice] {
         return AVSpeechSynthesisVoice.speechVoices()
-            .filter { $0.language.hasPrefix("en") }
+            .filter { $0.language.hasPrefix("en") && !isVoiceExcluded($0) }
             .sorted { voice1, voice2 in
                 // Sort by quality (premium > enhanced > default), then by name
                 if voice1.quality.rawValue != voice2.quality.rawValue {
@@ -75,11 +107,12 @@ class VoiceManager {
             }
     }
 
-    /// Returns enhanced/premium English voices only
+    /// Returns enhanced/premium English voices only (excluding novelty voices)
     func getEnhancedEnglishVoices() -> [AVSpeechSynthesisVoice] {
         return AVSpeechSynthesisVoice.speechVoices()
             .filter { $0.language.hasPrefix("en") &&
-                      ($0.quality == .enhanced || $0.quality == .premium) }
+                      ($0.quality == .enhanced || $0.quality == .premium) &&
+                      !isVoiceExcluded($0) }
             .sorted { $0.name < $1.name }
     }
 

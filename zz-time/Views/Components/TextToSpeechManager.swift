@@ -97,8 +97,6 @@ class TextToSpeechManager: ObservableObject {
     }
     
     func getRandomMeditation() -> String? {
-        print("🎲 getRandomMeditation called")
-
         // Build pool of all available meditations (presets + customs)
         var allMeditations: [(text: String, source: String)] = []
 
@@ -208,131 +206,137 @@ class TextToSpeechManager: ObservableObject {
             return
         }
 
-        // Stop any currently playing meditation first
+        // Stop any currently playing meditation
         if synthesizer.isSpeaking {
             synthesizer.stopSpeaking(at: .immediate)
         }
 
-        // Reset counters but keep the playing state
+        // Create new session ID to invalidate any pending callbacks from old session
+        sessionId = UUID()
+
+        // Reset ALL state immediately
+        isSpeaking = false
+        isPlayingMeditation = false
+        isCustomMode = false
         queuedUtteranceCount = 0
         repeatCount = 0
-        sessionId = UUID()  // New session
-
-        // Reset closed captioning
         currentPhrase = ""
         previousPhrase = ""
         allPhrases = []
         currentPhraseIndex = 0
 
-        // IMPORTANT: Set state to "playing" IMMEDIATELY (synchronously) before the delay
-        // This prevents race conditions where the UI thinks nothing is playing during the 50ms delay
+        // Clear any previous meditation completion flag
+        UserDefaults.standard.removeObject(forKey: "meditationCompletedSuccessfully")
+
+        // Remove question marks to prevent voice inflection changes
+        let textWithoutQuestions = text.replacingOccurrences(of: "?", with: "")
+
+        // Check if text has any pause markers
+        let hasPauseMarkers = textWithoutQuestions.range(of: #"\(\d+(?:\.\d+)?[sm]\)"#, options: .regularExpression) != nil
+
+        // If no pause markers found, add automatic ones
+        let processedText = hasPauseMarkers ? textWithoutQuestions : addAutomaticPauses(to: textWithoutQuestions)
+
+        // Split by both newlines and pause markers
+        let phrases = extractPhrasesWithPauses(from: processedText)
+
+        // Filter out empty phrases first
+        let validPhrases = phrases.filter { !$0.phrase.isEmpty }
+
+        // Clean all phrases and filter again (safety check for pause markers)
+        let cleanedPhrases: [(phrase: String, delay: TimeInterval)] = validPhrases.compactMap { (phrase, delay) in
+            // CRITICAL SAFETY CHECK: Remove any pause markers that might have slipped through
+            // This prevents iOS from speaking pause markers like "(14s)" as "pause equals fourteen thousand"
+            let cleanPhrase = phrase.replacingOccurrences(
+                of: #"\(\d+(?:\.\d+)?[sm]\)"#,
+                with: "",
+                options: .regularExpression
+            ).trimmingCharacters(in: .whitespacesAndNewlines)
+
+            return cleanPhrase.isEmpty ? nil : (cleanPhrase, delay)
+        }
+
+        // ULTRA-CLEAN all phrases one more time before using them
+        let ultraCleanedPhrases: [(phrase: String, delay: TimeInterval)] = cleanedPhrases.compactMap { (phrase, delay) in
+            // ULTRA-PARANOID SAFETY CHECK: Strip ALL parenthetical content
+            var ultraCleanPhrase = phrase
+
+            // First try the specific regex
+            ultraCleanPhrase = ultraCleanPhrase.replacingOccurrences(
+                of: #"\(\d+(?:\.\d+)?[sm]\)"#,
+                with: "",
+                options: .regularExpression
+            )
+
+            // Nuclear option: remove ANY content in parentheses that looks like a pause
+            ultraCleanPhrase = ultraCleanPhrase.replacingOccurrences(
+                of: #"\([0-9][^)]*\)"#,
+                with: "",
+                options: .regularExpression
+            )
+
+            ultraCleanPhrase = ultraCleanPhrase.trimmingCharacters(in: .whitespacesAndNewlines)
+
+            return ultraCleanPhrase.isEmpty ? nil : (ultraCleanPhrase, delay)
+        }
+
+        // Store ULTRA-cleaned phrases for closed captioning (so VoiceOver doesn't read pause markers)
+        allPhrases = ultraCleanedPhrases.map { $0.phrase }
+
+        // Calculate total utterance count (speech + silent pause utterances)
+        var totalUtteranceCount = 0
+        for (_, delay) in ultraCleanedPhrases {
+            totalUtteranceCount += 1  // Count the speech utterance
+
+            // Count silent pause utterances
+            if delay > 0 {
+                let numPauses = Int(ceil(delay / 5.0))  // Break into 5-second chunks
+                totalUtteranceCount += numPauses
+            }
+        }
+
+        // Set the count of ALL utterances we're about to queue (speech + silent)
+        queuedUtteranceCount = totalUtteranceCount
+
+        // NOW set speaking state (after count is set)
         isSpeaking = true
         isPlayingMeditation = true
         isCustomMode = true
 
-        // Clear any previous meditation completion flag when starting a new meditation
-        UserDefaults.standard.removeObject(forKey: "meditationCompletedSuccessfully")
+        // Capture the current session ID to attach to all utterances
+        let currentSessionId = sessionId
 
-        // Small delay to ensure synthesizer is fully stopped and cleared
-        // This prevents race conditions with delegate callbacks from stopped utterances
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self] in
-            guard let self = self else { return }
+        for (ultraCleanPhrase, delay) in ultraCleanedPhrases {
+            let utterance = AVSpeechUtterance(string: ultraCleanPhrase)
+            let voice = VoiceManager.shared.getPreferredVoice()
+            let speechRateMultiplier = VoiceManager.shared.getSpeechRateMultiplier(for: voice)
+            utterance.rate = AVSpeechUtteranceDefaultSpeechRate * speechRateMultiplier
+            utterance.pitchMultiplier = Self.meditationPitchMultiplier
+            utterance.volume = voiceVolume
+            utterance.voice = voice
 
-            // Remove question marks to prevent voice inflection changes
-            let textWithoutQuestions = text.replacingOccurrences(of: "?", with: "")
+            // Tag this utterance with the session ID so we can validate callbacks
+            speechDelegate.tagUtterance(utterance, withSessionId: currentSessionId)
 
-            // Check if text has any pause markers
-            let hasPauseMarkers = textWithoutQuestions.range(of: #"\(\d+(?:\.\d+)?[sm]\)"#, options: .regularExpression) != nil
+            synthesizer.speak(utterance)
 
-            // If no pause markers found, add automatic ones
-            let processedText = hasPauseMarkers ? textWithoutQuestions : self.addAutomaticPauses(to: textWithoutQuestions)
+            // For pauses, queue multiple silent utterances to create the pause
+            // This avoids the bug where postUtteranceDelay causes iOS to speak the delay value
+            if delay > 0 {
+                let numPauses = Int(ceil(delay / 5.0))  // Break into 5-second chunks
+                let pausePerChunk = delay / Double(numPauses)
 
-            // Split by both newlines and pause markers
-            let phrases = self.extractPhrasesWithPauses(from: processedText)
+                for _ in 0..<numPauses {
+                    let silentUtterance = AVSpeechUtterance(string: "")  // Empty string for silence
+                    silentUtterance.rate = AVSpeechUtteranceDefaultSpeechRate
+                    silentUtterance.volume = 0.0  // Silent
+                    silentUtterance.postUtteranceDelay = pausePerChunk
+                    silentUtterance.voice = AVSpeechSynthesisVoice(language: "en-US")
 
-            // Filter out empty phrases first
-            let validPhrases = phrases.filter { !$0.phrase.isEmpty }
+                    // Tag silent utterances with session ID too
+                    speechDelegate.tagUtterance(silentUtterance, withSessionId: currentSessionId)
 
-            // Clean all phrases and filter again (safety check for pause markers)
-            let cleanedPhrases: [(phrase: String, delay: TimeInterval)] = validPhrases.compactMap { (phrase, delay) in
-                // CRITICAL SAFETY CHECK: Remove any pause markers that might have slipped through
-                // This prevents iOS from speaking pause markers like "(14s)" as "pause equals fourteen thousand"
-                let cleanPhrase = phrase.replacingOccurrences(
-                    of: #"\(\d+(?:\.\d+)?[sm]\)"#,
-                    with: "",
-                    options: .regularExpression
-                ).trimmingCharacters(in: .whitespacesAndNewlines)
-
-                return cleanPhrase.isEmpty ? nil : (cleanPhrase, delay)
-            }
-
-            // ULTRA-CLEAN all phrases one more time before using them
-            let ultraCleanedPhrases: [(phrase: String, delay: TimeInterval)] = cleanedPhrases.compactMap { (phrase, delay) in
-                // ULTRA-PARANOID SAFETY CHECK: Strip ALL parenthetical content
-                var ultraCleanPhrase = phrase
-
-                // First try the specific regex
-                ultraCleanPhrase = ultraCleanPhrase.replacingOccurrences(
-                    of: #"\(\d+(?:\.\d+)?[sm]\)"#,
-                    with: "",
-                    options: .regularExpression
-                )
-
-                // Nuclear option: remove ANY content in parentheses that looks like a pause
-                ultraCleanPhrase = ultraCleanPhrase.replacingOccurrences(
-                    of: #"\([0-9][^)]*\)"#,
-                    with: "",
-                    options: .regularExpression
-                )
-
-                ultraCleanPhrase = ultraCleanPhrase.trimmingCharacters(in: .whitespacesAndNewlines)
-
-                return ultraCleanPhrase.isEmpty ? nil : (ultraCleanPhrase, delay)
-            }
-
-            // Store ULTRA-cleaned phrases for closed captioning (so VoiceOver doesn't read pause markers)
-            self.allPhrases = ultraCleanedPhrases.map { $0.phrase }
-
-            // Calculate total utterance count (speech + silent pause utterances)
-            var totalUtteranceCount = 0
-            for (ultraCleanPhrase, delay) in ultraCleanedPhrases {
-                totalUtteranceCount += 1  // Count the speech utterance
-
-                // Count silent pause utterances
-                if delay > 0 {
-                    let numPauses = Int(ceil(delay / 5.0))  // Break into 5-second chunks
-                    totalUtteranceCount += numPauses
-                }
-            }
-
-            // Set the count of ALL utterances we're about to queue (speech + silent)
-            self.queuedUtteranceCount = totalUtteranceCount
-
-            for (_, (ultraCleanPhrase, delay)) in ultraCleanedPhrases.enumerated() {
-                let utterance = AVSpeechUtterance(string: ultraCleanPhrase)
-                let voice = VoiceManager.shared.getPreferredVoice()
-                let speechRateMultiplier = VoiceManager.shared.getSpeechRateMultiplier(for: voice)
-                utterance.rate = AVSpeechUtteranceDefaultSpeechRate * speechRateMultiplier
-                utterance.pitchMultiplier = Self.meditationPitchMultiplier
-                utterance.volume = self.voiceVolume
-                utterance.voice = voice
-
-                self.synthesizer.speak(utterance)
-
-                // For pauses, queue multiple silent utterances to create the pause
-                // This avoids the bug where postUtteranceDelay causes iOS to speak the delay value
-                if delay > 0 {
-                    let numPauses = Int(ceil(delay / 5.0))  // Break into 5-second chunks
-                    let pausePerChunk = delay / Double(numPauses)
-
-                    for _ in 0..<numPauses {
-                        let silentUtterance = AVSpeechUtterance(string: "")  // Empty string for silence
-                        silentUtterance.rate = AVSpeechUtteranceDefaultSpeechRate
-                        silentUtterance.volume = 0.0  // Silent
-                        silentUtterance.postUtteranceDelay = pausePerChunk
-                        silentUtterance.voice = AVSpeechSynthesisVoice(language: "en-US")
-                        self.synthesizer.speak(silentUtterance)
-                    }
+                    synthesizer.speak(silentUtterance)
                 }
             }
         }
@@ -462,8 +466,11 @@ class TextToSpeechManager: ObservableObject {
 
     /// Stops speaking immediately
     func stopSpeaking() {
-        print("🛑 stopSpeaking called - current state: isSpeaking=\(isSpeaking), isPlayingMeditation=\(isPlayingMeditation)")
         synthesizer.stopSpeaking(at: .immediate)
+
+        // CRITICAL: Invalidate the session ID to reject any pending callbacks
+        sessionId = UUID()
+
         isSpeaking = false
         isPlayingMeditation = false
         repeatCount = 0
@@ -473,7 +480,6 @@ class TextToSpeechManager: ObservableObject {
 
         // Clear meditation completion flag since it was stopped manually
         UserDefaults.standard.removeObject(forKey: "meditationCompletedSuccessfully")
-        print("✅ stopSpeaking complete - state reset")
     }
     
     private func speakNextPhrase() {
@@ -516,27 +522,26 @@ class TextToSpeechManager: ObservableObject {
     }
 
     // Called by the delegate when speech finishes
-    fileprivate func didFinishSpeaking(_ utterance: AVSpeechUtterance) {
+    fileprivate func didFinishSpeaking(_ utterance: AVSpeechUtterance, sessionId: UUID) {
+        // Ignore callbacks from old sessions
+        guard sessionId == self.sessionId else {
+            return
+        }
+
         // Ignore callbacks if we're not actually supposed to be speaking
-        // This prevents stale callbacks from stopped utterances
         guard isSpeaking else {
             return
         }
 
-        // If custom mode, decrement the queue counter
+        // If custom mode (meditation), update closed captioning and track utterance completion
         if isCustomMode {
-            // Extra safety: only decrement if count is positive
-            // This prevents stale callbacks from causing negative counts
-            guard queuedUtteranceCount > 0 else {
-                return
-            }
-
-            queuedUtteranceCount -= 1
-
             // Only increment phrase index for actual speech (not silent utterances)
             if !utterance.speechString.isEmpty {
                 currentPhraseIndex += 1  // Move to next phrase for closed captioning
             }
+
+            // Decrement the queued utterance count (this counts both speech AND silent utterances)
+            queuedUtteranceCount -= 1
 
             // Only stop when all utterances are done
             if queuedUtteranceCount <= 0 {
@@ -570,8 +575,34 @@ class TextToSpeechManager: ObservableObject {
 private class SpeechDelegate: NSObject, AVSpeechSynthesizerDelegate {
     weak var manager: TextToSpeechManager?
 
+    // Dictionary to track which session each utterance belongs to
+    private var utteranceSessionIds: [ObjectIdentifier: UUID] = [:]
+    private let lock = NSLock()
+
     override init() {
         super.init()
+    }
+
+    /// Tag an utterance with a session ID before speaking it
+    func tagUtterance(_ utterance: AVSpeechUtterance, withSessionId sessionId: UUID) {
+        lock.lock()
+        defer { lock.unlock() }
+        utteranceSessionIds[ObjectIdentifier(utterance)] = sessionId
+    }
+
+    /// Get the session ID for an utterance, if it was tagged
+    private func getSessionId(for utterance: AVSpeechUtterance) -> UUID? {
+        lock.lock()
+        defer { lock.unlock() }
+        let id = utteranceSessionIds[ObjectIdentifier(utterance)]
+        return id
+    }
+
+    /// Remove the session ID tracking for an utterance (cleanup)
+    private func removeSessionId(for utterance: AVSpeechUtterance) {
+        lock.lock()
+        defer { lock.unlock() }
+        utteranceSessionIds.removeValue(forKey: ObjectIdentifier(utterance))
     }
 
     func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didStart utterance: AVSpeechUtterance) {
@@ -581,8 +612,14 @@ private class SpeechDelegate: NSObject, AVSpeechSynthesizerDelegate {
     }
 
     func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
+        // Get the session ID for this utterance (or use a nil UUID if untagged)
+        let sessionId = getSessionId(for: utterance) ?? UUID()
+
+        // Clean up the tracking
+        removeSessionId(for: utterance)
+
         Task { @MainActor in
-            manager?.didFinishSpeaking(utterance)
+            manager?.didFinishSpeaking(utterance, sessionId: sessionId)
         }
     }
 }

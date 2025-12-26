@@ -187,14 +187,15 @@ struct ExpandingView: View {
                     }
                     .contentShape(Circle())
                     Button {
-                        // Check if actually speaking (not just showing as "played" after completion)
+                        // Check if actually speaking - if not, start new meditation
+                        // (isPlayingMeditation can be true after completion while isSpeaking is false)
                         if ttsManager.isSpeaking {
                             ttsManager.stopSpeaking()
                         } else {
                             guard let text = ttsManager.getRandomMeditation()
                             else { return }
+
                             ttsManager.startSpeakingWithPauses(text)
-                            //ttsManager.startSpeakingRandomMeditation()
                         }
                     } label: {
                         Image(
