@@ -312,6 +312,13 @@ class TextToSpeechManager: ObservableObject {
         let voice = VoiceManager.shared.getPreferredVoice()
         let speechRateMultiplier = VoiceManager.shared.getSpeechRateMultiplier(for: voice)
 
+        // Auto-save the voice preference for first-time users
+        // This ensures the same random voice is used across all meditation sessions
+        // until the user explicitly selects a different voice in Voice Settings
+        if VoiceManager.shared.preferredVoiceIdentifier == nil {
+            VoiceManager.shared.preferredVoiceIdentifier = voice?.identifier
+        }
+
         for (ultraCleanPhrase, delay) in ultraCleanedPhrases {
             let utterance = AVSpeechUtterance(string: ultraCleanPhrase)
             utterance.rate = AVSpeechUtteranceDefaultSpeechRate * speechRateMultiplier

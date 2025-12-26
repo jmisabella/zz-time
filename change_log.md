@@ -1,5 +1,92 @@
 # Problems and Solutions
 
+## 2025-12-27 [TIME]: Auto-Save Random Voice for First-Time Users (UX Enhancement)
+
+### **THE REQUEST**
+
+When first-time users (who haven't selected a voice in Voice Settings) toggle the Leaf button to play meditations, a different random voice was being used for each meditation session. This was confusing and inconsistent.
+
+**User Request:** Make the voice consistent across meditation sessions for first-time users. Either:
+1. Select a random voice on first use and persist it across all sessions (until user explicitly changes it), OR
+2. Default to a specific voice (e.g., Aaron) for all first-time users
+
+**Decision:** Implemented Option 1 for better UX and personalization.
+
+### **THE ROOT CAUSE**
+
+After the fix on 2025-12-26 18:30 that removed auto-save logic from `VoiceManager.getPreferredVoice()`, the function would return a NEW random voice on every call when `preferredVoiceIdentifier` was `nil`.
+
+While we fixed the "different voice per line" bug by calling `getPreferredVoice()` only once per meditation (outside the loop), each NEW meditation session would still get a different random voice because the preference was never being saved.
+
+### **THE SOLUTION**
+
+Auto-save the randomly-selected voice when a meditation starts for the first time (when `preferredVoiceIdentifier == nil`).
+
+**Changes Made:**
+
+**TextToSpeechManager.swift - Auto-save voice preference for first-time users (lines 315-320):**
+
+```swift
+// CRITICAL: Get the voice ONCE before the loop to ensure all utterances use the same voice
+let voice = VoiceManager.shared.getPreferredVoice()
+let speechRateMultiplier = VoiceManager.shared.getSpeechRateMultiplier(for: voice)
+
+// Auto-save the voice preference for first-time users
+// This ensures the same random voice is used across all meditation sessions
+// until the user explicitly selects a different voice in Voice Settings
+if VoiceManager.shared.preferredVoiceIdentifier == nil {
+    VoiceManager.shared.preferredVoiceIdentifier = voice?.identifier
+}
+```
+
+### **HOW IT WORKS**
+
+**First-Time User Flow:**
+1. User installs app (no voice preference saved)
+2. User clicks Leaf button to play first meditation
+3. `getPreferredVoice()` returns a random voice (e.g., Karen)
+4. Voice identifier is auto-saved to UserDefaults
+5. User stops meditation and clicks Leaf again for second meditation
+6. `getPreferredVoice()` now finds the saved preference and returns Karen again ✓
+7. Voice remains consistent across ALL future meditations until user changes it in Voice Settings
+
+**Explicit Voice Selection Flow:**
+1. User opens Voice Settings and selects a voice (e.g., Aaron)
+2. `preferredVoiceIdentifier` is set to Aaron's identifier
+3. All future meditations use Aaron's voice ✓
+4. If Aaron's voice gets deleted from the device, `getPreferredVoice()` falls back to a random voice but doesn't overwrite the saved preference (preserving user's original choice)
+
+### **WHY THIS APPROACH IS BETTER**
+
+**Option 1 (Implemented):**
+- ✅ Each user gets a personalized random voice
+- ✅ Voice stays consistent across all sessions
+- ✅ Doesn't overwrite explicit user selections
+- ✅ Handles deleted voices gracefully (doesn't overwrite preference)
+
+**Option 2 (Not chosen):**
+- ❌ Every user starts with the same voice (less personalized)
+- ❌ Less interesting first-time experience
+
+### **FILES MODIFIED**
+
+- `zz-time/Views/Components/TextToSpeechManager.swift` (lines 315-320)
+
+### **TESTING**
+
+**First-time user experience:**
+- ✅ Delete app, reinstall, play meditation → random voice selected and saved
+- ✅ Stop meditation, play again → SAME voice used
+- ✅ Close app, reopen, play meditation → SAME voice used
+- ✅ Voice stays consistent until user explicitly changes it in Voice Settings
+
+**Explicit voice selection:**
+- ✅ User selects voice in Voice Settings → that voice is used and saved
+- ✅ Voice persists across app restarts
+- ✅ If selected voice gets deleted, fallback voice is used but preference isn't overwritten
+
+---
+
 ## 2025-12-27 [TIME]: Fixed "Different Voice Per Line" Bug (Regression from Voice Selection Fix)
 
 ### **THE REQUEST**

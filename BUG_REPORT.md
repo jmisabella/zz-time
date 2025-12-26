@@ -1,7 +1,40 @@
 # Bug Report: Voice Selection Issues
 
+---
+
+## Bug #-1: Meditation Replay Bug (SHELVED - Low Priority)
+
+**Reported:** 2025-12-27
+**Status:** SHELVED - Occurs infrequently (around 5th toggle), low priority
+
+### Description
+After toggling the Leaf button on/off multiple times (approximately 5 times), the meditation occasionally fails to play when re-toggling the Leaf button on.
+
+### Steps to Reproduce
+1. Click Leaf button to play meditation → works ✓
+2. Click Leaf button to stop meditation → works ✓
+3. Click Leaf button to play meditation → works ✓
+4. Repeat steps 2-3 several more times
+5. On approximately the 5th toggle, meditation fails to play
+
+### Frequency
+Intermittent - does not occur on 1st or 2nd toggle, typically appears around the 5th toggle
+
+### Impact
+**LOW** - Bug occurs infrequently and only after multiple toggles. Users can typically work around it by clicking the Leaf button again.
+
+### Notes
+- This is a recurring regression bug that has been fixed multiple times (see change_log.md entries from 2025-12-25 and 2025-12-26)
+- The fix from 2025-12-25 16:00 (checking `isSpeaking` instead of `isPlayingMeditation`) is in place
+- May be related to race conditions or delayed callbacks from AVSpeechSynthesizer
+- Shelved for now to focus on higher priority features and more reproducible bugs
+
+---
+
+## Historical Bug Report (2025-12-26)
+
 2025-12-27
-Please check the context.md and change_log.md and README.md. There is a bug: from ExpandingView, I click the Leaf button to play a random meditation. Then I untoggle the Leaf button to disable meditation. I then re-toggle the Leaf button, expecing a different random meditation but when retoggling the Leaf button, usually the meditation does not play and then stops working from then onwards. If I retoggle the Leaf button too many times, often only a 2nd time, then it seems to stop working at triggering the meditation voice. Please check this. Now, specifically, I believe this is a bug we solved at least once or twice in the change_log.md but it seems to keep coming bacvk as we do further edeevelopment, apparently a regression. We had solved this before, but somehow I believe that work we did on 12/25 and 12/26 may have reintroduced this bug. Please help me with this. 
+Please check the context.md and change_log.md and README.md. There is a bug: from ExpandingView, I click the Leaf button to play a random meditation. Then I untoggle the Leaf button to disable meditation. I then re-toggle the Leaf button, expecing a different random meditation but when retoggling the Leaf button, usually the meditation does not play and then stops working from then onwards. If I retoggle the Leaf button too many times, often only a 2nd time, then it seems to stop working at triggering the meditation voice. Please check this. Now, specifically, I believe this is a bug we solved at least once or twice in the change_log.md but it seems to keep coming bacvk as we do further edeevelopment, apparently a regression. We had solved this before, but somehow I believe that work we did on 12/25 and 12/26 may have reintroduced this bug. Please help me with this.
 
 **Date:** 2025-12-26
 **Platform:** iOS
