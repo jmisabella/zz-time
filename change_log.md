@@ -1,5 +1,44 @@
 # Problems and Solutions
 
+## 2025-12-25 16:30: Prevent Consecutive Meditation Repeats (iOS)
+
+### **THE REQUEST**
+
+When user toggles the Leaf button on → off → on again to play a second meditation, ensure the app never plays the exact same meditation that was just played.
+
+### **THE SOLUTION**
+
+**Implementation:**
+
+**Modified: TextToSpeechManager.swift**
+- **Line 49:** Added `private var lastPlayedMeditationText: String?` to track the last played meditation
+- **Lines 125-129:** Filter logic in `getRandomMeditation()` to exclude last played meditation
+  - Only filters if there are 2+ meditations available (prevents filtering when only 1 meditation exists)
+  - Removes the last played meditation from the pool before random selection
+- **Line 136:** Store the selected meditation as `lastPlayedMeditationText` for next time
+
+### **HOW IT WORKS**
+
+1. User toggles Leaf on → meditation plays → stores text in `lastPlayedMeditationText`
+2. User toggles Leaf off → meditation stops (last played text still stored)
+3. User toggles Leaf on again → `getRandomMeditation()` called
+4. Function builds pool of all meditations (35 presets + custom meditations)
+5. If `lastPlayedMeditationText` exists and pool has 2+ meditations, filter it out
+6. Randomly select from remaining meditations → guaranteed to be different
+7. Store new selection as `lastPlayedMeditationText` for future toggles
+
+**Edge Case Handling:**
+- If only 1 meditation exists, filtering is skipped (can't exclude the only option)
+- If 35+ meditations exist, ensures variety by never repeating consecutively
+
+### **TESTING VERIFIED**
+- ✅ Toggling Leaf on → off → on selects different meditation each time
+- ✅ Works with both preset and custom meditations
+- ✅ Handles edge case of single meditation (doesn't filter when only 1 option)
+- ✅ Maintains randomness while preventing consecutive repeats
+
+---
+
 ## 2025-12-25 16:00: Bug Fixes and Enhancements for Voice Settings (iOS)
 
 ### **THE REQUEST**

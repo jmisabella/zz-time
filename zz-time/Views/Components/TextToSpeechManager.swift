@@ -42,8 +42,11 @@ class TextToSpeechManager: ObservableObject {
 
     // Callback to notify when ambient volume changes
     var onAmbientVolumeChanged: ((Float) -> Void)? = nil
-    
+
     let voiceVolume: Float = 0.25
+
+    // Track last played meditation to avoid consecutive repeats
+    private var lastPlayedMeditationText: String? = nil
     
     var ambientVolume: Float {
         // Balance ranges from 0.0 (0% ambient) to 1.0 (100% ambient)
@@ -119,9 +122,18 @@ class TextToSpeechManager: ObservableObject {
             return nil
         }
 
-        // Randomly select one meditation from the combined pool
+        // Filter out the last played meditation if we have more than one option
+        if let lastPlayed = lastPlayedMeditationText, allMeditations.count > 1 {
+            allMeditations = allMeditations.filter { $0.text != lastPlayed }
+            print("🚫 Filtered out last played meditation, \(allMeditations.count) options remaining")
+        }
+
+        // Randomly select one meditation from the filtered pool
         let selected = allMeditations.randomElement()!
         print("✅ Randomly selected '\(selected.source)' (\(selected.text.count) characters) from pool of \(allMeditations.count) meditations")
+
+        // Store this meditation as the last played
+        lastPlayedMeditationText = selected.text
 
         return selected.text
     }
