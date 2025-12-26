@@ -44,6 +44,7 @@ struct ExpandingView: View {
 
     // Long-press hint for Leaf button
     @State private var showLeafHint: Bool = false
+    @State private var leafHintOpacity: Double = 0.0
 
     // Dictionary to map room indices (30-34) to custom titles
     private let customRoomTitles: [Int: String] = [
@@ -216,13 +217,20 @@ struct ExpandingView: View {
                                 ttsManager.startSpeakingWithPauses(text)
 
                                 // Show hint when meditation starts
+                                showLeafHint = true
                                 withAnimation(.easeIn(duration: 0.3)) {
-                                    showLeafHint = true
+                                    leafHintOpacity = 1.0
                                 }
 
-                                // Fade out gradually over 3 seconds
-                                withAnimation(.easeOut(duration: 2.5).delay(0.5)) {
-                                    showLeafHint = false
+                                // Hide hint after 3 seconds with fade out
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                                    withAnimation(.easeOut(duration: 0.5)) {
+                                        leafHintOpacity = 0.0
+                                    }
+                                    // Remove from view hierarchy after animation completes
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                        showLeafHint = false
+                                    }
                                 }
                             }
                         }
@@ -243,13 +251,20 @@ struct ExpandingView: View {
                                     ttsManager.startSpeakingWithPauses(text)
 
                                     // Show hint again when skipping
+                                    showLeafHint = true
                                     withAnimation(.easeIn(duration: 0.3)) {
-                                        showLeafHint = true
+                                        leafHintOpacity = 1.0
                                     }
 
-                                    // Fade out gradually over 3 seconds
-                                    withAnimation(.easeOut(duration: 2.5).delay(0.5)) {
-                                        showLeafHint = false
+                                    // Hide hint after 3 seconds with fade out
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                                        withAnimation(.easeOut(duration: 0.5)) {
+                                            leafHintOpacity = 0.0
+                                        }
+                                        // Remove from view hierarchy after animation completes
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                            showLeafHint = false
+                                        }
                                     }
                                 }
                             }
@@ -322,9 +337,9 @@ struct ExpandingView: View {
                                 .fill(.ultraThinMaterial)
                         )
                         .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
-                        .padding(.bottom, 220) // Position above meditation text gradient (200px) + some spacing
-                        .transition(.opacity.combined(with: .move(edge: .bottom)))
+                        .padding(.bottom, 110) // Position just above buttons and closed captions
                 }
+                .opacity(leafHintOpacity) // Control fade with opacity
                 .allowsHitTesting(false) // Allow taps to pass through
             }
 

@@ -135,11 +135,69 @@ Add a temporary hint label that appears when the Leaf button is toggled on:
    - Should fade out completely by 3 seconds
    - Should not block button interactions
 
+### **FINAL IMPLEMENTATION - 2025-12-26 18:47**
+
+After extensive debugging and iteration, the feature is now **FULLY WORKING**:
+
+**Final Changes to ExpandingView.swift:**
+
+1. **Added opacity state variable (line 47):**
+   ```swift
+   @State private var leafHintOpacity: Double = 0.0
+   ```
+
+2. **Fixed animation timing issues:**
+   - **Problem:** SwiftUI's `.transition()` and `.animation()` modifiers were not working reliably with conditional view insertion/removal
+   - **Solution:** Manual opacity control using `leafHintOpacity` state variable
+   - View stays in hierarchy during fade, then removed after animation completes
+
+3. **Updated gesture handlers (lines 216-230, 250-264):**
+   ```swift
+   // Show hint
+   showLeafHint = true
+   withAnimation(.easeIn(duration: 0.3)) {
+       leafHintOpacity = 1.0
+   }
+
+   // Hide after 3 seconds
+   DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+       withAnimation(.easeOut(duration: 0.5)) {
+           leafHintOpacity = 0.0
+       }
+       // Remove from hierarchy after fade completes
+       DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+           showLeafHint = false
+       }
+   }
+   ```
+
+4. **Updated hint label view (lines 268-285):**
+   - Changed from `.transition()` + `.animation()` to manual `.opacity(leafHintOpacity)`
+   - Positioned at 110px from bottom (perfect placement above buttons and captions)
+   - Frosted glass effect (`.ultraThinMaterial`) works beautifully on all backgrounds
+
+**What Works Now:**
+- ✅ Hint fades in smoothly over 0.3 seconds
+- ✅ Stays fully visible for ~2.5 seconds
+- ✅ **Fades out smoothly over 0.5 seconds** (this was the hardest part to get working!)
+- ✅ Perfect positioning - visible above closed captions, readable on all backgrounds
+- ✅ Long-press works repeatedly without triggering the toggle bug
+- ✅ Both use cases fully supported
+
+**Key Lessons Learned:**
+- SwiftUI conditional view animations (`if showView { ... }`) can be unreliable
+- Manual opacity control with `DispatchQueue.main.asyncAfter` gives precise timing control
+- Separating view hierarchy management (`showLeafHint`) from visual state (`leafHintOpacity`) prevents animation conflicts
+
 ### **STATUS**
 
-**IMPLEMENTED AND BUILD SUCCESSFUL**
+**✅ FULLY IMPLEMENTED AND TESTED - 2025-12-26 18:47**
 
-Build completed at 2025-12-26 16:17 with no errors. Ready for user testing.
+Both use cases now work perfectly:
+1. **Toggle meditation on/off** - works reliably
+2. **Skip through random meditations** - long-press repeatedly without issues
+
+The hint label displays beautifully with proper fade-in and fade-out animations!
 
 ---
 
