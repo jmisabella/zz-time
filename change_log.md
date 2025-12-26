@@ -1,5 +1,99 @@
 # Problems and Solutions
 
+## 2025-12-26 16:05: Long-Press Leaf Button for New Random Meditation (UX Enhancement - PLANNED)
+
+### **THE REQUEST**
+
+There is a persistent bug where toggling the Leaf button on → off → on multiple times causes meditation playback to fail, typically after 2-5 toggles. This bug has been a recurring regression issue despite multiple fix attempts (see Bug #-1 and historical entries from 2025-12-25 and 2025-12-26).
+
+**Two use cases identified:**
+
+1. **Start meditation → Stop mid-meditation** (currently works fine)
+   - User toggles Leaf on to play meditation
+   - User decides they've had enough meditation and toggles Leaf off
+   - This works reliably
+
+2. **Start meditation → Dislike current meditation → Try different random meditations** (currently broken)
+   - User toggles Leaf on to play a random meditation
+   - User dislikes the randomly selected meditation
+   - User wants to try a different random meditation
+   - **Current broken behavior:** User must toggle Leaf off → on → off → on repeatedly until they find a meditation they like
+   - **Problem:** The toggle bug prevents this workflow - meditation fails to play after 2-5 toggles
+
+### **THE SOLUTION**
+
+Instead of repeatedly toggling the Leaf button (which triggers the bug), implement a **long-press gesture on the Leaf button** to skip to a new random meditation without toggling the meditation off first.
+
+**New Leaf Button Behavior:**
+- **Tap (meditation off):** Start playing a random meditation (existing behavior)
+- **Tap (meditation on):** Stop playing meditation (existing behavior)
+- **Long-press (meditation on):** Skip to a new random meditation without stopping first (NEW)
+
+**Discoverability Feature:**
+Add a temporary hint label that appears when the Leaf button is toggled on:
+- **Text:** "Long-press Leaf for new meditation"
+- **Style:** Frosted glass blur effect (`.ultraThinMaterial`) with white text
+- **Placement:** Bottom of screen, just above the button row
+- **Animation:**
+  - Fade in when meditation starts (0.3s ease-in)
+  - Display for 3 seconds total
+  - Fade out gradually during those 3 seconds, accelerating at the end
+- **Frequency:** Shows every time Leaf is toggled on (not just first-time)
+
+### **WHY THIS APPROACH**
+
+**Alternatives considered:**
+1. Add a 5th "Random Play" button → Rejected (too much visual clutter for minimalist design)
+2. Swipe gesture on Leaf area → Rejected (conflicts with room-change swipes)
+3. Double-tap on Leaf → Rejected (could accidentally trigger)
+4. Conditional skip button (only when playing) → Rejected (layout shifts are jarring)
+
+**Why long-press is best:**
+- ✅ No additional UI elements (preserves minimalist design)
+- ✅ Naturally handles both use cases without triggering the toggle bug
+- ✅ Contextual - only works when meditation is already playing
+- ✅ Hint label makes it discoverable without permanent UI clutter
+- ✅ Familiar gesture pattern (long-press for alternative action)
+
+### **IMPLEMENTATION DETAILS**
+
+**Files to be modified:**
+- `zz-time/Views/ExpandingView.swift`:
+  - Add long-press gesture recognizer to Leaf button
+  - Add state variable for hint label visibility
+  - Add hint label view with frosted glass background
+  - Implement fade-in/fade-out animation timing
+
+**Key implementation points:**
+1. Long-press should only trigger when `ttsManager.isPlayingMeditation == true`
+2. Long-press action should call `ttsManager.stopSpeaking()` followed immediately by selecting and playing a new random meditation
+3. Hint label should use `.ultraThinMaterial` for frosted glass effect
+4. Animation: fade in over 0.3s, stay visible while gradually fading, complete fade by 3s
+5. Text should be concise: "Long-press Leaf for new meditation"
+6. Position hint label just above the button row with appropriate padding
+
+### **EXPECTED BEHAVIOR AFTER IMPLEMENTATION**
+
+**Use Case #1 (Start/Stop):**
+- User taps Leaf → meditation starts → hint appears
+- User taps Leaf again → meditation stops
+- ✅ Works as before
+
+**Use Case #2 (Try different meditations):**
+- User taps Leaf → meditation starts → hint appears
+- User dislikes meditation → long-presses Leaf
+- Meditation stops, new random meditation immediately starts
+- User can long-press repeatedly to try different meditations without encountering the toggle bug
+- ✅ Solves the workflow without triggering the bug
+
+### **STATUS**
+
+**PLANNED - NOT YET IMPLEMENTED**
+
+This entry documents the design decision and planned implementation. Implementation to follow.
+
+---
+
 ## 2025-12-27 [TIME]: Auto-Save Random Voice for First-Time Users (UX Enhancement)
 
 ### **THE REQUEST**
