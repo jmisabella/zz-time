@@ -73,9 +73,12 @@ class VoiceManager {
             if let voice = AVSpeechSynthesisVoice(identifier: identifier) {
                 return voice
             }
+
+            // If we have a saved identifier but can't find the voice, it might have been deleted
+            // Fall through to select a random voice but DON'T auto-save it
         }
 
-        // For first-time users: randomly select from meditation-appropriate voices
+        // For first-time users OR invalid saved voice: randomly select from meditation-appropriate voices
         let meditationVoices = getMeditationAppropriateVoices()
 
         if !meditationVoices.isEmpty {
@@ -83,14 +86,13 @@ class VoiceManager {
             let randomIndex = Int.random(in: 0..<meditationVoices.count)
             let randomVoice = meditationVoices[randomIndex]
 
-            // Save this as the user's preferred voice so they get consistency
-            preferredVoiceIdentifier = randomVoice.identifier
+            // DO NOT auto-save - only save when user explicitly selects a voice in settings
+            // This prevents overwriting user's selection if their voice becomes temporarily unavailable
 
             return randomVoice
         }
 
         // Final fallback to system default if no voices available (should never happen)
-        preferredVoiceIdentifier = "SYSTEM_DEFAULT"
         return AVSpeechSynthesisVoice(language: "en-US")
     }
 

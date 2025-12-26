@@ -114,6 +114,8 @@ struct VoiceSettingsView: View {
             }
         }
         .onAppear {
+            // Refresh the selected voice from storage every time view appears
+            selectedVoiceIdentifier = VoiceManager.shared.preferredVoiceIdentifier
             loadAvailableVoices()
         }
         .onDisappear {

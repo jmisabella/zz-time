@@ -6,6 +6,35 @@
 
 ---
 
+## Bug #0: Voice Selection Not Persisting (CRITICAL)
+
+**Reported:** 2025-12-26 15:57
+
+### Description
+Voice selection in Voice Settings is **completely broken**. When user selects a voice, it does not persist. The selection immediately disappears and meditations always play in Samantha's voice.
+
+### Exact Steps to Reproduce
+1. Open Voice Settings
+2. Select a voice (e.g., Aaron)
+3. Click "Done" to exit Voice Settings
+4. Observation: When reopening Voice Settings, **NO voice is selected** (checkmark is gone)
+5. Click the green Leaf button to play a meditation
+6. Observation: Meditation plays in **Samantha's voice**, not the selected voice
+
+### Additional Observations
+- The voice selection does NOT persist even momentarily
+- Going back into Voice Settings immediately after selecting shows no selection
+- Multiple app reinstalls, cache clears, and rebuilds do not fix the issue
+- This bug did NOT occur earlier in the evening - something changed
+
+### Impact
+**CRITICAL** - Voice selection feature is completely non-functional. Users cannot select their preferred meditation voice.
+
+### Context
+This bug appeared after removing debug popups from the codebase. Prior to removing debug code, voice selection was working correctly (after fixing the Xcode scheme command-line arguments issue).
+
+---
+
 ## Bug #1: Random Voice Selection Always Returns Samantha
 
 ### Description

@@ -1,5 +1,52 @@
 # Problems and Solutions
 
+## 2025-12-26 18:30: Voice Selection Not Persisting - FIXED
+
+### **THE REQUEST**
+
+Voice selection in Voice Settings was not being saved. When user selected a voice (e.g., Aaron), then played a meditation, it would always play in a different voice (Samantha), ignoring the user's selection.
+
+### **THE ROOT CAUSE**
+
+The Xcode scheme file contained command-line arguments that were overriding UserDefaults on every app launch:
+
+```xml
+<CommandLineArgument
+   argument = "-preferredVoiceIdentifier &quot;&quot;"
+   isEnabled = "YES">
+</CommandLineArgument>
+```
+
+This was forcing `preferredVoiceIdentifier` to an empty string every time the app launched, completely preventing voice preferences from persisting between sessions.
+
+Additionally, there was a secondary bug in `VoiceManager.getPreferredVoice()` where the function would auto-save a random voice selection, which could overwrite user preferences if the saved voice became temporarily unavailable.
+
+### **THE SOLUTION**
+
+**1. Removed command-line arguments from Xcode scheme:**
+- Deleted the `-preferredVoiceIdentifier ""` argument from `zz-time.xcscheme`
+- Also removed the obsolete `-useEnhancedVoice NO` argument
+- This allows UserDefaults to persist normally
+
+**2. Fixed auto-save bug in VoiceManager.swift:**
+- Removed lines that auto-saved randomly selected voices
+- Now only saves voice when user explicitly selects one in Voice Settings
+- Fallback voices (for first-time users or deleted voices) are used temporarily without overwriting saved preferences
+
+### **FILES MODIFIED**
+
+- `zz-time.xcodeproj/xcshareddata/xcschemes/zz-time.xcscheme` (lines 53-54, removed command-line arguments)
+- `zz-time/Views/Components/VoiceManager.swift` (lines 65-97, removed auto-save logic)
+
+### **TESTING**
+
+1. Select a voice in Voice Settings
+2. Close settings and play a meditation
+3. Voice should match the one you selected
+4. Voice preference persists across app restarts
+
+---
+
 ## 2025-12-26 15:45: Meditation Replay Bug - ACTUALLY FIXED (Race Condition in Callback)
 
 ### **THE REQUEST**
