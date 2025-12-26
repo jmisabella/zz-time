@@ -1,5 +1,79 @@
 # Problems and Solutions
 
+## 2025-12-27 [TIME]: Fixed "Different Voice Per Line" Bug (Regression from Voice Selection Fix)
+
+### **THE REQUEST**
+
+Two bugs were reported:
+1. **NEW BUG (Introduced 2025-12-26):** Each line of meditation was spoken in a different random voice, making the experience very off-putting
+2. **ORIGINAL BUG (Regression):** Toggling Leaf button on → off → on fails to play meditation the second time
+
+### **THE ROOT CAUSE - Bug #1: Different Voice Per Line**
+
+The bug was introduced by commit `a920054` on 2025-12-26 18:30, which removed the auto-save logic from `VoiceManager.getPreferredVoice()` to fix voice selection persistence issues.
+
+**What was happening:**
+1. `getPreferredVoice()` was being called INSIDE the for loop in `startSpeakingWithPauses()` (line 310)
+2. For each utterance/phrase, it would call `Int.random(in: 0..<meditationVoices.count)` and return a DIFFERENT voice
+3. With no saved `preferredVoiceIdentifier`, every call to `getPreferredVoice()` returned a new random voice
+4. Result: First line in Aaron's voice, second line in Samantha's voice, third line in Karen's voice, etc.
+
+### **THE SOLUTION - Bug #1**
+
+Move the `getPreferredVoice()` call OUTSIDE the loop so it's only called once per meditation session.
+
+**Changes Made:**
+
+**TextToSpeechManager.swift - Fixed voice selection in `startSpeakingWithPauses()` (lines 308-316):**
+
+**BEFORE (buggy code):**
+```swift
+for (ultraCleanPhrase, delay) in ultraCleanedPhrases {
+    let utterance = AVSpeechUtterance(string: ultraCleanPhrase)
+    let voice = VoiceManager.shared.getPreferredVoice()  // ← Called for EVERY phrase!
+    let speechRateMultiplier = VoiceManager.shared.getSpeechRateMultiplier(for: voice)
+    utterance.rate = AVSpeechUtteranceDefaultSpeechRate * speechRateMultiplier
+```
+
+**AFTER (fixed code):**
+```swift
+// CRITICAL: Get the voice ONCE before the loop to ensure all utterances use the same voice
+// If we call getPreferredVoice() inside the loop, it will return a different random voice
+// for each utterance when no voice preference is saved
+let voice = VoiceManager.shared.getPreferredVoice()
+let speechRateMultiplier = VoiceManager.shared.getSpeechRateMultiplier(for: voice)
+
+for (ultraCleanPhrase, delay) in ultraCleanedPhrases {
+    let utterance = AVSpeechUtterance(string: ultraCleanPhrase)
+    utterance.rate = AVSpeechUtteranceDefaultSpeechRate * speechRateMultiplier
+```
+
+### **THE ROOT CAUSE - Bug #2: Meditation Replay Bug**
+
+**STATUS:** Under investigation. The fix from 2025-12-25 16:00 (checking `isSpeaking` instead of `isPlayingMeditation`) is already in place, but the bug persists.
+
+**Current hypothesis:**
+- The bug may be intermittent/timing-related rather than deterministic
+- Session ID validation should prevent race conditions from old callbacks
+- Need to investigate if there are other state management issues or if the issue is with how utterances are being queued
+
+### **FILES MODIFIED**
+
+- `zz-time/Views/Components/TextToSpeechManager.swift` (lines 308-316)
+
+### **TESTING**
+
+**Bug #1 (Fixed):**
+- ✅ All phrases in a meditation should use the SAME voice
+- ✅ Voice consistency maintained throughout the entire meditation session
+- ✅ Random voice selection still works for first-time users (but consistent within session)
+
+**Bug #2 (Still investigating):**
+- ❓ Toggle on → off → on should reliably start meditation the second time
+- ❓ Need to determine if bug is 100% reproducible or intermittent
+
+---
+
 ## 2025-12-26 18:30: Voice Selection Not Persisting - FIXED
 
 ### **THE REQUEST**

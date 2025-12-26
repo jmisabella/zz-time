@@ -306,10 +306,14 @@ class TextToSpeechManager: ObservableObject {
         // Capture the current session ID to attach to all utterances
         let currentSessionId = sessionId
 
+        // CRITICAL: Get the voice ONCE before the loop to ensure all utterances use the same voice
+        // If we call getPreferredVoice() inside the loop, it will return a different random voice
+        // for each utterance when no voice preference is saved
+        let voice = VoiceManager.shared.getPreferredVoice()
+        let speechRateMultiplier = VoiceManager.shared.getSpeechRateMultiplier(for: voice)
+
         for (ultraCleanPhrase, delay) in ultraCleanedPhrases {
             let utterance = AVSpeechUtterance(string: ultraCleanPhrase)
-            let voice = VoiceManager.shared.getPreferredVoice()
-            let speechRateMultiplier = VoiceManager.shared.getSpeechRateMultiplier(for: voice)
             utterance.rate = AVSpeechUtteranceDefaultSpeechRate * speechRateMultiplier
             utterance.pitchMultiplier = Self.meditationPitchMultiplier
             utterance.volume = voiceVolume

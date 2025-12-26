@@ -1,5 +1,8 @@
 # Bug Report: Voice Selection Issues
 
+2025-12-27
+Please check the context.md and change_log.md and README.md. There is a bug: from ExpandingView, I click the Leaf button to play a random meditation. Then I untoggle the Leaf button to disable meditation. I then re-toggle the Leaf button, expecing a different random meditation but when retoggling the Leaf button, usually the meditation does not play and then stops working from then onwards. If I retoggle the Leaf button too many times, often only a 2nd time, then it seems to stop working at triggering the meditation voice. Please check this. Now, specifically, I believe this is a bug we solved at least once or twice in the change_log.md but it seems to keep coming bacvk as we do further edeevelopment, apparently a regression. We had solved this before, but somehow I believe that work we did on 12/25 and 12/26 may have reintroduced this bug. Please help me with this. 
+
 **Date:** 2025-12-26
 **Platform:** iOS
 **App:** zz-time meditation app
