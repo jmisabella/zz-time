@@ -26,7 +26,7 @@ class VoiceManager {
     private let excludedVoiceNames: [String] = [
         "albert", "bad news", "bahh", "bells", "boing", "bubbles", "cellos",
         "eddy", "flo", "fred", "good news", "grandma", "grandpa", "jester",
-        "junior", "kathy", "organ", "ralph", "reed", "rocco", "sandy",
+        "junior", "kathy", "organ", "ralph", "reed", "rocko", "sandy",
         "superstar", "trinoids", "whisper", "wobble", "zarvox"
     ]
 
