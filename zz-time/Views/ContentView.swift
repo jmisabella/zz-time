@@ -9,6 +9,7 @@ struct ContentView: View {
     @State private var currentPlayer: AVAudioPlayer? = nil
     @State private var currentTimer: Timer? = nil
     @State private var currentAudioFile: String? = nil
+    @State private var targetAmbientVolume: Float = 0.51  // Default to 85% balance (0.85 * 0.6 = 0.51)
     
 //    @State private var durationMinutes: Double = UserDefaults.standard.double(forKey: "durationMinutes")
     
@@ -222,7 +223,8 @@ struct ContentView: View {
                         showingAlarmSelection = true
                     },
                     onAmbientVolumeChanged: { newVolume in
-                        // Update the ambient audio player's volume
+                        // Update the target volume and current player's volume
+                        targetAmbientVolume = newVolume
                         currentPlayer?.volume = newVolume
                     }
                 )
@@ -380,11 +382,11 @@ struct ContentView: View {
             let fadeDuration: Double = 2.0
             let fadeSteps: Int = 20
             let stepDuration = fadeDuration / Double(fadeSteps)
-            let stepIncrement = 1.0 / Float(fadeSteps)
+            let stepIncrement = targetAmbientVolume / Float(fadeSteps)
             currentTimer = Timer.scheduledTimer(withTimeInterval: stepDuration, repeats: true) { _ in
                 let currentVolume = newPlayer.volume
-                if currentVolume < 1.0 {
-                    newPlayer.volume = min(1.0, currentVolume + stepIncrement)
+                if currentVolume < self.targetAmbientVolume {
+                    newPlayer.volume = min(self.targetAmbientVolume, currentVolume + stepIncrement)
                 } else {
                     self.currentTimer?.invalidate()
                     self.currentTimer = nil

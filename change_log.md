@@ -1,5 +1,126 @@
 # Problems and Solutions
 
+## 2025-12-27: Changed Default Ambient Audio Level from 100% to 85% (UX IMPROVEMENT + BUG FIX)
+
+### **THE CHANGE**
+
+Modified the default ambient audio level to better balance the guided meditation voice with the ambient background audio.
+
+**Previous Behavior:**
+- Ambient audio slider defaulted to 100% (audioBalance = 1.0)
+- **BUG:** Even though slider could be set to 85%, the actual audio player always faded in to 100% volume
+- Users reported that the meditation voice seemed too quiet relative to the ambient audio at 100% level
+
+**New Behavior:**
+- Ambient audio slider now defaults to 85% (audioBalance = 0.85)
+- **FIXED:** Audio player now correctly respects the slider position and fades in to the target volume (85% by default)
+- This provides an ideal ratio where the meditation voice is clearly audible while maintaining pleasant ambient audio
+
+### **THE BUG - Why Slider Position Didn't Affect Initial Volume**
+
+**Root Cause:** The audio fade-in logic in `ContentView.swift` was hardcoded to always fade to 1.0 (100%), completely ignoring the `audioBalance` setting from `TextToSpeechManager`.
+
+**The Problem Flow:**
+
+1. **Initial Setup (ExpandingView.swift:377-378):**
+   ```swift
+   ttsManager.onAmbientVolumeChanged = onAmbientVolumeChanged
+   ttsManager.updateVolumesFromBalance()  // Tries to set volume to 0.51 (85%)
+   ```
+
+2. **Audio Player Starts (ContentView.swift:378-387):**
+   ```swift
+   newPlayer.volume = 0.0
+   newPlayer.play()
+   // ... fade-in logic ...
+   let stepIncrement = 1.0 / Float(fadeSteps)  // ← HARDCODED to fade to 1.0
+   if currentVolume < 1.0 {
+       newPlayer.volume = min(1.0, currentVolume + stepIncrement)  // ← Always goes to 100%
+   }
+   ```
+
+3. **Result:**
+   - The fade-in timer repeatedly set volume to 1.0, overriding the slider's 85% setting
+   - User had to manually move the slider to trigger the volume change callback
+   - First-time experience was always at 100% ambient, even though slider showed 85%
+
+### **RATIONALE**
+
+Through user testing, we found that:
+1. At 100% ambient level, the meditation voice (fixed at volume 0.25) was being drowned out by the ambient audio
+2. At 85% ambient level, the balance between voice and ambient audio feels ideal
+3. Users naturally want to hear the meditation voice clearly without it being overwhelmed by background sounds
+
+### **IMPLEMENTATION DETAILS**
+
+**Files Modified:**
+
+1. **`zz-time/Views/Components/TextToSpeechManager.swift` (line 10):**
+   ```swift
+   // Before:
+   @Published var audioBalance: Double = 1.0  // 0.0 (0% ambient) to 1.0 (100% ambient)
+
+   // After:
+   @Published var audioBalance: Double = 0.85  // 0.0 (0% ambient) to 1.0 (100% ambient), default 85%
+   ```
+
+2. **`zz-time/Views/ContentView.swift` (lines 12, 225-228, 385-389):**
+
+   **Added state variable to track target volume (line 12):**
+   ```swift
+   @State private var targetAmbientVolume: Float = 0.51  // Default to 85% balance (0.85 * 0.6 = 0.51)
+   ```
+
+   **Update target when slider moves (lines 225-228):**
+   ```swift
+   onAmbientVolumeChanged: { newVolume in
+       // Update the target volume and current player's volume
+       targetAmbientVolume = newVolume
+       currentPlayer?.volume = newVolume
+   }
+   ```
+
+   **Use target volume in fade-in (lines 385-389):**
+   ```swift
+   // Before:
+   let stepIncrement = 1.0 / Float(fadeSteps)
+   if currentVolume < 1.0 {
+       newPlayer.volume = min(1.0, currentVolume + stepIncrement)
+
+   // After:
+   let stepIncrement = targetAmbientVolume / Float(fadeSteps)
+   if currentVolume < self.targetAmbientVolume {
+       newPlayer.volume = min(self.targetAmbientVolume, currentVolume + stepIncrement)
+   ```
+
+### **IMPACT**
+
+- **New users:** Will experience the improved 85% default from the moment they enter a room
+- **Existing users:** Not affected - the slider preserves user preferences via `@Published` property wrapper
+- **User control:** Users can still adjust the ambient level to any value from 0% to 100% via the balance slider
+- **Bug fixed:** Slider position now correctly controls the actual audio volume, even on initial room entry
+
+### **TECHNICAL NOTES**
+
+The ambient volume calculation uses: `ambientVolume = audioBalance * 0.6`
+
+So the actual ambient volumes are:
+- At 100% balance: ambient = 0.60
+- At 85% balance: ambient = 0.51 (new default)
+- At 0% balance: ambient = 0.00
+
+The meditation voice volume remains fixed at 0.25 across all ambient levels.
+
+### **FILES MODIFIED**
+- `zz-time/Views/Components/TextToSpeechManager.swift` (line 10)
+- `zz-time/Views/ContentView.swift` (lines 12, 225-228, 385-389)
+- `change_log.md` (this entry)
+
+### **STATUS**
+✅ **COMPLETED** - 2025-12-27 at 16:00 PST
+
+---
+
 ## 2025-12-26: Bug in Long-Press Leaf Button Feature - Silent Playback with Green Leaf (BUG REPORT)
 
 ### **THE BUG**

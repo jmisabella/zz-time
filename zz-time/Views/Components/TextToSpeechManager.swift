@@ -7,7 +7,7 @@ import SwiftUI
 class TextToSpeechManager: ObservableObject {
     @Published var isSpeaking: Bool = false
     @Published var isPlayingMeditation: Bool = false
-    @Published var audioBalance: Double = 1.0  // 0.0 (0% ambient) to 1.0 (100% ambient)
+    @Published var audioBalance: Double = 0.85  // 0.0 (0% ambient) to 1.0 (100% ambient), default 85%
 
     // Closed captioning support
     @Published var currentPhrase: String = ""
