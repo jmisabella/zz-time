@@ -1,5 +1,127 @@
 # Problems and Solutions
 
+## 2025-12-26: Bug in Long-Press Leaf Button Feature - Silent Playback with Green Leaf (BUG REPORT)
+
+### **THE BUG**
+
+After implementing the long-press feature to skip to a new random meditation, users report that the feature doesn't always work. Specifically:
+
+**Symptoms:**
+- User toggles Leaf on → meditation plays normally
+- User long-presses Leaf to skip to new meditation
+- **BUG:** Sometimes the meditation voice stops, but the Leaf button remains green (toggled on)
+- No audio plays, but UI shows meditation is still active
+- Leaf appears "stuck" in the on state with no voice playback
+
+### **ROOT CAUSE ANALYSIS**
+
+The bug occurs in [TextToSpeechManager.swift:200-350](zz-time/Views/Components/TextToSpeechManager.swift#L200-L350) in the `startSpeakingWithPauses(_ text: String)` function.
+
+**The Problem Flow:**
+
+1. **Text Processing (lines 228-277):** The function processes meditation text through multiple cleaning passes:
+   - Removes question marks (line 228)
+   - Adds automatic pauses if needed (line 234)
+   - Extracts phrases with pause markers (line 237)
+   - Filters empty phrases (line 240)
+   - Cleans phrases multiple times to remove pause markers (lines 243-277)
+
+2. **Critical Bug (no validation after line 277):**
+   - After all the cleaning and filtering, `ultraCleanedPhrases` may end up **empty**
+   - This can happen if:
+     - The meditation text was mostly pause markers
+     - All phrases became empty after regex cleaning
+     - Text processing removed all content
+   - **There is NO check for `ultraCleanedPhrases.isEmpty`**
+
+3. **State Set Despite Empty Content (lines 298-300):**
+   ```swift
+   isSpeaking = true
+   isPlayingMeditation = true  // ← Leaf turns green
+   isCustomMode = true
+   ```
+   - These flags are set regardless of whether there are any phrases to speak
+
+4. **No Utterances Queued (line 318):**
+   ```swift
+   for (ultraCleanPhrase, delay) in ultraCleanedPhrases {  // ← Empty array, loop never runs
+   ```
+   - If `ultraCleanedPhrases` is empty, the loop doesn't execute
+   - No utterances are queued to the synthesizer
+   - User hears silence
+
+5. **Result:**
+   - UI shows green Leaf (`isPlayingMeditation = true`)
+   - No audio plays (no utterances queued)
+   - User sees "meditation playing" but hears nothing
+
+### **WHY THIS HAPPENS WITH LONG-PRESS**
+
+The long-press feature makes this more likely because:
+
+1. Long-press calls `stopSpeaking()` then waits 0.1s
+2. During that delay, if there's any timing issue or if `getRandomMeditation()` returns problematic text
+3. The new meditation text gets over-processed and becomes empty
+4. State is set but no audio plays
+
+### **THE FIX**
+
+Added validation after line 277 in `startSpeakingWithPauses` (TextToSpeechManager.swift:279-292):
+
+```swift
+// CRITICAL BUG FIX: Validate that we have content to speak before setting state
+// If text processing resulted in no speakable content, don't show meditation as playing
+guard !ultraCleanedPhrases.isEmpty else {
+    // No valid phrases to speak - reset state and return early
+    isSpeaking = false
+    isPlayingMeditation = false
+    isCustomMode = false
+    queuedUtteranceCount = 0
+    currentPhrase = ""
+    previousPhrase = ""
+    allPhrases = []
+    currentPhraseIndex = 0
+    return
+}
+```
+
+This ensures that if text processing results in no speakable content, the meditation state is properly reset and doesn't appear to be playing when it isn't.
+
+**What This Fix Does:**
+1. Checks if `ultraCleanedPhrases` is empty after all text processing
+2. If empty, resets ALL meditation state flags to prevent "stuck green Leaf" bug
+3. Returns early so no utterances are queued and UI stays in sync with actual playback state
+4. Prevents the UI from showing meditation as active when no audio will play
+
+### **FILES MODIFIED**
+- `zz-time/Views/Components/TextToSpeechManager.swift` (lines 279-292 added)
+- `zz-time/Views/ExpandingView.swift` (no changes needed - long-press handler works correctly)
+
+### **STATUS**
+**✅ BUG FIXED - 2025-12-26**
+
+### **TESTING INSTRUCTIONS**
+
+To verify the fix works:
+
+1. **Test normal meditation playback:**
+   - Tap Leaf button → meditation should start normally
+   - Verify voice plays and Leaf is green
+   - ✅ Should work as before
+
+2. **Test long-press skip feature:**
+   - Tap Leaf to start meditation
+   - Long-press Leaf → should skip to new meditation immediately
+   - Repeat long-press multiple times
+   - ✅ Each long-press should start a new meditation without "stuck green Leaf" bug
+
+3. **Test edge cases:**
+   - If meditation fails to load, Leaf should NOT turn green
+   - If text processing results in empty content, Leaf should stay gray (off state)
+   - ✅ UI should always accurately reflect playback state
+
+---
+
 ## 2025-12-26 16:05: Long-Press Leaf Button for New Random Meditation (UX Enhancement - PLANNED)
 
 ### **THE REQUEST**

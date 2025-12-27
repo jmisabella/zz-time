@@ -348,7 +348,6 @@ struct ExpandingView: View {
             SimultaneousGesture(
                 TapGesture()
                     .onEnded { _ in
-                        print("Background tapped")
                         withAnimation(.easeInOut(duration: 0.3)) {
                             dismiss()
                         }

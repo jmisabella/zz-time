@@ -116,19 +116,16 @@ class TextToSpeechManager: ObservableObject {
         }
 
         guard !allMeditations.isEmpty else {
-            print("❌ No meditations found (neither preset nor custom)")
             return nil
         }
 
         // Filter out the last played meditation if we have more than one option
         if let lastPlayed = lastPlayedMeditationText, allMeditations.count > 1 {
             allMeditations = allMeditations.filter { $0.text != lastPlayed }
-            print("🚫 Filtered out last played meditation, \(allMeditations.count) options remaining")
         }
 
         // Randomly select one meditation from the filtered pool
         let selected = allMeditations.randomElement()!
-        print("✅ Randomly selected '\(selected.source)' (\(selected.text.count) characters) from pool of \(allMeditations.count) meditations")
 
         // Store this meditation as the last played
         lastPlayedMeditationText = selected.text
@@ -142,7 +139,6 @@ class TextToSpeechManager: ObservableObject {
         
         // Try to load a random meditation file
         guard let meditationText = loadRandomMeditationFile() else {
-            print("No meditation files found")
             return
         }
         
@@ -278,6 +274,21 @@ class TextToSpeechManager: ObservableObject {
             ultraCleanPhrase = ultraCleanPhrase.trimmingCharacters(in: .whitespacesAndNewlines)
 
             return ultraCleanPhrase.isEmpty ? nil : (ultraCleanPhrase, delay)
+        }
+
+        // CRITICAL BUG FIX: Validate that we have content to speak before setting state
+        // If text processing resulted in no speakable content, don't show meditation as playing
+        guard !ultraCleanedPhrases.isEmpty else {
+            // No valid phrases to speak - reset state and return early
+            isSpeaking = false
+            isPlayingMeditation = false
+            isCustomMode = false
+            queuedUtteranceCount = 0
+            currentPhrase = ""
+            previousPhrase = ""
+            allPhrases = []
+            currentPhraseIndex = 0
+            return
         }
 
         // Store ULTRA-cleaned phrases for closed captioning (so VoiceOver doesn't read pause markers)
@@ -444,16 +455,14 @@ class TextToSpeechManager: ObservableObject {
         }
         
         guard !validURLs.isEmpty else {
-            print("No preset meditation files found")
             return nil
         }
-        
+
         // Pick a random preset meditation file
         let randomURL = validURLs.randomElement()!
-        
+
         // Load the text
         guard let text = try? String(contentsOf: randomURL, encoding: .utf8) else {
-            print("Could not read preset meditation file")
             return nil
         }
         
