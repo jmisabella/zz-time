@@ -9,7 +9,7 @@ struct ContentView: View {
     @State private var currentPlayer: AVAudioPlayer? = nil
     @State private var currentTimer: Timer? = nil
     @State private var currentAudioFile: String? = nil
-    @State private var targetAmbientVolume: Float = 0.51  // Default to 85% balance (0.85 * 0.6 = 0.51)
+    @State private var targetAmbientVolume: Float = 0.48  // Default to 80% balance (0.80 * 0.6 = 0.48)
     
 //    @State private var durationMinutes: Double = UserDefaults.standard.double(forKey: "durationMinutes")
     
