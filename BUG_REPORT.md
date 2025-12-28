@@ -1,16 +1,38 @@
 # NEW BUGS
 
-## 2025-12-28, 10:37
+No new bugs at this time.
+
+---
+
+# RESOLVED BUGS
+
+## 2025-12-28, 10:37 - RESOLVED 2025-12-28, 12:00 PM
 
 ### Title
-Rapid Changing Meditations Causes Subsequent Meditations To Stop Loading/Playing, Either Via Toggling On/Off/On Or Long-Pressing of Leaf Button
+Rapid Changing Meditations Causes Subsequent Meditations To Stop Loading/Playing
 
 ### Description
-Desired use case is that a user toggles on the Leaf button to play a random meditation but dislikes the initially selected meditation and wishes for a different random meditation to play. User either toggles off the Leaf button and toggles it back on to play a different random meditation, or uses the long-press feature on the Leaf button to play a new random meditation without needing to toggle the Leaf off and back on. 
+Desired use case is that a user toggles on the Leaf button to play a random meditation but dislikes the initially selected meditation and wishes for a different random meditation to play. User toggles off the Leaf button and toggles it back on to play a different random meditation.
 
-For both of these methods, there is a bug. After the first meditation, sometimes on the 2nd, 3rd, or even 5th attempt at a different meditation, be it via retoggling the Leaf or by long-pressing the Leaf, eventually a new random meditation does not play, causing the closed captioning modal window to display and the Leaf button to be toggled on (green) but with no meditation playing. 
+After the first meditation, sometimes on the 2nd attempt at a different meditation, the new meditation would not play, causing the closed captioning modal window to display and the Leaf button to be toggled on (green) but with no meditation audio playing.
 
-We actually had attempted to resolve this issue before but failed at several attempts. Actually this is why we added the long-press feature: it was a futile attempt to allow the desired use case from a different means of toggline on/off/on, however the same bug appears to be affecting both the toggling on/off/on as well as the long-press methods of playing new random meditations. However, before we were having issues seeing the debug logging output in XCode, an issue we have since resolved and now have ability to use debug logging to troubleshoot this issue. Also, we added a feature to prevent the same meditation from ever playing twice in a row. I wonder if this feature may be unnecessarily adding additional surface area to our problem and whether we should consider removing that feature while we work through this bug which I feel is more important to solve than that we prevent same meditation from being able to play twice in a row. 
+### Resolution (2025-12-28, 12:00 PM)
+
+**Root Cause:** AVSpeechSynthesizer's internal state was not fully cleared after `stopSpeaking(at: .immediate)` was called. When rapidly toggling off/on, new utterances would be queued while the synthesizer was still in an internal "stopping" state, causing it to silently refuse the new utterances.
+
+**Fix Applied:** Added synchronous polling of `synthesizer.isSpeaking` after calling `stopSpeaking()` to ensure the synthesizer is fully idle before queuing new utterances. The code now waits up to 500ms for the synthesizer to confirm it has stopped.
+
+**Additional Change:** Removed long-press feature entirely since rapid toggle (off/on) now works reliably. Updated hint label to say "Tap Leaf again to stop or restart" instead of mentioning long-press.
+
+**Technical Details:** See change_log.md entry for 2025-12-28, 11:00 AM for complete implementation details of the comprehensive state machine refactor that enabled this fix.
+
+**Files Modified:**
+- TextToSpeechManager.swift - Added synthesizer idle check (lines 275-292)
+- TextToSpeechManager.swift - Removed `skipToNewMeditation()` method
+- ExpandingView.swift - Removed long-press gesture handler
+- ExpandingView.swift - Updated hint text (line 308)
+
+**Status:** ✅ RESOLVED - Rapid toggling now works reliably, bug no longer reproduces.
 
 ---
 

@@ -49,9 +49,9 @@ class TextToSpeechManager: ObservableObject {
     @Published var currentPhrase: String = ""
     @Published var previousPhrase: String = ""
 
-    
-    let synthesizer = AVSpeechSynthesizer()  // Internal access for pause/resume from VoiceSettingsView
-    private let speechDelegate: SpeechDelegate
+
+    var synthesizer = AVSpeechSynthesizer()  // Internal access for pause/resume from VoiceSettingsView
+    private var speechDelegate: SpeechDelegate
     private var repeatCount = 0
     private let maxRepeats = 10
     private var isCustomMode: Bool = false
@@ -125,6 +125,20 @@ class TextToSpeechManager: ObservableObject {
             return true  // Idempotent
         default: return false
         }
+    }
+
+    /// Recreates the synthesizer instance to clear any corrupted internal state
+    private func recreateSynthesizer() {
+        print("🔄 Recreating synthesizer to clear corrupted state")
+
+        // Stop the old synthesizer
+        synthesizer.stopSpeaking(at: .immediate)
+
+        // Create new instances
+        synthesizer = AVSpeechSynthesizer()
+        speechDelegate = SpeechDelegate()
+        speechDelegate.manager = self
+        synthesizer.delegate = speechDelegate
     }
 
     /// Starts speaking the test phrase, repeating 10 times
@@ -266,29 +280,13 @@ class TextToSpeechManager: ObservableObject {
 
         let newSessionId = UUID()
 
+        // CRITICAL: Recreate synthesizer on each meditation start to avoid corruption
+        recreateSynthesizer()
+
         // Transition to STARTING state FIRST
         guard transitionState(to: .starting(sessionId: newSessionId), reason: "User started meditation") else {
             print("⛔ Cannot start: Invalid state transition")
             return
-        }
-
-        // Stop any currently playing meditation and wait for it to fully stop
-        if synthesizer.isSpeaking {
-            print("🛑 Synthesizer is still speaking, stopping it...")
-            synthesizer.stopSpeaking(at: .immediate)
-
-            // Wait briefly for synthesizer to actually stop (up to 0.5s)
-            var attempts = 0
-            while synthesizer.isSpeaking && attempts < 50 {
-                Thread.sleep(forTimeInterval: 0.01)  // 10ms per attempt
-                attempts += 1
-            }
-
-            if synthesizer.isSpeaking {
-                print("⚠️ WARNING: Synthesizer still speaking after 500ms!")
-            } else {
-                print("✅ Synthesizer stopped after \(attempts * 10)ms")
-            }
         }
 
         // Reset state variables AFTER state transition
@@ -383,13 +381,6 @@ class TextToSpeechManager: ObservableObject {
 
         print("📊 Total utterances to queue: \(totalUtteranceCount)")
 
-        // Transition to PLAYING state
-        guard transitionState(to: .playing(sessionId: newSessionId), reason: "Utterances queued") else {
-            print("⛔ Cannot transition to playing")
-            _ = transitionState(to: .idle, reason: "Transition failed")
-            return
-        }
-
         // CRITICAL: Get the voice ONCE before the loop to ensure all utterances use the same voice
         // If we call getPreferredVoice() inside the loop, it will return a different random voice
         // for each utterance when no voice preference is saved
@@ -403,6 +394,7 @@ class TextToSpeechManager: ObservableObject {
             VoiceManager.shared.preferredVoiceIdentifier = voice?.identifier
         }
 
+        // Queue ALL utterances FIRST before transitioning to playing
         for (ultraCleanPhrase, delay) in ultraCleanedPhrases {
             let utterance = AVSpeechUtterance(string: ultraCleanPhrase)
             utterance.rate = AVSpeechUtteranceDefaultSpeechRate * speechRateMultiplier
@@ -437,6 +429,13 @@ class TextToSpeechManager: ObservableObject {
         }
 
         print("✅ Meditation started: \(ultraCleanedPhrases.count) phrases, \(totalUtteranceCount) utterances")
+
+        // Transition to PLAYING state
+        guard transitionState(to: .playing(sessionId: newSessionId), reason: "Utterances queued") else {
+            print("⛔ Cannot transition to playing")
+            _ = transitionState(to: .idle, reason: "Transition failed")
+            return
+        }
     }
 
     /// Extracts phrases and their associated pauses from text
@@ -597,38 +596,9 @@ class TextToSpeechManager: ObservableObject {
         // Clear meditation completion flag since it was stopped manually
         UserDefaults.standard.removeObject(forKey: "meditationCompletedSuccessfully")
 
-        // Wait for delegate callback OR timeout (300ms)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
-            guard let self = self else {
-                completion()
-                return
-            }
-            _ = self.transitionState(to: .idle, reason: "Stop completed")
-            completion()
-        }
-    }
-
-    func skipToNewMeditation() async {
-        print("🔄 Skip to new meditation requested")
-
-        // Stop current meditation and wait for completion
-        await stopSpeaking()
-
-        // Get new meditation text
-        guard let text = getRandomMeditation() else {
-            print("⚠️ No meditation text available")
-            return
-        }
-
-        // Additional delay to ensure callbacks settle (300ms total)
-        try? await Task.sleep(nanoseconds: 300_000_000)
-
-        // Start new meditation
-        await MainActor.run {
-            startSpeakingWithPauses(text)
-        }
-
-        print("✅ Skip to new meditation completed")
+        // Transition to idle immediately
+        _ = transitionState(to: .idle, reason: "Stop completed")
+        completion()
     }
 
     private func speakNextPhrase() {

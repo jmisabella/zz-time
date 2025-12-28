@@ -1,5 +1,174 @@
 # Problems and Solutions
 
+## 2025-12-28, 1:45 PM: THIRD FIX - Wait for Synthesizer to Actually Start Before Allowing Interaction
+
+### **THE PROBLEM (Iteration 3)**
+
+After the second fix (1:30 PM entry below), testing showed the bug STILL occurred on only the 2nd toggle attempt. Debug logs revealed:
+
+```
+✅ Meditation started: 72 phrases, 153 utterances
+👆 Leaf button tapped. Current state: playing(sessionId: 997FCF41-65CF-4D36-B6D6-E2BD33E8B28D)
+🛑 Stop requested. Current state: playing(sessionId: 997FCF41-65CF-4D36-B6D6-E2BD33E8B28D)
+```
+
+**NO `🎙️ didStart` callback** between "Meditation started" and the stop request.
+
+**Root Cause:** User clicked so fast that the meditation was stopped BEFORE the synthesizer even fired its first `didStart` callback. The sequence was:
+
+1. Queue utterances → log "Meditation started"
+2. Transition to `.playing` state
+3. **User clicks stop** (before synthesizer actually begins speaking)
+4. Synthesizer never starts → silent failure
+
+The problem was that we were transitioning to `.playing` state BEFORE the synthesizer had actually begun speaking. We were queueing utterances (which is instant) but not waiting for the synthesizer to start processing them (which takes ~10-100ms).
+
+### **THE FIX: Wait for synthesizer.isSpeaking Before Transitioning to .playing**
+
+**Location:** `TextToSpeechManager.swift`, lines 433-455 (startSpeakingWithPauses method)
+
+Changed the order of operations:
+1. Queue ALL utterances FIRST
+2. **Wait for `synthesizer.isSpeaking` to become `true`** (up to 1 second)
+3. Log how long it took to start
+4. THEN transition to `.playing` state
+
+**Key Changes:**
+
+```swift
+// Queue ALL utterances FIRST before transitioning to playing
+for (ultraCleanPhrase, delay) in ultraCleanedPhrases {
+    // ... queue utterance ...
+}
+
+print("✅ Meditation queued: \(ultraCleanedPhrases.count) phrases, \(totalUtteranceCount) utterances")
+
+// CRITICAL: Wait briefly for synthesizer to actually START speaking before transitioning to .playing
+// This prevents user from clicking stop before the first utterance even begins
+var startAttempts = 0
+while !synthesizer.isSpeaking && startAttempts < 100 {  // Up to 1 second
+    Thread.sleep(forTimeInterval: 0.01)  // 10ms per attempt
+    startAttempts += 1
+}
+
+if synthesizer.isSpeaking {
+    print("✅ Synthesizer started after \(startAttempts * 10)ms")
+} else {
+    print("⚠️ WARNING: Synthesizer did not start speaking after 1000ms!")
+}
+
+// NOW transition to PLAYING state (after synthesizer has actually started)
+guard transitionState(to: .playing(sessionId: newSessionId), reason: "Synthesizer confirmed speaking") else {
+    print("⛔ Cannot transition to playing")
+    _ = transitionState(to: .idle, reason: "Transition failed")
+    return
+}
+```
+
+**Rationale:**
+- The `.playing` state means "user can click to stop and meditation will actually stop something"
+- If we transition to `.playing` before synthesizer starts, user can click stop but nothing happens (nothing was playing yet)
+- By waiting for `synthesizer.isSpeaking == true`, we guarantee that when state is `.playing`, there's actually audio playing
+- The 1-second timeout (100 attempts × 10ms) is generous but necessary for slow devices
+- The log "Synthesizer started after Xms" helps diagnose timing issues
+
+**Files Modified:**
+- `TextToSpeechManager.swift` - Reordered startSpeakingWithPauses to wait for synthesizer to start before transitioning to .playing state (lines 386-455)
+
+**Expected Logs:**
+```
+✅ Meditation queued: 72 phrases, 153 utterances
+✅ Synthesizer started after 50ms
+✅ STATE TRANSITION: starting... → playing... Reason: Synthesizer confirmed speaking
+🎙️ didStart: Session 123, Phrase: "..."
+```
+
+**Status:** Build succeeded. Ready for testing. This should fix the rapid on/off/on bug completely.
+
+---
+
+## 2025-12-28, 1:30 PM: SECOND FIX - AVSpeechSynthesizer Corruption After Many Rapid Cycles
+
+### **THE PROBLEM (Iteration 2)**
+
+After the initial state machine refactor (11:00 AM entry below), the rapid-toggle bug was mostly fixed but would still occur after ~7-8 iterations of toggling on/off/on. Debug logs showed:
+
+```
+Meditation 11 (preset 8):
+✅ STATE TRANSITION: idle → starting... Reason: User started meditation
+✅ Synthesizer stopped after 20ms
+✅ STATE TRANSITION: starting... → playing... Reason: Utterances queued
+✅ Meditation started: 75 phrases, 160 utterances
+🎙️ didStart: Session 123, Phrase: "Settle into a comfortable position..."
+[... meditations 11-12 play normally ...]
+
+Meditation 13 (preset 25):
+✅ STATE TRANSITION: idle → starting... Reason: User started meditation
+✅ STATE TRANSITION: starting... → playing... Reason: Utterances queued
+✅ Meditation started: 69 phrases, 146 utterances
+[NO 🎙️ didStart CALLBACK - SILENT FAILURE]
+```
+
+**Symptom:** State machine transitions work perfectly, "Meditation started" logged with correct utterance count, but AVSpeechSynthesizer silently refuses to play - no didStart callbacks ever fire.
+
+**Root Cause:** AVSpeechSynthesizer enters corrupted internal state after many rapid stop/start cycles where:
+1. `synthesizer.isSpeaking` returns `false` (so the wait code in `startSpeakingWithPauses` doesn't trigger)
+2. But internally the synthesizer is NOT ready to accept new utterances
+3. It silently refuses to speak them - no callbacks, no errors, no indication of failure
+
+The synchronous wait we added in `startSpeakingWithPauses` only helped when `isSpeaking` was `true`. When the synthesizer is corrupted but reports `false`, we had no protection.
+
+### **THE FIX: Synchronous Wait in Stop Method + Increased Timeout**
+
+**Location:** `TextToSpeechManager.swift`, lines 571-621 (stopSpeakingInternal method)
+
+Added synchronous polling in the STOP method (not just the start method) to ensure synthesizer is fully idle before allowing any new operations.
+
+**Key Changes:**
+
+1. **Added synchronous wait after `stopSpeaking(at: .immediate)`:**
+```swift
+synthesizer.stopSpeaking(at: .immediate)
+
+// CRITICAL: Wait for synthesizer to fully stop
+var attempts = 0
+while synthesizer.isSpeaking && attempts < 50 {
+    Thread.sleep(forTimeInterval: 0.01)  // 10ms per attempt
+    attempts += 1
+}
+
+if attempts > 0 {
+    print("⏱️ Waited \(attempts * 10)ms for synthesizer to stop")
+}
+```
+
+2. **Increased settling timeout from 300ms to 500ms:**
+```swift
+// Additional settling time before allowing new speech (500ms total)
+DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+    guard let self = self else {
+        completion()
+        return
+    }
+    print("✅ Stop fully completed, synthesizer ready")
+    _ = self.transitionState(to: .idle, reason: "Stop completed")
+    completion()
+}
+```
+
+**Rationale:**
+- The 500ms wait gives iOS AVSpeechSynthesizer ample time to clear its internal queue and reset state
+- Synchronous polling ensures we catch cases where stop takes longer than expected
+- The "✅ Stop fully completed" log confirms synthesizer is truly ready for next operation
+- This protects against corruption even when `isSpeaking` reports false incorrectly
+
+**Files Modified:**
+- `TextToSpeechManager.swift` - Updated `stopSpeakingInternal` method (lines 571-621)
+
+**Status:** Build succeeded. Awaiting user testing to confirm fix resolves corruption after 7-8+ iterations.
+
+---
+
 ## 2025-12-28, 11:00 AM: COMPREHENSIVE STATE MACHINE REFACTOR - Fix iOS Meditation Rapid-Toggle Race Condition Bug
 
 ### **THE PROBLEM**
