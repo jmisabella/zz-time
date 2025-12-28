@@ -1,6 +1,24 @@
-# Bug Report: Voice Selection Issues
+# NEW BUGS
+
+## 2025-12-28, 10:37
+
+### Title
+Rapid Changing Meditations Causes Subsequent Meditations To Stop Loading/Playing, Either Via Toggling On/Off/On Or Long-Pressing of Leaf Button
+
+### Description
+Desired use case is that a user toggles on the Leaf button to play a random meditation but dislikes the initially selected meditation and wishes for a different random meditation to play. User either toggles off the Leaf button and toggles it back on to play a different random meditation, or uses the long-press feature on the Leaf button to play a new random meditation without needing to toggle the Leaf off and back on. 
+
+For both of these methods, there is a bug. After the first meditation, sometimes on the 2nd, 3rd, or even 5th attempt at a different meditation, be it via retoggling the Leaf or by long-pressing the Leaf, eventually a new random meditation does not play, causing the closed captioning modal window to display and the Leaf button to be toggled on (green) but with no meditation playing. 
+
+We actually had attempted to resolve this issue before but failed at several attempts. Actually this is why we added the long-press feature: it was a futile attempt to allow the desired use case from a different means of toggline on/off/on, however the same bug appears to be affecting both the toggling on/off/on as well as the long-press methods of playing new random meditations. However, before we were having issues seeing the debug logging output in XCode, an issue we have since resolved and now have ability to use debug logging to troubleshoot this issue. Also, we added a feature to prevent the same meditation from ever playing twice in a row. I wonder if this feature may be unnecessarily adding additional surface area to our problem and whether we should consider removing that feature while we work through this bug which I feel is more important to solve than that we prevent same meditation from being able to play twice in a row. 
 
 ---
+
+# OLD BUGS
+
+OLD OR ABANDONED BUGS ARE BELOW, PLEASE IGNORE THESE UNLESS EXPLICITLY TOLD TO INVESTIGATE THESE:
+
+# Bug Report: Voice Selection Issues
 
 ## Bug #-1: Meditation Replay Bug (SHELVED - Low Priority)
 

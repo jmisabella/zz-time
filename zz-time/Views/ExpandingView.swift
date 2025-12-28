@@ -207,13 +207,12 @@ struct ExpandingView: View {
                     .contentShape(Circle())
                     .simultaneousGesture(
                         TapGesture().onEnded { _ in
-                            // Regular tap: toggle meditation on/off
-                            if ttsManager.isSpeaking {
-                                ttsManager.stopSpeaking()
-                            } else {
-                                guard let text = ttsManager.getRandomMeditation()
-                                else { return }
+                            print("👆 Leaf button tapped. Current state: \(ttsManager.meditationState)")
 
+                            switch ttsManager.meditationState {
+                            case .idle:
+                                // Start new meditation
+                                guard let text = ttsManager.getRandomMeditation() else { return }
                                 ttsManager.startSpeakingWithPauses(text)
 
                                 // Show hint when meditation starts
@@ -232,36 +231,43 @@ struct ExpandingView: View {
                                         showLeafHint = false
                                     }
                                 }
+
+                            case .playing:
+                                // Stop current meditation
+                                Task {
+                                    await ttsManager.stopSpeaking()
+                                }
+
+                            case .starting, .stopping:
+                                // Ignore clicks during transitions
+                                print("⏳ Tap ignored: State is transitioning")
                             }
                         }
                     )
                     .simultaneousGesture(
                         LongPressGesture(minimumDuration: 0.5).onEnded { _ in
-                            // Long-press: skip to new random meditation (only when actively speaking)
-                            // Use isSpeaking instead of isPlayingMeditation to avoid timing issues
-                            if ttsManager.isSpeaking {
-                                ttsManager.stopSpeaking()
+                            print("👆🕐 Leaf button long-pressed. Current state: \(ttsManager.meditationState)")
 
-                                // Small delay to ensure stop completes before starting new meditation
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                    // Get and start a new meditation
-                                    guard let text = ttsManager.getRandomMeditation()
-                                    else { return }
+                            guard case .playing = ttsManager.meditationState else {
+                                print("⏳ Long-press ignored: Not in PLAYING state")
+                                return
+                            }
 
-                                    ttsManager.startSpeakingWithPauses(text)
+                            // Skip to new meditation (async operation)
+                            Task {
+                                await ttsManager.skipToNewMeditation()
 
-                                    // Show hint again when skipping
+                                // Show hint again when skipping
+                                await MainActor.run {
                                     showLeafHint = true
                                     withAnimation(.easeIn(duration: 0.3)) {
                                         leafHintOpacity = 1.0
                                     }
 
-                                    // Hide hint after 3 seconds with fade out
                                     DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
                                         withAnimation(.easeOut(duration: 0.5)) {
                                             leafHintOpacity = 0.0
                                         }
-                                        // Remove from view hierarchy after animation completes
                                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                                             showLeafHint = false
                                         }
@@ -416,7 +422,9 @@ struct ExpandingView: View {
         .onDisappear {
             remainingTimer?.invalidate()
             remainingTimer = nil
-            ttsManager.stopSpeaking()
+            Task {
+                await ttsManager.stopSpeaking()
+            }
         }
         .onChange(of: isAlarmActive) { _, newValue in
             if newValue {

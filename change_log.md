@@ -1,5 +1,499 @@
 # Problems and Solutions
 
+## 2025-12-28, 11:00 AM: COMPREHENSIVE STATE MACHINE REFACTOR - Fix iOS Meditation Rapid-Toggle Race Condition Bug
+
+### **THE PROBLEM**
+
+**Critical iOS-Specific Bug:** When users rapidly change meditations (toggling leaf on/off/on OR using long-press to skip), eventually a meditation fails to play - the leaf button shows green and closed captioning modal appears, but **no audio plays**. This bug occurred frequently (sometimes on 2nd attempt, sometimes 3rd-5th attempt) and only affected iOS, not Android.
+
+**User Impact:** Extremely frustrating for the common use case of "I don't like this meditation, let me try another one." Users would toggle the leaf off and back on, or long-press to skip, and after a few attempts the app would appear to be playing (green leaf, captions showing) but would be silent.
+
+### **ROOT CAUSE: Classic Race Condition**
+
+The bug was caused by a race condition with asynchronous `AVSpeechSynthesizer` delegate callbacks:
+
+1. User rapidly toggles → old delegate callbacks from stopped meditation still queued in iOS callback system
+2. New meditation starts → sets `isSpeaking = true`, `queuedUtteranceCount = N`
+3. **OLD callbacks fire** → validated (because `isSpeaking = true`) → decrement `queuedUtteranceCount`
+4. Count reaches 0 prematurely → `isSpeaking` set to `false` while meditation **STILL ACTUALLY PLAYING**
+5. Next click sees `isSpeaking = false` → tries to start ANOTHER meditation → state corruption
+6. Result: "green leaf but silent" - state says playing but nothing audible
+
+**Why Existing Session ID Validation Failed:**
+- Session ID was stored separately (`sessionId = UUID()`)
+- Callbacks were dispatched via `Task { @MainActor }` which queued them asynchronously
+- Timing window between `stopSpeaking()` invalidating session ID and new session starting was too small
+- Old callbacks from previous session would sometimes arrive AFTER new session started but BEFORE validation could reject them
+
+**Additional Contributing Factors:**
+- Binary state flags (`isSpeaking`, `isPlayingMeditation`) couldn't represent transition states like "stopping" or "starting"
+- Long-press delay (0.1s) was too short for async callbacks to settle
+- State variables reset BEFORE utterances queued, creating a race window where state was inconsistent
+- "Prevent same meditation twice" feature reduced meditation pool size, potentially exposing timing issues
+
+### **THE SOLUTION: Explicit State Machine with Embedded Session IDs**
+
+Implemented a comprehensive finite state machine with strict transition guards and proper async synchronization.
+
+**Core Architecture:**
+
+```swift
+enum MeditationState: Equatable {
+    case idle                           // No meditation playing
+    case starting(sessionId: UUID)      // Transitioning to play
+    case playing(sessionId: UUID)       // Actively playing
+    case stopping(sessionId: UUID)      // Transitioning to stop
+}
+```
+
+**Key Design Principles:**
+1. **Session ID Embedded in State** - Each playing state carries its own UUID, making validation atomic
+2. **Explicit Transition States** - `.starting` and `.stopping` states block rapid clicks during async operations
+3. **Strict Transition Validation** - All state changes go through `transitionState()` with validation
+4. **Faster Callback Dispatch** - Changed from `Task { @MainActor }` to `DispatchQueue.main.async`
+5. **Longer Settle Time** - Increased long-press delay from 0.1s to 0.3s + additional 0.3s settle time
+6. **Comprehensive Debug Logging** - Every transition, callback, and button click logged with emoji prefixes
+
+### **IMPLEMENTATION DETAILS**
+
+**7 Implementation Phases Completed:**
+
+#### **Phase 1: State Enum & Transition Methods** (TextToSpeechManager.swift)
+
+Added after line 3:
+```swift
+enum MeditationState: Equatable {
+    case idle
+    case starting(sessionId: UUID)
+    case playing(sessionId: UUID)
+    case stopping(sessionId: UUID)
+
+    var isTransitioning: Bool {
+        switch self {
+        case .starting, .stopping: return true
+        case .idle, .playing: return false
+        }
+    }
+
+    var sessionId: UUID? {
+        switch self {
+        case .idle: return nil
+        case .starting(let id), .playing(let id), .stopping(let id): return id
+        }
+    }
+}
+```
+
+Replaced boolean flags (lines 29-30) with:
+```swift
+@Published private(set) var meditationState: MeditationState = .idle
+
+// Backward compatibility computed properties for UI
+var isSpeaking: Bool {
+    switch meditationState {
+    case .starting, .playing: return true
+    case .idle, .stopping: return false
+    }
+}
+
+var isPlayingMeditation: Bool {
+    switch meditationState {
+    case .playing: return true
+    case .idle, .starting, .stopping: return false
+    }
+}
+```
+
+Deleted: `private var sessionId: UUID` (line 59) - now embedded in state
+
+Added state transition methods (after line 103):
+```swift
+private func transitionState(to newState: MeditationState, reason: String) -> Bool {
+    let oldState = meditationState
+
+    guard isValidTransition(from: oldState, to: newState) else {
+        print("⛔ INVALID STATE TRANSITION: \(oldState) → \(newState). Reason: \(reason)")
+        return false
+    }
+
+    print("✅ STATE TRANSITION: \(oldState) → \(newState). Reason: \(reason)")
+    meditationState = newState
+    return true
+}
+
+private func isValidTransition(from old: MeditationState, to new: MeditationState) -> Bool {
+    switch (old, new) {
+    case (.idle, .starting): return true
+    case (.starting, .playing): return true
+    case (.playing, .stopping): return true
+    case (.stopping, .idle): return true
+    case (.playing, .starting): return true  // Long-press skip
+    case (.idle, .idle), (.playing, .playing), (.starting, .starting), (.stopping, .stopping):
+        return true  // Idempotent
+    default: return false
+    }
+}
+```
+
+#### **Phase 2: Delegate Handling** (TextToSpeechManager.swift)
+
+Updated `didStartUtterance` signature (line 592):
+```swift
+// Before:
+fileprivate func didStartUtterance(_ utterance: AVSpeechUtterance)
+
+// After:
+fileprivate func didStartUtterance(_ utterance: AVSpeechUtterance, sessionId: UUID)
+```
+
+Updated SpeechDelegate methods (lines 691-709):
+```swift
+// Changed from Task { @MainActor } to DispatchQueue.main.async for faster dispatch
+func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didStart utterance: AVSpeechUtterance) {
+    let utteranceSessionId = getSessionId(for: utterance) ?? UUID()
+    print("🎙️ didStart: Session \(utteranceSessionId), Phrase: '\(utterance.speechString.prefix(50))...'")
+
+    DispatchQueue.main.async { [weak manager] in
+        manager?.didStartUtterance(utterance, sessionId: utteranceSessionId)
+    }
+}
+
+func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
+    let utteranceSessionId = getSessionId(for: utterance) ?? UUID()
+    print("🏁 didFinish: Session \(utteranceSessionId)")
+
+    DispatchQueue.main.async { [weak manager] in
+        manager?.didFinishSpeaking(utterance, sessionId: utteranceSessionId)
+    }
+}
+```
+
+Updated `didFinishSpeaking` with strict state validation (lines 608-662):
+```swift
+fileprivate func didFinishSpeaking(_ utterance: AVSpeechUtterance, sessionId: UUID) {
+    // Validate callback belongs to current state's session
+    guard let currentSessionId = meditationState.sessionId else {
+        print("🚫 didFinish ignored: State is IDLE (no active session)")
+        return
+    }
+
+    guard sessionId == currentSessionId else {
+        print("🚫 didFinish ignored: Session mismatch (utterance: \(sessionId), current: \(currentSessionId))")
+        return
+    }
+
+    guard case .playing = meditationState else {
+        print("🚫 didFinish ignored: State is \(meditationState), expected PLAYING")
+        return
+    }
+
+    print("✅ didFinish accepted: Session \(sessionId)")
+
+    // ... rest of method with state transitions instead of flag assignments
+}
+```
+
+#### **Phase 3: startSpeakingWithPauses Refactor** (TextToSpeechManager.swift, lines 263-427)
+
+**Key Changes:**
+1. Create new session ID and transition to `.starting` state FIRST (before resetting variables)
+2. Remove manual state reset lines - state transition handles it
+3. Validate empty phrases using state transition
+4. Transition to `.playing` after utterances queued
+5. Tag all utterances with `newSessionId` instead of `currentSessionId`
+
+```swift
+func startSpeakingWithPauses(_ text: String) {
+    guard !text.isEmpty else { return }
+
+    let newSessionId = UUID()
+
+    // Transition to STARTING state FIRST
+    guard transitionState(to: .starting(sessionId: newSessionId), reason: "User started meditation") else {
+        print("⛔ Cannot start: Invalid state transition")
+        return
+    }
+
+    // Stop any currently playing meditation
+    if synthesizer.isSpeaking {
+        synthesizer.stopSpeaking(at: .immediate)
+    }
+
+    // Reset state variables AFTER state transition
+    queuedUtteranceCount = 0
+    // ... other resets
+
+    // [Text processing code unchanged]
+
+    guard !ultraCleanedPhrases.isEmpty else {
+        print("⚠️ No valid phrases to speak")
+        _ = transitionState(to: .idle, reason: "No valid content")
+        return
+    }
+
+    // ... count utterances
+
+    print("📊 Total utterances to queue: \(totalUtteranceCount)")
+
+    // Transition to PLAYING state
+    guard transitionState(to: .playing(sessionId: newSessionId), reason: "Utterances queued") else {
+        print("⛔ Cannot transition to playing")
+        _ = transitionState(to: .idle, reason: "Transition failed")
+        return
+    }
+
+    // Queue all utterances with newSessionId
+    for (ultraCleanPhrase, delay) in ultraCleanedPhrases {
+        // ...
+        speechDelegate.tagUtterance(utterance, withSessionId: newSessionId)
+        synthesizer.speak(utterance)
+        // ... silent utterances also tagged with newSessionId
+    }
+
+    print("✅ Meditation started: \(ultraCleanedPhrases.count) phrases, \(totalUtteranceCount) utterances")
+}
+```
+
+#### **Phase 4: Async stopSpeaking & Skip** (TextToSpeechManager.swift, lines 550-619)
+
+Converted `stopSpeaking()` to async with completion barrier:
+```swift
+func stopSpeaking() async {
+    await withCheckedContinuation { continuation in
+        stopSpeakingInternal {
+            continuation.resume()
+        }
+    }
+}
+
+private func stopSpeakingInternal(completion: @escaping () -> Void) {
+    print("🛑 Stop requested. Current state: \(meditationState)")
+
+    guard let currentSessionId = meditationState.sessionId else {
+        print("⚠️ Stop ignored: Already in IDLE state")
+        completion()
+        return
+    }
+
+    guard transitionState(to: .stopping(sessionId: currentSessionId), reason: "User stopped") else {
+        print("⛔ Cannot stop: Invalid state transition")
+        completion()
+        return
+    }
+
+    synthesizer.stopSpeaking(at: .immediate)
+
+    // Reset state variables
+    queuedUtteranceCount = 0
+    // ... other resets
+
+    // Wait for delegate callback OR timeout (300ms)
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+        guard let self = self else {
+            completion()
+            return
+        }
+        _ = self.transitionState(to: .idle, reason: "Stop completed")
+        completion()
+    }
+}
+```
+
+Added new `skipToNewMeditation()` async method:
+```swift
+func skipToNewMeditation() async {
+    print("🔄 Skip to new meditation requested")
+
+    // Stop current meditation and wait for completion
+    await stopSpeaking()
+
+    // Get new meditation text
+    guard let text = getRandomMeditation() else {
+        print("⚠️ No meditation text available")
+        return
+    }
+
+    // Additional delay to ensure callbacks settle (300ms total)
+    try? await Task.sleep(nanoseconds: 300_000_000)
+
+    // Start new meditation
+    await MainActor.run {
+        startSpeakingWithPauses(text)
+    }
+
+    print("✅ Skip to new meditation completed")
+}
+```
+
+**Total settle time for long-press:** 0.3s (stop timeout) + 0.3s (additional sleep) = 0.6s
+
+#### **Phase 5: Leaf Button UI Updates** (ExpandingView.swift, lines 209-278)
+
+Updated tap gesture to use switch on state:
+```swift
+TapGesture().onEnded { _ in
+    print("👆 Leaf button tapped. Current state: \(ttsManager.meditationState)")
+
+    switch ttsManager.meditationState {
+    case .idle:
+        // Start new meditation
+        guard let text = ttsManager.getRandomMeditation() else { return }
+        ttsManager.startSpeakingWithPauses(text)
+        // ... show hint
+
+    case .playing:
+        // Stop current meditation
+        Task {
+            await ttsManager.stopSpeaking()
+        }
+
+    case .starting, .stopping:
+        // Ignore clicks during transitions
+        print("⏳ Tap ignored: State is transitioning")
+    }
+}
+```
+
+Updated long-press gesture to use async skip:
+```swift
+LongPressGesture(minimumDuration: 0.5).onEnded { _ in
+    print("👆🕐 Leaf button long-pressed. Current state: \(ttsManager.meditationState)")
+
+    guard case .playing = ttsManager.meditationState else {
+        print("⏳ Long-press ignored: Not in PLAYING state")
+        return
+    }
+
+    // Skip to new meditation (async operation)
+    Task {
+        await ttsManager.skipToNewMeditation()
+
+        // Show hint again when skipping
+        await MainActor.run {
+            showLeafHint = true
+            // ... animation code
+        }
+    }
+}
+```
+
+#### **Phase 6: Removed "No Repeat" Feature** (TextToSpeechManager.swift)
+
+**Rationale:** Temporarily removed to simplify debugging. The feature reduced meditation pool size and may have exposed timing issues. Can be re-added after core bug is fixed.
+
+Deleted (line 84):
+```swift
+private var lastPlayedMeditationText: String? = nil
+```
+
+Simplified `getRandomMeditation()` (lines 178-192):
+```swift
+// DELETED lines 182-185:
+// if let lastPlayed = lastPlayedMeditationText, allMeditations.count > 1 {
+//     allMeditations = allMeditations.filter { $0.text != lastPlayed }
+// }
+
+// DELETED lines 190-191:
+// lastPlayedMeditationText = selected.text
+
+// NEW:
+let selected = allMeditations.randomElement()!
+print("🎲 Selected meditation: \(selected.source)")
+return selected.text
+```
+
+#### **Phase 7: onDisappear Handler** (ExpandingView.swift, line 422-428)
+
+Updated to use async:
+```swift
+.onDisappear {
+    remainingTimer?.invalidate()
+    remainingTimer = nil
+    Task {
+        await ttsManager.stopSpeaking()
+    }
+}
+```
+
+### **ADDITIONAL CHANGES**
+
+Updated legacy methods to use state machine (for consistency):
+- `startSpeaking()` - test phrase repeater
+- `startSpeakingCustomText()` - custom text TTS
+- `startSpeakingRandomMeditation()` - legacy random meditation
+- `speakNextPhrase()` - phrase repeater helper
+
+All now transition through state machine instead of directly setting `isSpeaking` flag.
+
+### **DEBUG LOGGING EMOJI LEGEND**
+
+Monitor these in Xcode console during testing:
+- `✅` = Successful state transition
+- `⛔` = Invalid state transition blocked
+- `🚫` = Delegate callback rejected (session mismatch or wrong state)
+- `🎙️` = Utterance started
+- `🏁` = Utterance finished
+- `📊` = Queue count update
+- `👆` = User tap
+- `👆🕐` = User long-press
+- `🔄` = Skip operation
+- `⏳` = Action ignored (state transitioning)
+- `🛑` = Stop requested
+- `🎲` = Meditation selected
+- `🎉` = All utterances complete
+- `⚠️` = Warning (non-fatal)
+
+### **FILES MODIFIED**
+
+1. **TextToSpeechManager.swift** - Core state machine, delegate handling, start/stop/skip methods
+2. **ExpandingView.swift** - Leaf button tap/long-press gesture handlers, onDisappear
+
+### **TESTING STRATEGY**
+
+**Test 1: Rapid Toggle (On/Off/On)**
+1. Click leaf 20 times rapidly (on/off/on/off...)
+2. Expected: Every click either starts or stops correctly, no silent failures
+3. Check logs: All state transitions valid (✅), no invalid transitions (⛔)
+
+**Test 2: Long-Press Skip**
+1. Click leaf to start meditation
+2. Wait 2 seconds
+3. Long-press leaf 10 times in succession
+4. Expected: Each long-press skips to new meditation reliably
+5. Check logs: Old session callbacks rejected with 🚫
+
+**Test 3: Click During Transition**
+1. Start meditation
+2. During `.starting` state, click leaf rapidly
+3. Expected: Clicks ignored until state reaches `.playing`
+4. Check logs: "⏳ Tap ignored: State is transitioning"
+
+**Test 4: Meditation Completes Naturally**
+1. Start short meditation, let it finish
+2. Expected: Leaf stays green, state → `.idle`, can click to start new one
+3. Check logs: "🎉 All utterances complete" → state transition to IDLE
+
+### **BUILD STATUS**
+
+✅ **BUILD SUCCEEDED** - No compilation errors, only pre-existing warnings
+
+### **KNOWN ISSUE (AS OF 2025-12-28, 11:00 AM)**
+
+**First test shows bug still occurs on 2nd toggle attempt.** Debug logs show:
+1. First meditation starts and plays correctly
+2. User taps to stop → transitions to `.stopping` → old callbacks rejected (🚫) → transitions to `.idle` ✅
+3. User taps to start new meditation → transitions to `.starting` → `.playing` ✅
+4. **Second meditation does NOT play audio** (likely same "green leaf but silent" bug)
+
+**Potential Issue:** The meditation starts successfully (logs show "Meditation started: 106 phrases, 224 utterances") but no audio plays. This suggests the state machine is working correctly but there's still an issue with the speech synthesizer itself, possibly:
+- Synthesizer not fully cleared after rapid stop
+- Utterances queued but synthesizer in corrupted state
+- Need to verify `synthesizer.isSpeaking` state after stop
+
+**NEXT DEBUGGING STEPS:** Need to investigate why second meditation queues utterances but doesn't produce audio, despite state transitions being valid.
+
+---
+
 ## 2025-12-27: Changed Default Ambient Audio Level from 100% to 80% (UX IMPROVEMENT + BUG FIX)
 
 ### **THE CHANGE**
