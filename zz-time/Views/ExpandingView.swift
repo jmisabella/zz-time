@@ -312,14 +312,18 @@ struct ExpandingView: View {
                 }
             }
 
-            // Meditation text display (closed captioning)
+            // Meditation text display in modal window above room label and buttons
             if showMeditationText && ttsManager.isPlayingMeditation {
-                MeditationTextDisplay(
-                    currentPhrase: ttsManager.currentPhrase,
-                    previousPhrase: ttsManager.previousPhrase
-                )
-                .transition(.opacity.combined(with: .move(edge: .bottom)))
-                .animation(.easeInOut(duration: 0.4), value: ttsManager.currentPhrase)
+                VStack {
+                    Spacer()
+                    MeditationTextDisplay(
+                        currentPhrase: ttsManager.currentPhrase,
+                        previousPhrase: ttsManager.previousPhrase
+                    )
+                    .padding(.bottom, 140) // Position clearly above buttons
+                    .transition(.opacity.combined(with: .move(edge: .bottom)))
+                    .animation(.easeInOut(duration: 0.4), value: ttsManager.currentPhrase)
+                }
                 .allowsHitTesting(false)  // Allow taps to pass through to buttons below
             }
 
