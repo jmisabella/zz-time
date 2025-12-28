@@ -105,11 +105,9 @@ class TextToSpeechManager: ObservableObject {
         let oldState = meditationState
 
         guard isValidTransition(from: oldState, to: newState) else {
-            print("⛔ INVALID STATE TRANSITION: \(oldState) → \(newState). Reason: \(reason)")
             return false
         }
 
-        print("✅ STATE TRANSITION: \(oldState) → \(newState). Reason: \(reason)")
         meditationState = newState
         return true
     }
@@ -129,8 +127,6 @@ class TextToSpeechManager: ObservableObject {
 
     /// Recreates the synthesizer instance to clear any corrupted internal state
     private func recreateSynthesizer() {
-        print("🔄 Recreating synthesizer to clear corrupted state")
-
         // Stop the old synthesizer
         synthesizer.stopSpeaking(at: .immediate)
 
@@ -201,8 +197,6 @@ class TextToSpeechManager: ObservableObject {
 
         // Randomly select one meditation from the pool (repeats allowed)
         let selected = allMeditations.randomElement()!
-        print("🎲 Selected meditation: \(selected.source)")
-
         return selected.text
     }
     
@@ -285,7 +279,6 @@ class TextToSpeechManager: ObservableObject {
 
         // Transition to STARTING state FIRST
         guard transitionState(to: .starting(sessionId: newSessionId), reason: "User started meditation") else {
-            print("⛔ Cannot start: Invalid state transition")
             return
         }
 
@@ -355,7 +348,6 @@ class TextToSpeechManager: ObservableObject {
         // CRITICAL BUG FIX: Validate that we have content to speak before setting state
         // If text processing resulted in no speakable content, don't show meditation as playing
         guard !ultraCleanedPhrases.isEmpty else {
-            print("⚠️ No valid phrases to speak")
             _ = transitionState(to: .idle, reason: "No valid content")
             return
         }
@@ -378,8 +370,6 @@ class TextToSpeechManager: ObservableObject {
         // Set the count of ALL utterances we're about to queue (speech + silent)
         queuedUtteranceCount = totalUtteranceCount
         isCustomMode = true
-
-        print("📊 Total utterances to queue: \(totalUtteranceCount)")
 
         // CRITICAL: Get the voice ONCE before the loop to ensure all utterances use the same voice
         // If we call getPreferredVoice() inside the loop, it will return a different random voice
@@ -428,11 +418,8 @@ class TextToSpeechManager: ObservableObject {
             }
         }
 
-        print("✅ Meditation started: \(ultraCleanedPhrases.count) phrases, \(totalUtteranceCount) utterances")
-
         // Transition to PLAYING state
         guard transitionState(to: .playing(sessionId: newSessionId), reason: "Utterances queued") else {
-            print("⛔ Cannot transition to playing")
             _ = transitionState(to: .idle, reason: "Transition failed")
             return
         }
@@ -568,16 +555,12 @@ class TextToSpeechManager: ObservableObject {
     }
 
     private func stopSpeakingInternal(completion: @escaping () -> Void) {
-        print("🛑 Stop requested. Current state: \(meditationState)")
-
         guard let currentSessionId = meditationState.sessionId else {
-            print("⚠️ Stop ignored: Already in IDLE state")
             completion()
             return
         }
 
         guard transitionState(to: .stopping(sessionId: currentSessionId), reason: "User stopped") else {
-            print("⛔ Cannot stop: Invalid state transition")
             completion()
             return
         }
@@ -644,21 +627,16 @@ class TextToSpeechManager: ObservableObject {
     fileprivate func didFinishSpeaking(_ utterance: AVSpeechUtterance, sessionId: UUID) {
         // Validate callback belongs to current state's session
         guard let currentSessionId = meditationState.sessionId else {
-            print("🚫 didFinish ignored: State is IDLE (no active session)")
             return
         }
 
         guard sessionId == currentSessionId else {
-            print("🚫 didFinish ignored: Session mismatch (utterance: \(sessionId), current: \(currentSessionId))")
             return
         }
 
         guard case .playing = meditationState else {
-            print("🚫 didFinish ignored: State is \(meditationState), expected PLAYING")
             return
         }
-
-        print("✅ didFinish accepted: Session \(sessionId)")
 
         // If custom mode (meditation), update closed captioning and track utterance completion
         if isCustomMode {
@@ -669,11 +647,9 @@ class TextToSpeechManager: ObservableObject {
 
             // Decrement the queued utterance count (this counts both speech AND silent utterances)
             queuedUtteranceCount -= 1
-            print("📊 Queue count: \(queuedUtteranceCount) remaining")
 
             // Only stop when all utterances are done
             if queuedUtteranceCount <= 0 {
-                print("🎉 All utterances complete")
                 _ = transitionState(to: .idle, reason: "All utterances finished")
                 isCustomMode = false
                 queuedUtteranceCount = 0
@@ -734,7 +710,6 @@ private class SpeechDelegate: NSObject, AVSpeechSynthesizerDelegate {
 
     func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didStart utterance: AVSpeechUtterance) {
         let utteranceSessionId = getSessionId(for: utterance) ?? UUID()
-        print("🎙️ didStart: Session \(utteranceSessionId), Phrase: '\(utterance.speechString.prefix(50))...'")
 
         DispatchQueue.main.async { [weak manager] in
             manager?.didStartUtterance(utterance, sessionId: utteranceSessionId)
@@ -743,7 +718,6 @@ private class SpeechDelegate: NSObject, AVSpeechSynthesizerDelegate {
 
     func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
         let utteranceSessionId = getSessionId(for: utterance) ?? UUID()
-        print("🏁 didFinish: Session \(utteranceSessionId)")
 
         removeSessionId(for: utterance)
 

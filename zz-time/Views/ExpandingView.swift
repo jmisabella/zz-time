@@ -204,8 +204,6 @@ struct ExpandingView: View {
                     .contentShape(Circle())
                     .simultaneousGesture(
                         TapGesture().onEnded { _ in
-                            print("👆 Leaf button tapped. Current state: \(ttsManager.meditationState)")
-
                             switch ttsManager.meditationState {
                             case .idle:
                                 // Start new meditation
@@ -220,7 +218,7 @@ struct ExpandingView: View {
 
                             case .starting, .stopping:
                                 // Ignore clicks during transitions
-                                print("⏳ Tap ignored: State is transitioning")
+                                break
                             }
                         }
                     )

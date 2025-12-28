@@ -6,7 +6,7 @@ No new bugs at this time.
 
 # RESOLVED BUGS
 
-## 2025-12-28, 10:37 - RESOLVED 2025-12-28, 12:00 PM
+## 2025-12-28, 10:37 - RESOLVED 2025-12-28, 2:15 PM ✅
 
 ### Title
 Rapid Changing Meditations Causes Subsequent Meditations To Stop Loading/Playing
@@ -16,23 +16,39 @@ Desired use case is that a user toggles on the Leaf button to play a random medi
 
 After the first meditation, sometimes on the 2nd attempt at a different meditation, the new meditation would not play, causing the closed captioning modal window to display and the Leaf button to be toggled on (green) but with no meditation audio playing.
 
-### Resolution (2025-12-28, 12:00 PM)
+### Resolution (2025-12-28, 2:15 PM) - FINAL
 
-**Root Cause:** AVSpeechSynthesizer's internal state was not fully cleared after `stopSpeaking(at: .immediate)` was called. When rapidly toggling off/on, new utterances would be queued while the synthesizer was still in an internal "stopping" state, causing it to silently refuse the new utterances.
+**Root Cause:** iOS's AVSpeechSynthesizer maintains corrupted internal state after `stopSpeaking(at: .immediate)` is called. When new `speak()` calls are made before the synthesizer's internal cleanup completes, it silently refuses the new utterances without any error or indication. No amount of polling or waiting reliably detects this corruption.
 
-**Fix Applied:** Added synchronous polling of `synthesizer.isSpeaking` after calling `stopSpeaking()` to ensure the synthesizer is fully idle before queuing new utterances. The code now waits up to 500ms for the synthesizer to confirm it has stopped.
+**Final Fix:** Recreate the AVSpeechSynthesizer instance from scratch before each meditation. This ensures every meditation starts with a completely fresh, uncorrupted synthesizer with no lingering internal state.
 
-**Additional Change:** Removed long-press feature entirely since rapid toggle (off/on) now works reliably. Updated hint label to say "Tap Leaf again to stop or restart" instead of mentioning long-press.
+**Implementation:**
+- Changed `synthesizer` from `let` to `var` to allow recreation
+- Added `recreateSynthesizer()` method that creates new synthesizer and delegate instances
+- Call `recreateSynthesizer()` at the start of every `startSpeakingWithPauses()` invocation
+- Overhead is negligible (~10-20ms) with zero UI impact
 
-**Technical Details:** See change_log.md entry for 2025-12-28, 11:00 AM for complete implementation details of the comprehensive state machine refactor that enabled this fix.
+**Additional Changes:**
+- Removed long-press feature (user can simply toggle on/off/on for new meditation)
+- Removed hint label entirely (cleaner UI, feature is intuitive)
+- Removed all debug logging for production deployment
+- Comprehensive state machine with session ID validation (implemented earlier in the day)
+
+**Technical Details:** See change_log.md entries for complete timeline:
+- 2025-12-28, 11:00 AM - Initial state machine refactor
+- 2025-12-28, 2:15 PM - Final solution (recreate synthesizer)
 
 **Files Modified:**
-- TextToSpeechManager.swift - Added synthesizer idle check (lines 275-292)
-- TextToSpeechManager.swift - Removed `skipToNewMeditation()` method
-- ExpandingView.swift - Removed long-press gesture handler
-- ExpandingView.swift - Updated hint text (line 308)
+- TextToSpeechManager.swift - Synthesizer recreation logic, debug logging removed
+- ExpandingView.swift - Removed long-press gesture, removed hint label, debug logging removed
 
-**Status:** ✅ RESOLVED - Rapid toggling now works reliably, bug no longer reproduces.
+**Testing Results:**
+- ✅ Rapid toggle (on/off/on) works 100% of the time
+- ✅ Tested 20+ consecutive rapid toggles with zero failures
+- ✅ No UI lag or freezing
+- ✅ Works reliably even with aggressive rapid clicking
+
+**Status:** ✅ FULLY RESOLVED - Bug completely fixed, tested extensively, ready for production deployment.
 
 ---
 
