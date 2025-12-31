@@ -34,7 +34,11 @@ struct ExpandingView: View {
 
     // Custom meditation manager
     @StateObject private var meditationManager = CustomMeditationManager()
-    @State private var showMeditationList: Bool = false
+
+    // Custom poem manager
+    @StateObject private var poemManager = CustomPoemManager()
+
+    @State private var showContentBrowser: Bool = false
 
     // Voice settings
     @State private var showVoiceSettings: Bool = false
@@ -42,6 +46,63 @@ struct ExpandingView: View {
     // Closed captioning toggle
     @AppStorage("showMeditationText") private var showMeditationText: Bool = true
 
+    // MARK: - Helper Functions for Content Mode
+
+    private func iconForContentMode(_ mode: ContentMode, isPlaying: Bool) -> String {
+        switch mode {
+        case .off:
+            return "leaf"
+        case .meditation:
+            return isPlaying ? "leaf.fill" : "leaf"
+        case .poetry:
+            return isPlaying ? "theatermasks.fill" : "theatermasks"
+        }
+    }
+
+    private func colorForContentMode(_ mode: ContentMode, isPlaying: Bool) -> Color {
+        switch mode {
+        case .off:
+            return Color(white: 0.7)
+        case .meditation:
+            return isPlaying ? Color.green : Color(white: 0.7)
+        case .poetry:
+            return isPlaying ? Color.purple : Color(white: 0.7)
+        }
+    }
+
+    private func crossfadeToNextContent() {
+        let nextMode = ttsManager.currentContentMode.next()
+
+        // Get next content
+        let nextText: String?
+        switch nextMode {
+        case .meditation:
+            nextText = ttsManager.getRandomMeditation()
+        case .poetry:
+            nextText = ttsManager.getRandomPoem()
+        case .off:
+            nextText = nil
+        }
+
+        guard let text = nextText else { return }
+
+        // Crossfade implementation (AVSpeechSynthesizer limitation: no real-time volume)
+        Task {
+            await ttsManager.stopSpeaking()
+
+            // 1.5 second gap for natural transition
+            try? await Task.sleep(nanoseconds: 1_500_000_000)
+
+            // Update mode and start new content
+            ttsManager.currentContentMode = nextMode
+            UserDefaults.standard.set(nextMode.rawValue, forKey: "contentMode")
+            if nextMode != .off {
+                UserDefaults.standard.set(nextMode.rawValue, forKey: "lastContentMode")
+            }
+
+            ttsManager.startSpeakingWithPauses(text)
+        }
+    }
 
     // Dictionary to map room indices (30-34) to custom titles
     private let customRoomTitles: [Int: String] = [
@@ -142,7 +203,7 @@ struct ExpandingView: View {
                     .contentShape(Circle())
 
                     Button {
-                        showMeditationList = true
+                        showContentBrowser = true
                     } label: {
                         Image(systemName: "text.quote")
                             .font(.title)
@@ -187,17 +248,11 @@ struct ExpandingView: View {
                             .background(Circle().fill(Color.black.opacity(0.5)))
                     }
                     .contentShape(Circle())
-                    // Leaf button for meditation control
+                    // Leaf/Theater Masks button for content control
                     Button {} label: {
-                        Image(
-                            systemName: ttsManager.isPlayingMeditation
-                            ? "leaf.fill" : "leaf"
-                        )
+                        Image(systemName: iconForContentMode(ttsManager.currentContentMode, isPlaying: ttsManager.isSpeaking))
                         .font(.title)
-                        .foregroundColor(
-                            ttsManager.isPlayingMeditation
-                            ? Color.green : Color(white: 0.7)
-                        )
+                        .foregroundColor(colorForContentMode(ttsManager.currentContentMode, isPlaying: ttsManager.isSpeaking))
                         .padding(10)
                         .background(Circle().fill(Color.black.opacity(0.5)))
                     }
@@ -206,14 +261,34 @@ struct ExpandingView: View {
                         TapGesture().onEnded { _ in
                             switch ttsManager.meditationState {
                             case .idle:
-                                // Start new meditation
-                                guard let text = ttsManager.getRandomMeditation() else { return }
-                                ttsManager.startSpeakingWithPauses(text)
+                                // Cycle to next mode and start content
+                                ttsManager.cycleContentMode()
+
+                                switch ttsManager.currentContentMode {
+                                case .meditation:
+                                    guard let text = ttsManager.getRandomMeditation() else { return }
+                                    ttsManager.startSpeakingWithPauses(text)
+                                case .poetry:
+                                    guard let text = ttsManager.getRandomPoem() else { return }
+                                    ttsManager.startSpeakingWithPauses(text)
+                                case .off:
+                                    break
+                                }
 
                             case .playing:
-                                // Stop current meditation
-                                Task {
-                                    await ttsManager.stopSpeaking()
+                                // Check if cycling to next content or stopping
+                                let nextMode = ttsManager.currentContentMode.next()
+
+                                if nextMode == .off {
+                                    // Stop completely
+                                    Task {
+                                        await ttsManager.stopSpeaking()
+                                        ttsManager.currentContentMode = .off
+                                        UserDefaults.standard.set("off", forKey: "contentMode")
+                                    }
+                                } else {
+                                    // Crossfade to next content type
+                                    crossfadeToNextContent()
                                 }
 
                             case .starting, .stopping:
@@ -315,6 +390,13 @@ struct ExpandingView: View {
             // Connect the custom meditation manager to the TTS manager
             // This allows the leaf button to randomly select from ALL meditations (presets + customs)
             ttsManager.customMeditationManager = meditationManager
+
+            // Connect the custom poem manager to the TTS manager
+            // This allows the theater masks button to randomly select from ALL poems (presets + customs)
+            ttsManager.customPoemManager = poemManager
+
+            // Restore last session (meditation or poetry mode)
+            ttsManager.restoreLastSession()
             
             dimMode = .duration(defaultDimDurationSeconds)
             if case .duration(let seconds) = dimMode {
@@ -431,12 +513,16 @@ struct ExpandingView: View {
             .padding()
             .presentationDetents([.medium])
         }
-        .sheet(isPresented: $showMeditationList) {
-            CustomMeditationListView(
-                manager: meditationManager,
-                isPresented: $showMeditationList,
-                onPlay: { meditationText in
+        .sheet(isPresented: $showContentBrowser) {
+            ContentBrowserView(
+                meditationManager: meditationManager,
+                poemManager: poemManager,
+                isPresented: $showContentBrowser,
+                onPlayMeditation: { meditationText in
                     ttsManager.startSpeakingWithPauses(meditationText)
+                },
+                onPlayPoem: { poemText in
+                    ttsManager.startSpeakingWithPauses(poemText)
                 }
             )
         }

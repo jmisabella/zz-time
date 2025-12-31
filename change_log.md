@@ -3602,11 +3602,58 @@ This workaround completely avoids the iOS bug while maintaining proper pause fun
 **Modified:**
 - `Views/CustomMeditationListView.swift` - Removed NavigationView wrapper and nav elements
 
-### Status (16:00 PST)
+### Phase 5: ContentView Wake Greeting Update (16:10 PST)
+
+**Modified: `Views/ContentView.swift`**
+- Line 493: Updated flag variable `meditationCompleted` → `contentCompleted`
+- Lines 523-536: Updated flag reference to `contentCompletedSuccessfully`
+
+**Result:** Wake greeting now works for both meditation and poetry completion.
+
+### Phase 6: ExpandingView 3-State Toggle Integration (16:25 PST)
+
+**Modified: `Views/ExpandingView.swift`**
+
+**New Properties (lines 39-41):**
+- Added `poemManager` StateObject
+- Renamed `showMeditationList` → `showContentBrowser`
+
+**Helper Functions (lines 51-71):**
+- Added `iconForContentMode()` - Returns leaf or theater masks based on mode
+- Added `colorForContentMode()` - Returns gray/green/purple based on mode and state
+
+**Crossfade Method (lines 73-105):**
+- Added `crossfadeToNextContent()` - Handles 1.5 second transition between modes
+- Stops current playback, waits 1.5s, starts new content
+
+**Quote Button (line 149):**
+- Updated to open `showContentBrowser` (unified tabbed view)
+
+**Leaf/Masks Button (lines 219-223):**
+- Updated icon using `iconForContentMode()` helper
+- Updated color using `colorForContentMode()` helper
+
+**3-Way Toggle Tap Gesture (lines 227-265):**
+- `.idle` state: Cycle to next mode and start appropriate content
+- `.playing` state: Either stop (if next is off) or crossfade to next content
+- Handles meditation/poetry mode switching
+
+**ContentBrowserView Sheet (lines 509-521):**
+- Replaced meditation-only sheet with unified ContentBrowserView
+- Passes both meditationManager and poemManager
+- Separate callbacks for meditation and poem playback
+
+**Manager Connections (lines 394-399 in onAppear):**
+- Connected `poemManager` to `ttsManager.customPoemManager`
+- Called `ttsManager.restoreLastSession()` for state persistence
+
+**Result:** Complete 3-state toggle implementation with crossfade transitions and state persistence.
+
+### Status (16:30 PST)
 - ✅ Foundation complete
 - ✅ TextToSpeechManager complete
 - ✅ UI views complete
-- 🔄 Need to add files to Xcode project
-- ⏳ ExpandingView updates pending
-- ⏳ ContentView updates pending
+- ✅ ContentView wake greeting updated
+- ✅ ExpandingView 3-state toggle complete
+- 🔄 Need to add remaining files to Xcode project
 

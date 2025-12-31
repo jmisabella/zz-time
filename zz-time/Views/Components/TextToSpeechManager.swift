@@ -93,7 +93,7 @@ class TextToSpeechManager: ObservableObject {
     weak var customPoemManager: CustomPoemManager?
 
     // Current content mode
-    @Published private(set) var currentContentMode: ContentMode = .off
+    @Published var currentContentMode: ContentMode = .off
 
     // Callback to notify when ambient volume changes
     var onAmbientVolumeChanged: ((Float) -> Void)? = nil
