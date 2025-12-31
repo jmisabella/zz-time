@@ -15,6 +15,8 @@
 		000D60602F04C03D00C82A83 /* ContentBrowserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000D605C2F04C03D00C82A83 /* ContentBrowserView.swift */; };
 		000D60612F04C03D00C82A83 /* CustomPoemEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000D605D2F04C03D00C82A83 /* CustomPoemEditorView.swift */; };
 		000D60632F04C14800C82A83 /* CustomPoem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000D60622F04C14800C82A83 /* CustomPoem.swift */; };
+		000D60672F04C5FB00C82A83 /* preset_poem1.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D60652F04C5FB00C82A83 /* preset_poem1.txt */; };
+		000D60682F04C5FB00C82A83 /* default_custom_poem.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D60642F04C5FB00C82A83 /* default_custom_poem.txt */; };
 		0021DBCA2EE4021E002A8B5A /* BalanceSlider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0021DBC92EE4021E002A8B5A /* BalanceSlider.swift */; };
 		0032BABB2ED7F9C700837776 /* ambient_31.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0032BABA2ED7F9C700837776 /* ambient_31.m4a */; };
 		0032BABD2ED7F9D000837776 /* ambient_32.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0032BABC2ED7F9D000837776 /* ambient_32.m4a */; };
@@ -80,6 +82,8 @@
 		000D605D2F04C03D00C82A83 /* CustomPoemEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomPoemEditorView.swift; sourceTree = "<group>"; };
 		000D605E2F04C03D00C82A83 /* CustomPoemListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomPoemListView.swift; sourceTree = "<group>"; };
 		000D60622F04C14800C82A83 /* CustomPoem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomPoem.swift; sourceTree = "<group>"; };
+		000D60642F04C5FB00C82A83 /* default_custom_poem.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = default_custom_poem.txt; sourceTree = "<group>"; };
+		000D60652F04C5FB00C82A83 /* preset_poem1.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem1.txt; sourceTree = "<group>"; };
 		0021DBC92EE4021E002A8B5A /* BalanceSlider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BalanceSlider.swift; sourceTree = "<group>"; };
 		0032BABA2ED7F9C700837776 /* ambient_31.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_31.m4a; sourceTree = "<group>"; };
 		0032BABC2ED7F9D000837776 /* ambient_32.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_32.m4a; sourceTree = "<group>"; };
@@ -206,6 +210,15 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		000D60662F04C5FB00C82A83 /* Poems */ = {
+			isa = PBXGroup;
+			children = (
+				000D60642F04C5FB00C82A83 /* default_custom_poem.txt */,
+				000D60652F04C5FB00C82A83 /* preset_poem1.txt */,
+			);
+			path = Poems;
+			sourceTree = "<group>";
+		};
 		0033F8C22EE297CF006D3319 /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
@@ -262,6 +275,7 @@
 		0033F8D32EE297CF006D3319 /* zz-time */ = {
 			isa = PBXGroup;
 			children = (
+				000D60662F04C5FB00C82A83 /* Poems */,
 				0033F8C22EE297CF006D3319 /* Extensions */,
 				0033F8C52EE297CF006D3319 /* Models */,
 				0033F8CE2EE297CF006D3319 /* Views */,
@@ -379,6 +393,8 @@
 				00371B0D2EAD71200037EDCF /* ambient_25.m4a in Resources */,
 				0069A9832EDFFB3300FFA508 /* ambient_10.m4a in Resources */,
 				0079DC752EF8B2CE006820B9 /* ambient_07.m4a in Resources */,
+				000D60672F04C5FB00C82A83 /* preset_poem1.txt in Resources */,
+				000D60682F04C5FB00C82A83 /* default_custom_poem.txt in Resources */,
 				0069A9842EDFFB3300FFA508 /* ambient_09.m4a in Resources */,
 				00371B112EAD71200037EDCF /* ambient_12.m4a in Resources */,
 				00371B132EAD71200037EDCF /* ambient_22.m4a in Resources */,

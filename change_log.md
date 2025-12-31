@@ -3649,11 +3649,50 @@ This workaround completely avoids the iOS bug while maintaining proper pause fun
 
 **Result:** Complete 3-state toggle implementation with crossfade transitions and state persistence.
 
-### Status (16:30 PST)
-- ✅ Foundation complete
-- ✅ TextToSpeechManager complete
-- ✅ UI views complete
-- ✅ ContentView wake greeting updated
-- ✅ ExpandingView 3-state toggle complete
-- 🔄 Need to add remaining files to Xcode project
+### Compilation Fix (16:45 PST)
+
+**Modified: `Views/Components/TextToSpeechManager.swift`**
+- Line 96: Removed `private(set)` from `currentContentMode` property
+- **Reason:** ExpandingView needs write access to update mode during crossfade transitions
+- **Before:** `@Published private(set) var currentContentMode: ContentMode = .off`
+- **After:** `@Published var currentContentMode: ContentMode = .off`
+
+**Result:** Build compiles successfully with no errors.
+
+### Final Status (16:50 PST)
+- ✅ All code implementation complete
+- ✅ Build compiles successfully
+- ✅ All files added to Xcode project
+- 🧪 Ready for testing
+
+### Testing Checklist
+**Core Functionality:**
+- [ ] Tap gray leaf → meditation starts (green leaf)
+- [ ] Tap green leaf → poetry starts with crossfade (purple masks)
+- [ ] Tap purple masks → stops (gray leaf)
+- [ ] Tap during transition states → ignored (no crashes)
+
+**Persistence:**
+- [ ] Close app during meditation → reopen auto-starts new meditation
+- [ ] Close app during poetry → reopen auto-starts new poem
+- [ ] Close app when off → reopen stays off
+
+**Wake Greeting:**
+- [ ] Complete meditation before alarm → greeting plays
+- [ ] Complete poetry before alarm → greeting plays
+- [ ] Stop content manually → no greeting
+
+**Custom Content:**
+- [ ] Create custom meditation → appears in random pool
+- [ ] Create custom poem → appears in random pool
+- [ ] Edit/delete custom poems → CRUD works
+- [ ] Delete all poems → default poem restores
+
+**UI:**
+- [ ] Icons change correctly (leaf → leaf.fill → theatermasks.fill)
+- [ ] Colors change correctly (gray → green → purple)
+- [ ] Quote button opens ContentBrowserView with tabs
+- [ ] Segmented control switches between Meditations and Poems
+- [ ] Each tab shows correct content and toolbar items
+- [ ] Closed captioning works for poetry
 

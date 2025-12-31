@@ -80,11 +80,15 @@ struct ExpandingView: View {
             nextText = ttsManager.getRandomMeditation()
         case .poetry:
             nextText = ttsManager.getRandomPoem()
+            print("🎭 Poetry mode - got poem text: \(nextText != nil)")
         case .off:
             nextText = nil
         }
 
-        guard let text = nextText else { return }
+        guard let text = nextText else {
+            print("❌ Crossfade failed - no content for mode: \(nextMode)")
+            return
+        }
 
         // Crossfade implementation (AVSpeechSynthesizer limitation: no real-time volume)
         Task {

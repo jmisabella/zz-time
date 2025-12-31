@@ -229,6 +229,7 @@ class TextToSpeechManager: ObservableObject {
             if let url = Bundle.main.url(forResource: "preset_poem\(i)", withExtension: "txt"),
                let text = try? String(contentsOf: url, encoding: .utf8) {
                 allPoems.append((text.trimmingCharacters(in: .whitespacesAndNewlines), "preset \(i)"))
+                print("📚 Loaded preset_poem\(i).txt")
             }
         }
 
@@ -236,15 +237,20 @@ class TextToSpeechManager: ObservableObject {
         if let customManager = customPoemManager {
             for poem in customManager.poems {
                 allPoems.append((poem.text, "custom: \(poem.title)"))
+                print("✍️ Loaded custom poem: \(poem.title)")
             }
         }
 
+        print("🎭 Total poems available: \(allPoems.count)")
+
         guard !allPoems.isEmpty else {
+            print("❌ No poems available!")
             return nil
         }
 
         // Randomly select one poem from the pool (repeats allowed)
         let selected = allPoems.randomElement()!
+        print("✅ Selected poem from: \(selected.source)")
         return selected.text
     }
 
