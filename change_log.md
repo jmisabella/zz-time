@@ -3568,3 +3568,45 @@ This workaround completely avoids the iOS bug while maintaining proper pause fun
 **Version:** Fixed in build 2.1.2 (build #2)
 
 ---
+
+---
+
+## 2024-12-30 - Poetry Feature Implementation
+
+### Phase 1: Foundation Files Created (14:45 PST)
+
+**New Files:**
+1. `Models/CustomPoem.swift` - Data model for custom poems
+2. `Views/Components/CustomPoemManager.swift` - Manager for poem CRUD operations
+3. `Poems/default_custom_poem.txt` - Default poem (Wendell Berry)
+4. `Poems/preset_poem1.txt` - Placeholder preset poem (Basho haiku)
+
+### Phase 2: TextToSpeechManager Enhanced (15:10 PST)
+
+**Modified: `Views/Components/TextToSpeechManager.swift`**
+- Added `ContentMode` enum (off/meditation/poetry)
+- Added `customPoemManager` property
+- Added `currentContentMode` property
+- Added `getRandomPoem()` method
+- Added `cycleContentMode()` method
+- Added `restoreLastSession()` method
+- Updated wake greeting flags: `meditationCompletedSuccessfully` → `contentCompletedSuccessfully` (3 locations)
+
+### Phase 3 & 4: UI Views Created (15:35 PST)
+
+**New Files:**
+1. `Views/ContentBrowserView.swift` - Tabbed interface for Meditations/Poems
+2. `Views/CustomPoemListView.swift` - Browse and manage poems (purple theme)
+3. `Views/CustomPoemEditorView.swift` - Create/edit poems
+
+**Modified:**
+- `Views/CustomMeditationListView.swift` - Removed NavigationView wrapper and nav elements
+
+### Status (16:00 PST)
+- ✅ Foundation complete
+- ✅ TextToSpeechManager complete
+- ✅ UI views complete
+- 🔄 Need to add files to Xcode project
+- ⏳ ExpandingView updates pending
+- ⏳ ContentView updates pending
+

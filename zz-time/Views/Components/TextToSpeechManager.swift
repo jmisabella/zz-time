@@ -1,6 +1,20 @@
 import AVFoundation
 import SwiftUI
 
+enum ContentMode: String, Codable {
+    case off = "off"
+    case meditation = "meditation"
+    case poetry = "poetry"
+
+    func next() -> ContentMode {
+        switch self {
+        case .off: return .meditation
+        case .meditation: return .poetry
+        case .poetry: return .off
+        }
+    }
+}
+
 enum MeditationState: Equatable {
     case idle                           // No meditation playing
     case starting(sessionId: UUID)      // Transitioning to play
@@ -74,6 +88,12 @@ class TextToSpeechManager: ObservableObject {
 
     // Reference to custom meditation manager for random selection
     weak var customMeditationManager: CustomMeditationManager?
+
+    // Reference to custom poem manager for random selection
+    weak var customPoemManager: CustomPoemManager?
+
+    // Current content mode
+    @Published private(set) var currentContentMode: ContentMode = .off
 
     // Callback to notify when ambient volume changes
     var onAmbientVolumeChanged: ((Float) -> Void)? = nil
@@ -199,7 +219,35 @@ class TextToSpeechManager: ObservableObject {
         let selected = allMeditations.randomElement()!
         return selected.text
     }
-    
+
+    func getRandomPoem() -> String? {
+        // Build pool of all available poems (presets + customs)
+        var allPoems: [(text: String, source: String)] = []
+
+        // Add all preset poem files (check up to 100 to future-proof)
+        for i in 1...100 {
+            if let url = Bundle.main.url(forResource: "preset_poem\(i)", withExtension: "txt"),
+               let text = try? String(contentsOf: url, encoding: .utf8) {
+                allPoems.append((text.trimmingCharacters(in: .whitespacesAndNewlines), "preset \(i)"))
+            }
+        }
+
+        // Add all custom poems
+        if let customManager = customPoemManager {
+            for poem in customManager.poems {
+                allPoems.append((poem.text, "custom: \(poem.title)"))
+            }
+        }
+
+        guard !allPoems.isEmpty else {
+            return nil
+        }
+
+        // Randomly select one poem from the pool (repeats allowed)
+        let selected = allPoems.randomElement()!
+        return selected.text
+    }
+
     /// Starts speaking a random meditation from text files
     func startSpeakingRandomMeditation() {
         guard !isSpeaking else { return }
@@ -291,7 +339,7 @@ class TextToSpeechManager: ObservableObject {
         currentPhraseIndex = 0
 
         // Clear any previous meditation completion flag
-        UserDefaults.standard.removeObject(forKey: "meditationCompletedSuccessfully")
+        UserDefaults.standard.removeObject(forKey: "contentCompletedSuccessfully")
 
         // Remove question marks to prevent voice inflection changes
         let textWithoutQuestions = text.replacingOccurrences(of: "?", with: "")
@@ -577,12 +625,48 @@ class TextToSpeechManager: ObservableObject {
         isCustomMode = false
 
         // Clear meditation completion flag since it was stopped manually
-        UserDefaults.standard.removeObject(forKey: "meditationCompletedSuccessfully")
+        UserDefaults.standard.removeObject(forKey: "contentCompletedSuccessfully")
 
         // Transition to idle immediately
         _ = transitionState(to: .idle, reason: "Stop completed")
         completion()
     }
+
+    // MARK: - Content Mode Management
+
+    func cycleContentMode() {
+        let newMode = currentContentMode.next()
+        currentContentMode = newMode
+        UserDefaults.standard.set(newMode.rawValue, forKey: "contentMode")
+
+        // Persist preference for session restoration
+        if newMode != .off {
+            UserDefaults.standard.set(newMode.rawValue, forKey: "lastContentMode")
+        }
+    }
+
+    func restoreLastSession() {
+        guard let savedMode = UserDefaults.standard.string(forKey: "lastContentMode"),
+              let mode = ContentMode(rawValue: savedMode) else { return }
+
+        currentContentMode = mode
+
+        // Auto-start content based on mode
+        switch mode {
+        case .meditation:
+            if let text = getRandomMeditation() {
+                startSpeakingWithPauses(text)
+            }
+        case .poetry:
+            if let text = getRandomPoem() {
+                startSpeakingWithPauses(text)
+            }
+        case .off:
+            break
+        }
+    }
+
+    // MARK: - Private Methods
 
     private func speakNextPhrase() {
         guard isSpeaking && repeatCount < maxRepeats else {
@@ -657,7 +741,7 @@ class TextToSpeechManager: ObservableObject {
                 previousPhrase = ""
 
                 // Mark that a meditation completed successfully (for wake-up greeting feature)
-                UserDefaults.standard.set(true, forKey: "meditationCompletedSuccessfully")
+                UserDefaults.standard.set(true, forKey: "contentCompletedSuccessfully")
             }
             return
         }

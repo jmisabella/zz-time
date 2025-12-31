@@ -10,6 +10,11 @@
 		000D5F792EFDC26500C82A83 /* VoiceSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000D5F782EFDC26500C82A83 /* VoiceSettingsView.swift */; };
 		000D5F7B2EFDC29000C82A83 /* VoiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000D5F7A2EFDC29000C82A83 /* VoiceManager.swift */; };
 		000D60572EFF7F7100C82A83 /* ambient_26.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 000D60562EFF7F7100C82A83 /* ambient_26.m4a */; };
+		000D605B2F04C03000C82A83 /* CustomPoemManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000D605A2F04C03000C82A83 /* CustomPoemManager.swift */; };
+		000D605F2F04C03D00C82A83 /* CustomPoemListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000D605E2F04C03D00C82A83 /* CustomPoemListView.swift */; };
+		000D60602F04C03D00C82A83 /* ContentBrowserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000D605C2F04C03D00C82A83 /* ContentBrowserView.swift */; };
+		000D60612F04C03D00C82A83 /* CustomPoemEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000D605D2F04C03D00C82A83 /* CustomPoemEditorView.swift */; };
+		000D60632F04C14800C82A83 /* CustomPoem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000D60622F04C14800C82A83 /* CustomPoem.swift */; };
 		0021DBCA2EE4021E002A8B5A /* BalanceSlider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0021DBC92EE4021E002A8B5A /* BalanceSlider.swift */; };
 		0032BABB2ED7F9C700837776 /* ambient_31.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0032BABA2ED7F9C700837776 /* ambient_31.m4a */; };
 		0032BABD2ED7F9D000837776 /* ambient_32.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0032BABC2ED7F9D000837776 /* ambient_32.m4a */; };
@@ -70,6 +75,11 @@
 		000D5F782EFDC26500C82A83 /* VoiceSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceSettingsView.swift; sourceTree = "<group>"; };
 		000D5F7A2EFDC29000C82A83 /* VoiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceManager.swift; sourceTree = "<group>"; };
 		000D60562EFF7F7100C82A83 /* ambient_26.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_26.m4a; sourceTree = "<group>"; };
+		000D605A2F04C03000C82A83 /* CustomPoemManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomPoemManager.swift; sourceTree = "<group>"; };
+		000D605C2F04C03D00C82A83 /* ContentBrowserView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentBrowserView.swift; sourceTree = "<group>"; };
+		000D605D2F04C03D00C82A83 /* CustomPoemEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomPoemEditorView.swift; sourceTree = "<group>"; };
+		000D605E2F04C03D00C82A83 /* CustomPoemListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomPoemListView.swift; sourceTree = "<group>"; };
+		000D60622F04C14800C82A83 /* CustomPoem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomPoem.swift; sourceTree = "<group>"; };
 		0021DBC92EE4021E002A8B5A /* BalanceSlider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BalanceSlider.swift; sourceTree = "<group>"; };
 		0032BABA2ED7F9C700837776 /* ambient_31.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_31.m4a; sourceTree = "<group>"; };
 		0032BABC2ED7F9D000837776 /* ambient_32.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_32.m4a; sourceTree = "<group>"; };
@@ -207,6 +217,7 @@
 		0033F8C52EE297CF006D3319 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				000D60622F04C14800C82A83 /* CustomPoem.swift */,
 				00F91E902EE3C357002FD154 /* CustomMeditation.swift */,
 				0033F8C32EE297CF006D3319 /* DimMode.swift */,
 				0033F8C42EE297CF006D3319 /* SelectedItem.swift */,
@@ -217,6 +228,7 @@
 		0033F8C72EE297CF006D3319 /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				000D605A2F04C03000C82A83 /* CustomPoemManager.swift */,
 				000D5F7A2EFDC29000C82A83 /* VoiceManager.swift */,
 				0021DBC92EE4021E002A8B5A /* BalanceSlider.swift */,
 				00F91E922EE3C3FC002FD154 /* CustomMeditationManager.swift */,
@@ -230,6 +242,9 @@
 		0033F8CE2EE297CF006D3319 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				000D605C2F04C03D00C82A83 /* ContentBrowserView.swift */,
+				000D605D2F04C03D00C82A83 /* CustomPoemEditorView.swift */,
+				000D605E2F04C03D00C82A83 /* CustomPoemListView.swift */,
 				0033F8C72EE297CF006D3319 /* Components */,
 				0033F8C82EE297CF006D3319 /* AlarmSelectionView.swift */,
 				0033F8C92EE297CF006D3319 /* BlobView.swift */,
@@ -386,6 +401,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				000D605F2F04C03D00C82A83 /* CustomPoemListView.swift in Sources */,
+				000D60632F04C14800C82A83 /* CustomPoem.swift in Sources */,
+				000D60602F04C03D00C82A83 /* ContentBrowserView.swift in Sources */,
+				000D60612F04C03D00C82A83 /* CustomPoemEditorView.swift in Sources */,
 				0021DBCA2EE4021E002A8B5A /* BalanceSlider.swift in Sources */,
 				0033F8D42EE297CF006D3319 /* ColorExtensions.swift in Sources */,
 				0033F8D52EE297CF006D3319 /* DimMode.swift in Sources */,
@@ -396,6 +415,7 @@
 				00F91E932EE3C3FC002FD154 /* CustomMeditationManager.swift in Sources */,
 				00F91E912EE3C357002FD154 /* CustomMeditation.swift in Sources */,
 				0033F8DA2EE297CF006D3319 /* BreathingBackgroundView.swift in Sources */,
+				000D605B2F04C03000C82A83 /* CustomPoemManager.swift in Sources */,
 				0033F8DB2EE297CF006D3319 /* ContentView.swift in Sources */,
 				00F91E952EE3C536002FD154 /* CustomMeditationListView.swift in Sources */,
 				0033F8DC2EE297CF006D3319 /* ExpandingView.swift in Sources */,

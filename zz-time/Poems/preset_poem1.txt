@@ -1,0 +1,6 @@
+An Old Silent Pond (0.3s)
+by Matsuo Basho (2s)
+
+An old silent pond (1s)
+A frog jumps into the pond (1s)
+Splash! (0.5s) Silence again. (4s)
