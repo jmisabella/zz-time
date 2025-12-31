@@ -3,7 +3,20 @@
 **Project**: z rooms iOS App
 **Feature**: Add poetry functionality alongside meditation with 3-state toggle
 **Date**: December 2024
-**Status**: Ready for Implementation
+**Status**: Completed (iOS), Ready for Android Implementation
+**Last Updated**: December 30, 2024
+
+---
+
+## What's New (v1.1 - Dec 30, 2024)
+
+**UX Improvement: Loading Indicator During Meditation → Poetry Transition**
+
+During implementation, we discovered that the brief gap during crossfade transitions (meditation → poetry) was confusing to users - the button would temporarily show a grey leaf, making it appear as if playback had stopped.
+
+**Solution**: Added an animated loading indicator (three pulsing dots) that displays during the meditation→poetry transition. This provides clear visual feedback that the system is working.
+
+**Implementation details**: See sections 6 and Android Translation Guide for complete code examples.
 
 ---
 
@@ -32,6 +45,7 @@ Transform the meditation app to support both guided meditations and poetry readi
 ✅ Exactly 4 buttons remain in ExpandingView (no new buttons)
 ✅ Wake greeting works for both content types
 ✅ 1-2 second crossfade when switching between modes
+✅ Animated loading indicator during meditation→poetry transition
 ✅ Zero migration issues for existing users
 
 ### Design Principles
@@ -415,16 +429,19 @@ private func colorForContentMode(_ mode: ContentMode, isPlaying: Bool) -> Color 
 ```
 
 #### Update Leaf/Masks Button Icon and Color (lines 190-224)
-**Replace existing button label**:
+**Replace existing button label** (note: helper functions now take `isCrossfading` parameter):
 ```swift
 .label {
-    Image(systemName: iconForContentMode(ttsManager.currentContentMode, isPlaying: ttsManager.isSpeaking))
+    Image(systemName: iconForContentMode(ttsManager.currentContentMode, isPlaying: ttsManager.isSpeaking, isCrossfading: isCrossfading))
         .font(.title)
-        .foregroundColor(colorForContentMode(ttsManager.currentContentMode, isPlaying: ttsManager.isSpeaking))
+        .foregroundColor(colorForContentMode(ttsManager.currentContentMode, isPlaying: ttsManager.isSpeaking, isCrossfading: isCrossfading))
+        .symbolEffect(.pulse, options: .repeating, isActive: isCrossfading)
         .padding(10)
         .background(Circle().fill(Color.black.opacity(0.5)))
 }
 ```
+
+**Note**: The `.symbolEffect(.pulse, options: .repeating, isActive: isCrossfading)` line adds an animated pulse effect to the loading indicator (three dots) during the meditation→poetry transition.
 
 #### Update Tap Gesture - 3-Way Toggle
 **Replace existing tap gesture handler**:
@@ -470,10 +487,51 @@ private func colorForContentMode(_ mode: ContentMode, isPlaying: Bool) -> Color 
 )
 ```
 
-#### Add Crossfade Method
+#### Add Loading State Variable (around line 50)
+```swift
+@State private var isCrossfading: Bool = false
+```
+
+#### Update Helper Functions to Support Loading State
+```swift
+private func iconForContentMode(_ mode: ContentMode, isPlaying: Bool, isCrossfading: Bool) -> String {
+    // Show loading indicator during crossfade
+    if isCrossfading {
+        return "ellipsis.circle.fill"
+    }
+
+    switch mode {
+    case .off:
+        return "leaf"
+    case .meditation:
+        return isPlaying ? "leaf.fill" : "leaf"
+    case .poetry:
+        return isPlaying ? "theatermasks.fill" : "theatermasks"
+    }
+}
+
+private func colorForContentMode(_ mode: ContentMode, isPlaying: Bool, isCrossfading: Bool) -> Color {
+    // Show grey color during crossfade
+    if isCrossfading {
+        return Color(white: 0.7)
+    }
+
+    switch mode {
+    case .off:
+        return Color(white: 0.7)
+    case .meditation:
+        return isPlaying ? Color.green : Color(white: 0.7)
+    case .poetry:
+        return isPlaying ? Color.purple : Color(white: 0.7)
+    }
+}
+```
+
+#### Add Crossfade Method with Loading Indicator
 ```swift
 private func crossfadeToNextContent() {
-    let nextMode = ttsManager.currentContentMode.next()
+    let currentMode = ttsManager.currentContentMode
+    let nextMode = currentMode.next()
 
     // Get next content
     let nextText: String?
@@ -488,6 +546,11 @@ private func crossfadeToNextContent() {
 
     guard let text = nextText else { return }
 
+    // Show loading indicator only when transitioning from meditation to poetry
+    if currentMode == .meditation && nextMode == .poetry {
+        isCrossfading = true
+    }
+
     // Crossfade implementation (AVSpeechSynthesizer limitation: no real-time volume)
     Task {
         await ttsManager.stopSpeaking()
@@ -501,6 +564,9 @@ private func crossfadeToNextContent() {
         if nextMode != .off {
             UserDefaults.standard.set(nextMode.rawValue, forKey: "lastContentMode")
         }
+
+        // Clear loading state before starting new content
+        isCrossfading = false
 
         ttsManager.startSpeakingWithPauses(text)
     }
@@ -892,6 +958,7 @@ This implementation plan is framework-agnostic and can be translated to Android 
 | `"leaf.fill"` | `Icons.Filled.Eco` | Custom drawable |
 | `"theatermasks"` | `Icons.Outlined.TheaterComedy` | Custom drawable |
 | `"theatermasks.fill"` | `Icons.Filled.TheaterComedy` | Custom drawable |
+| `"ellipsis.circle.fill"` | `Icons.Filled.MoreHoriz` | Three dots (loading) |
 | `"text.quote"` | `Icons.Filled.FormatQuote` | - |
 | `"captions.bubble.fill"` | `Icons.Filled.ClosedCaption` | - |
 
@@ -1035,11 +1102,8 @@ fun loadPoems(context: Context): List<CustomPoem> {
 
 ```kotlin
 suspend fun crossfadeToNextContent() {
-    tts.stop()
-    delay(1500) // 1.5 second gap
-
-    val nextMode = contentMode.value.next()
-    _contentMode.value = nextMode
+    val currentMode = contentMode.value
+    val nextMode = currentMode.next()
 
     val text = when (nextMode) {
         ContentMode.MEDITATION -> getRandomMeditation()
@@ -1047,9 +1111,99 @@ suspend fun crossfadeToNextContent() {
         ContentMode.OFF -> null
     }
 
-    text?.let { speak(it) }
+    text ?: return
+
+    // Show loading indicator only when transitioning from meditation to poetry
+    if (currentMode == ContentMode.MEDITATION && nextMode == ContentMode.POETRY) {
+        _isCrossfading.value = true
+    }
+
+    tts.stop()
+    delay(1500) // 1.5 second gap
+
+    _contentMode.value = nextMode
+
+    // Clear loading state before starting new content
+    _isCrossfading.value = false
+
+    speak(text)
 }
 ```
+
+### Loading Indicator (Android)
+
+**Implementation**: Use MutableStateFlow for the crossfading state:
+
+```kotlin
+class TextToSpeechManager(context: Context) : ViewModel() {
+    private val _isCrossfading = MutableStateFlow(false)
+    val isCrossfading: StateFlow<Boolean> = _isCrossfading.asStateFlow()
+
+    // ... rest of implementation
+}
+```
+
+**UI (Compose)**: For the loading icon, use Material Icons or create a custom composable:
+
+```kotlin
+@Composable
+fun ContentButton(
+    contentMode: ContentMode,
+    isPlaying: Boolean,
+    isCrossfading: Boolean,
+    onClick: () -> Unit
+) {
+    val icon = when {
+        isCrossfading -> Icons.Filled.MoreHoriz  // Three dots (horizontal ellipsis)
+        contentMode == ContentMode.OFF -> Icons.Outlined.Eco
+        contentMode == ContentMode.MEDITATION -> if (isPlaying) Icons.Filled.Eco else Icons.Outlined.Eco
+        contentMode == ContentMode.POETRY -> if (isPlaying) Icons.Filled.TheaterComedy else Icons.Outlined.TheaterComedy
+        else -> Icons.Outlined.Eco
+    }
+
+    val color = when {
+        isCrossfading -> Color.Gray
+        contentMode == ContentMode.OFF -> Color.Gray
+        contentMode == ContentMode.MEDITATION -> if (isPlaying) Color.Green else Color.Gray
+        contentMode == ContentMode.POETRY -> if (isPlaying) Color(0xFF9C27B0) else Color.Gray  // Purple
+        else -> Color.Gray
+    }
+
+    IconButton(
+        onClick = onClick,
+        modifier = Modifier
+            .size(56.dp)
+            .background(Color.Black.copy(alpha = 0.5f), shape = CircleShape)
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = "Content Mode",
+            tint = color,
+            modifier = Modifier
+                .size(32.dp)
+                .then(
+                    if (isCrossfading) {
+                        // Animated pulse effect for loading state
+                        Modifier.graphicsLayer {
+                            val infiniteTransition = rememberInfiniteTransition()
+                            val alpha by infiniteTransition.animateFloat(
+                                initialValue = 0.3f,
+                                targetValue = 1f,
+                                animationSpec = infiniteRepeatable(
+                                    animation = tween(800, easing = LinearEasing),
+                                    repeatMode = RepeatMode.Reverse
+                                )
+                            )
+                            this.alpha = alpha
+                        }
+                    } else Modifier
+                )
+        )
+    }
+}
+```
+
+**Note**: Android's Material Icons library includes `Icons.Filled.MoreHoriz` which is a three-dot horizontal ellipsis similar to iOS's `ellipsis.circle.fill`. The pulse animation is achieved using Compose's `animateFloat` with infinite repeating.
 
 ---
 
@@ -1113,6 +1267,7 @@ suspend fun crossfadeToNextContent() {
 
 ---
 
-**Document Version**: 1.0
+**Document Version**: 1.1
 **Last Updated**: December 30, 2024
-**Status**: Ready for Implementation
+**iOS Status**: ✅ Completed and Tested
+**Android Status**: 📋 Ready for Implementation
