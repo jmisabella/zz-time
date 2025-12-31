@@ -46,9 +46,17 @@ struct ExpandingView: View {
     // Closed captioning toggle
     @AppStorage("showMeditationText") private var showMeditationText: Bool = true
 
+    // Crossfade loading state
+    @State private var isCrossfading: Bool = false
+
     // MARK: - Helper Functions for Content Mode
 
-    private func iconForContentMode(_ mode: ContentMode, isPlaying: Bool) -> String {
+    private func iconForContentMode(_ mode: ContentMode, isPlaying: Bool, isCrossfading: Bool) -> String {
+        // Show loading indicator during crossfade
+        if isCrossfading {
+            return "ellipsis.circle.fill"
+        }
+
         switch mode {
         case .off:
             return "leaf"
@@ -59,7 +67,12 @@ struct ExpandingView: View {
         }
     }
 
-    private func colorForContentMode(_ mode: ContentMode, isPlaying: Bool) -> Color {
+    private func colorForContentMode(_ mode: ContentMode, isPlaying: Bool, isCrossfading: Bool) -> Color {
+        // Show grey color during crossfade
+        if isCrossfading {
+            return Color(white: 0.7)
+        }
+
         switch mode {
         case .off:
             return Color(white: 0.7)
@@ -71,7 +84,8 @@ struct ExpandingView: View {
     }
 
     private func crossfadeToNextContent() {
-        let nextMode = ttsManager.currentContentMode.next()
+        let currentMode = ttsManager.currentContentMode
+        let nextMode = currentMode.next()
 
         // Get next content
         let nextText: String?
@@ -90,6 +104,11 @@ struct ExpandingView: View {
             return
         }
 
+        // Show loading indicator only when transitioning from meditation to poetry
+        if currentMode == .meditation && nextMode == .poetry {
+            isCrossfading = true
+        }
+
         // Crossfade implementation (AVSpeechSynthesizer limitation: no real-time volume)
         Task {
             await ttsManager.stopSpeaking()
@@ -103,6 +122,9 @@ struct ExpandingView: View {
             if nextMode != .off {
                 UserDefaults.standard.set(nextMode.rawValue, forKey: "lastContentMode")
             }
+
+            // Clear loading state before starting new content
+            isCrossfading = false
 
             ttsManager.startSpeakingWithPauses(text)
         }
@@ -254,9 +276,10 @@ struct ExpandingView: View {
                     .contentShape(Circle())
                     // Leaf/Theater Masks button for content control
                     Button {} label: {
-                        Image(systemName: iconForContentMode(ttsManager.currentContentMode, isPlaying: ttsManager.isSpeaking))
+                        Image(systemName: iconForContentMode(ttsManager.currentContentMode, isPlaying: ttsManager.isSpeaking, isCrossfading: isCrossfading))
                         .font(.title)
-                        .foregroundColor(colorForContentMode(ttsManager.currentContentMode, isPlaying: ttsManager.isSpeaking))
+                        .foregroundColor(colorForContentMode(ttsManager.currentContentMode, isPlaying: ttsManager.isSpeaking, isCrossfading: isCrossfading))
+                        .symbolEffect(.pulse, options: .repeating, isActive: isCrossfading)
                         .padding(10)
                         .background(Circle().fill(Color.black.opacity(0.5)))
                     }

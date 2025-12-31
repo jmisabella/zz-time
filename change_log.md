@@ -3696,3 +3696,36 @@ This workaround completely avoids the iOS bug while maintaining proper pause fun
 - [ ] Each tab shows correct content and toolbar items
 - [ ] Closed captioning works for poetry
 
+---
+
+## 2024-12-30 - Crossfade Loading Indicator (17:15 PST)
+
+### UX Improvement: Loading State During Meditation → Poetry Transition
+
+**Problem:** When transitioning from meditation to poetry mode, the button briefly showed a grey leaf during the 1.5s crossfade, making it appear as if playback had stopped completely. This was confusing to users.
+
+**Solution:** Added animated loading indicator during crossfade transition.
+
+**Modified: `Views/ExpandingView.swift`**
+
+**New State Variable (line 50):**
+- Added `@State private var isCrossfading: Bool = false` to track crossfade state
+
+**Updated Helper Functions (lines 54-74):**
+- `iconForContentMode()`: Added `isCrossfading` parameter, returns `"ellipsis.circle.fill"` when crossfading
+- `colorForContentMode()`: Added `isCrossfading` parameter, returns grey when crossfading
+
+**Updated Crossfade Logic (lines 86-131):**
+- Sets `isCrossfading = true` only when transitioning from meditation → poetry (line 108-110)
+- Clears `isCrossfading = false` before starting new content (line 127)
+- Other transitions (poetry→off, off→meditation) don't show loading state
+
+**Updated Button (lines 279-282):**
+- Passes `isCrossfading` to both helper functions
+- Added `.symbolEffect(.pulse, options: .repeating, isActive: isCrossfading)` for animated pulse effect
+
+**Result:**
+- User taps green leaf (meditation) → sees pulsing three-dot icon → purple theater masks (poetry)
+- Clear visual feedback that system is processing the transition
+- Loading state only appears for meditation→poetry transition as requested
+
