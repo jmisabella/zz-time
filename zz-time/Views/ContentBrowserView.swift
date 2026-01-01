@@ -27,21 +27,19 @@ struct ContentBrowserView: View {
                         isPresented: $isPresented,
                         onPlay: onPlayMeditation
                     )
-                    .navigationBarHidden(true)  // Hide inner nav bar
                 } else {
                     CustomPoemListView(
                         manager: poemManager,
                         isPresented: $isPresented,
                         onPlay: onPlayPoem
                     )
-                    .navigationBarHidden(true)  // Hide inner nav bar
                 }
             }
             .navigationTitle("My Content")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Close") {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") {
                         isPresented = false
                     }
                 }

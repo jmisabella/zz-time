@@ -1,5 +1,23 @@
 # Problems and Solutions
 
+## 2026-01-01: Added "Done" Button to Content Browser View ✅
+
+### **Change**
+Added a "Done" button in the upper right corner of the Custom Meditations/Poems browser view to match the UI pattern used in Voice Settings.
+
+### **Details**
+Previously, the content browser could only be dismissed by swiping down, while the Voice Settings view had both swipe-down dismissal and a "Done" button. This inconsistency was confusing for users.
+
+### **Implementation**
+- Changed toolbar button placement from `.cancellationAction` to `.navigationBarTrailing`
+- Changed button text from "Close" to "Done" for consistency
+- Button now appears in upper right corner like Voice Settings
+
+**Files Modified:**
+- `ContentBrowserView.swift` - Updated toolbar button placement and text
+
+---
+
 ## 2025-12-31: Fixed Closed Caption Box Lingering After Narration Ends ✅
 
 ### **Problem**
