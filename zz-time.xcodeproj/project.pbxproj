@@ -25,7 +25,10 @@
 		000D607E2F06478700C82A83 /* preset_poem7.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D607D2F06477000C82A83 /* preset_poem7.txt */; };
 		000D60802F06490E00C82A83 /* preset_poem8.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D607F2F0648FB00C82A83 /* preset_poem8.txt */; };
 		000D60822F065D6900C82A83 /* preset_poem9.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D60812F065D5600C82A83 /* preset_poem9.txt */; };
-		000D60842F065EB700C82A83 /* preseta-poem10.txt in Sources */ = {isa = PBXBuildFile; fileRef = 000D60832F065EAB00C82A83 /* preseta-poem10.txt */; };
+		000D60842F065EB700C82A83 /* preset-poem10.txt in Sources */ = {isa = PBXBuildFile; fileRef = 000D60832F065EAB00C82A83 /* preset-poem10.txt */; };
+		000D60882F06F3D800C82A83 /* preset_poem11.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D60872F06F3CD00C82A83 /* preset_poem11.txt */; };
+		000D608A2F06FB2200C82A83 /* preset_poem12.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D60892F06FB1800C82A83 /* preset_poem12.txt */; };
+		000D608C2F06FE4900C82A83 /* preset_poem13.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D608B2F06FE3E00C82A83 /* preset_poem13.txt */; };
 		0021DBCA2EE4021E002A8B5A /* BalanceSlider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0021DBC92EE4021E002A8B5A /* BalanceSlider.swift */; };
 		0032BABB2ED7F9C700837776 /* ambient_31.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0032BABA2ED7F9C700837776 /* ambient_31.m4a */; };
 		0032BABD2ED7F9D000837776 /* ambient_32.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0032BABC2ED7F9D000837776 /* ambient_32.m4a */; };
@@ -101,7 +104,10 @@
 		000D607D2F06477000C82A83 /* preset_poem7.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem7.txt; sourceTree = "<group>"; };
 		000D607F2F0648FB00C82A83 /* preset_poem8.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem8.txt; sourceTree = "<group>"; };
 		000D60812F065D5600C82A83 /* preset_poem9.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem9.txt; sourceTree = "<group>"; };
-		000D60832F065EAB00C82A83 /* preseta-poem10.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "preseta-poem10.txt"; sourceTree = "<group>"; };
+		000D60832F065EAB00C82A83 /* preset-poem10.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "preset-poem10.txt"; sourceTree = "<group>"; };
+		000D60872F06F3CD00C82A83 /* preset_poem11.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem11.txt; sourceTree = "<group>"; };
+		000D60892F06FB1800C82A83 /* preset_poem12.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem12.txt; sourceTree = "<group>"; };
+		000D608B2F06FE3E00C82A83 /* preset_poem13.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem13.txt; sourceTree = "<group>"; };
 		0021DBC92EE4021E002A8B5A /* BalanceSlider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BalanceSlider.swift; sourceTree = "<group>"; };
 		0032BABA2ED7F9C700837776 /* ambient_31.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_31.m4a; sourceTree = "<group>"; };
 		0032BABC2ED7F9D000837776 /* ambient_32.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_32.m4a; sourceTree = "<group>"; };
@@ -231,6 +237,7 @@
 		000D60662F04C5FB00C82A83 /* Poems */ = {
 			isa = PBXGroup;
 			children = (
+				000D608B2F06FE3E00C82A83 /* preset_poem13.txt */,
 				000D60642F04C5FB00C82A83 /* default_custom_poem.txt */,
 				000D60752F06313D00C82A83 /* preset_poem1.txt */,
 				000D60762F06313D00C82A83 /* preset_poem2.txt */,
@@ -241,7 +248,9 @@
 				000D607D2F06477000C82A83 /* preset_poem7.txt */,
 				000D607F2F0648FB00C82A83 /* preset_poem8.txt */,
 				000D60812F065D5600C82A83 /* preset_poem9.txt */,
-				000D60832F065EAB00C82A83 /* preseta-poem10.txt */,
+				000D60832F065EAB00C82A83 /* preset-poem10.txt */,
+				000D60872F06F3CD00C82A83 /* preset_poem11.txt */,
+				000D60892F06FB1800C82A83 /* preset_poem12.txt */,
 			);
 			path = Poems;
 			sourceTree = "<group>";
@@ -402,6 +411,7 @@
 				00371B032EAD71200037EDCF /* ambient_20.m4a in Resources */,
 				000D60822F065D6900C82A83 /* preset_poem9.txt in Resources */,
 				000D607E2F06478700C82A83 /* preset_poem7.txt in Resources */,
+				000D60882F06F3D800C82A83 /* preset_poem11.txt in Resources */,
 				000D60802F06490E00C82A83 /* preset_poem8.txt in Resources */,
 				000D60732F0630C300C82A83 /* preset_poem5.txt in Resources */,
 				000D60742F0630C300C82A83 /* preset_poem6.txt in Resources */,
@@ -420,6 +430,7 @@
 				006D44792EDE9F6100264CFE /* ambient_04.m4a in Resources */,
 				0032BABD2ED7F9D000837776 /* ambient_32.m4a in Resources */,
 				00371B092EAD71200037EDCF /* ambient_16.m4a in Resources */,
+				000D608C2F06FE4900C82A83 /* preset_poem13.txt in Resources */,
 				0033F88E2EDFFD5B006D3319 /* ambient_05.m4a in Resources */,
 				006D44772EDE89EB00264CFE /* ambient_35.m4a in Resources */,
 				0079DC1B2EF7611F006820B9 /* ambient_06.m4a in Resources */,
@@ -432,6 +443,7 @@
 				000D60682F04C5FB00C82A83 /* default_custom_poem.txt in Resources */,
 				0069A9842EDFFB3300FFA508 /* ambient_09.m4a in Resources */,
 				00371B112EAD71200037EDCF /* ambient_12.m4a in Resources */,
+				000D608A2F06FB2200C82A83 /* preset_poem12.txt in Resources */,
 				00371B132EAD71200037EDCF /* ambient_22.m4a in Resources */,
 				0032BAC72ED801DC00837776 /* ambient_19.m4a in Resources */,
 				00371B182EAD71200037EDCF /* ambient_17.m4a in Resources */,
@@ -460,7 +472,7 @@
 				0033F8D42EE297CF006D3319 /* ColorExtensions.swift in Sources */,
 				0033F8D52EE297CF006D3319 /* DimMode.swift in Sources */,
 				0033F8D62EE297CF006D3319 /* SelectedItem.swift in Sources */,
-				000D60842F065EB700C82A83 /* preseta-poem10.txt in Sources */,
+				000D60842F065EB700C82A83 /* preset-poem10.txt in Sources */,
 				0033F8D72EE297CF006D3319 /* CustomSlider.swift in Sources */,
 				0033F8D82EE297CF006D3319 /* AlarmSelectionView.swift in Sources */,
 				0033F8D92EE297CF006D3319 /* BlobView.swift in Sources */,
