@@ -1,5 +1,38 @@
 # Problems and Solutions
 
+## 2025-12-31: Fixed Closed Caption Box Lingering After Narration Ends ✅
+
+### **Problem**
+When meditation or poetry narration completed, the closed caption dark text box remained visible on screen even though there was no text being spoken. This looked unprofessional.
+
+### **Root Cause**
+The `MeditationTextDisplay` component unconditionally rendered the dark background rectangle, even when both `currentPhrase` and `previousPhrase` were empty strings. When narration completed, `TextToSpeechManager` would clear both phrases, but the empty box would still display.
+
+### **The Fix**
+Modified `MeditationTextDisplay.swift` to conditionally render the entire component only when there is text to display:
+
+```swift
+var body: some View {
+    // Only show the caption box if there's text to display
+    if !currentPhrase.isEmpty || !previousPhrase.isEmpty {
+        ZStack {
+            // ... component contents
+        }
+    }
+}
+```
+
+### **Result**
+- Caption box now automatically disappears when narration ends
+- Smooth transitions maintained
+- No changes needed to existing state management
+- Clean separation of concerns
+
+**Files Modified:**
+- `MeditationTextDisplay.swift` - Added conditional rendering logic (line 8-9)
+
+---
+
 ## 2025-12-28, 2:15 PM: FINAL SOLUTION - Recreate Synthesizer Instance on Each Meditation ✅
 
 ### **THE SOLUTION THAT WORKED**
