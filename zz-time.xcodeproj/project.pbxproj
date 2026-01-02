@@ -45,6 +45,8 @@
 		000D60A82F0754BC00C82A83 /* preset_poem25.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D60A72F0754AF00C82A83 /* preset_poem25.txt */; };
 		000D60AA2F07569700C82A83 /* preset_poem26.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D60A92F07568F00C82A83 /* preset_poem26.txt */; };
 		000D60AC2F0757EF00C82A83 /* preset_poem27.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D60AB2F0757E600C82A83 /* preset_poem27.txt */; };
+		000D60AE2F075C3B00C82A83 /* preset_poem28.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D60AD2F075C3100C82A83 /* preset_poem28.txt */; };
+		000D60B02F075CF100C82A83 /* preset_poem29.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D60AF2F075CE800C82A83 /* preset_poem29.txt */; };
 		0021DBCA2EE4021E002A8B5A /* BalanceSlider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0021DBC92EE4021E002A8B5A /* BalanceSlider.swift */; };
 		0032BABB2ED7F9C700837776 /* ambient_31.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0032BABA2ED7F9C700837776 /* ambient_31.m4a */; };
 		0032BABD2ED7F9D000837776 /* ambient_32.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0032BABC2ED7F9D000837776 /* ambient_32.m4a */; };
@@ -140,6 +142,8 @@
 		000D60A72F0754AF00C82A83 /* preset_poem25.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem25.txt; sourceTree = "<group>"; };
 		000D60A92F07568F00C82A83 /* preset_poem26.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem26.txt; sourceTree = "<group>"; };
 		000D60AB2F0757E600C82A83 /* preset_poem27.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem27.txt; sourceTree = "<group>"; };
+		000D60AD2F075C3100C82A83 /* preset_poem28.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem28.txt; sourceTree = "<group>"; };
+		000D60AF2F075CE800C82A83 /* preset_poem29.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem29.txt; sourceTree = "<group>"; };
 		0021DBC92EE4021E002A8B5A /* BalanceSlider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BalanceSlider.swift; sourceTree = "<group>"; };
 		0032BABA2ED7F9C700837776 /* ambient_31.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_31.m4a; sourceTree = "<group>"; };
 		0032BABC2ED7F9D000837776 /* ambient_32.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_32.m4a; sourceTree = "<group>"; };
@@ -297,6 +301,8 @@
 				000D60A72F0754AF00C82A83 /* preset_poem25.txt */,
 				000D60A92F07568F00C82A83 /* preset_poem26.txt */,
 				000D60AB2F0757E600C82A83 /* preset_poem27.txt */,
+				000D60AD2F075C3100C82A83 /* preset_poem28.txt */,
+				000D60AF2F075CE800C82A83 /* preset_poem29.txt */,
 				000D60972F071D0900C82A83 /* preset_poem31.txt */,
 				000D60992F071D5200C82A83 /* preset_poem32.txt */,
 			);
@@ -454,6 +460,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				0032BABB2ED7F9C700837776 /* ambient_31.m4a in Resources */,
+				000D60B02F075CF100C82A83 /* preset_poem29.txt in Resources */,
 				006D44692EDD4BD300264CFE /* ambient_01.m4a in Resources */,
 				00371B012EAD71200037EDCF /* ambient_13.m4a in Resources */,
 				00371B032EAD71200037EDCF /* ambient_20.m4a in Resources */,
@@ -467,6 +474,7 @@
 				000D60942F07153B00C82A83 /* preset_poem17.txt in Resources */,
 				000D60802F06490E00C82A83 /* preset_poem8.txt in Resources */,
 				000D60AA2F07569700C82A83 /* preset_poem26.txt in Resources */,
+				000D60AE2F075C3B00C82A83 /* preset_poem28.txt in Resources */,
 				000D609E2F07246300C82A83 /* preset_poem20.txt in Resources */,
 				000D608E2F07012400C82A83 /* preset_poem14.txt in Resources */,
 				000D60962F0718BF00C82A83 /* preset_poem18.txt in Resources */,
