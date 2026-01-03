@@ -62,6 +62,8 @@ class TextToSpeechManager: ObservableObject {
     // Closed captioning support
     @Published var currentPhrase: String = ""
     @Published var previousPhrase: String = ""
+    @Published var phraseHistory: [String] = []  // Full history of all spoken phrases
+    @Published var hasNewCaptionContent: Bool = false  // Indicates new content while user is scrolled up
 
 
     var synthesizer = AVSpeechSynthesizer()  // Internal access for pause/resume from VoiceSettingsView
@@ -336,6 +338,7 @@ class TextToSpeechManager: ObservableObject {
         repeatCount = 0
         currentPhrase = ""
         previousPhrase = ""
+        phraseHistory = []
         allPhrases = []
         currentPhraseIndex = 0
 
@@ -621,6 +624,7 @@ class TextToSpeechManager: ObservableObject {
         repeatCount = 0
         currentPhrase = ""
         previousPhrase = ""
+        phraseHistory = []
         allPhrases = []
         currentPhraseIndex = 0
         isCustomMode = false
@@ -705,6 +709,11 @@ class TextToSpeechManager: ObservableObject {
             let newPhrase = allPhrases[currentPhraseIndex]
             previousPhrase = currentPhrase
             currentPhrase = newPhrase
+
+            // Add to phrase history (avoid duplicates)
+            if phraseHistory.isEmpty || phraseHistory.last != newPhrase {
+                phraseHistory.append(newPhrase)
+            }
         }
     }
 

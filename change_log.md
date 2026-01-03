@@ -1,5 +1,118 @@
 # Problems and Solutions
 
+## 2026-01-03 17:30: Added Scrollable Closed Caption History ✅
+
+### **Feature Request**
+User requested the ability to scroll back through closed caption text to re-read earlier spoken phrases that may have been missed, while allowing voice narration to continue uninterrupted in the background.
+
+### **Problem**
+The original closed caption display (`MeditationTextDisplay.swift`) only showed the current phrase and previous phrase (2 lines total). Once a phrase was spoken and moved to "previous," there was no way to review it again. Users who missed something or wanted to re-read earlier content had no option.
+
+### **Requirements**
+1. Display full scrollable history of all spoken phrases
+2. Voice narration must continue playing even when user scrolls back to review
+3. Auto-scroll to show new text when user is at bottom
+4. When user scrolls up to review, stop auto-scrolling
+5. Show visual indicator when new text arrives while user is scrolled up
+6. Maintain compact size similar to original caption display
+
+### **Implementation**
+
+#### Created New Component: `ScrollableMeditationTextDisplay.swift`
+- Replaced the 2-line static display with a scrollable `ScrollView`
+- Displays full phrase history with current phrase highlighted
+- Fixed height of 100pt to stay compact
+- Current phrase: white text, size 18, medium weight
+- Previous phrases: 70% opacity white, size 16, regular weight
+
+#### Updated State Management in `TextToSpeechManager.swift`
+Added new published properties:
+- `phraseHistory: [String]` - Stores all spoken phrases chronologically
+- `hasNewCaptionContent: Bool` - Tracks when new content arrives while user scrolled up
+
+Modified `didStartUtterance()` to append each phrase to history (avoiding duplicates).
+
+#### Smart Scroll Behavior
+- **At bottom**: Auto-scrolls smoothly to show new text as it's spoken
+- **Scrolled up**: Stops auto-scrolling, lets user read at their own pace
+- **Scroll detection**: Uses `DragGesture(minimumDistance: 5)` to detect user interaction
+- **State tracking**: `isAtBottom` and `isUserScrolling` flags manage behavior
+
+#### Visual Indicator
+When user has scrolled up and new text arrives:
+- "New text" button appears with down arrow icon
+- White background, black text, rounded pill shape
+- Tapping it scrolls back to bottom and resumes auto-scroll
+
+### **Technical Details**
+
+**Scroll Implementation:**
+```swift
+ScrollViewReader { proxy in
+    ScrollView {
+        VStack(alignment: .leading, spacing: 12) {
+            ForEach(Array(phraseHistory.enumerated()), id: \.offset) { index, phrase in
+                let isCurrentPhrase = (index == phraseHistory.count - 1) && phrase == currentPhrase
+                Text(phrase)
+                    .font(.system(size: isCurrentPhrase ? 18 : 16, ...))
+                    .foregroundColor(isCurrentPhrase ? .white : .white.opacity(0.7))
+            }
+        }
+    }
+}
+```
+
+**Auto-scroll Logic:**
+```swift
+.onChange(of: currentPhrase) { _ in
+    if isAtBottom && !isUserScrolling {
+        withAnimation(.easeOut(duration: 0.3)) {
+            proxy.scrollTo("bottom", anchor: .bottom)
+        }
+    } else if !isAtBottom {
+        hasNewContent = true  // Show "New text" indicator
+    }
+}
+```
+
+### **Performance Optimizations**
+- Removed complex `GeometryReader` with nested preference keys
+- Simplified scroll detection to basic `DragGesture`
+- Removed unused state variables (`contentOffset`, `contentHeight`, `scrollViewHeight`)
+- Changed from `.simultaneousGesture` to `.gesture()` for better performance
+
+### **Files Modified**
+1. **`TextToSpeechManager.swift`**
+   - Added `phraseHistory: [String]` (line 65)
+   - Added `hasNewCaptionContent: Bool` (line 66)
+   - Modified `didStartUtterance()` to populate history (lines 710-716)
+   - Reset history on start/stop (lines 340, 626)
+
+2. **`ScrollableMeditationTextDisplay.swift`** (NEW FILE)
+   - Scrollable caption component with full history
+   - Smart scroll behavior and auto-scroll logic
+   - "New text" indicator button
+   - Fixed 100pt height constraint
+
+3. **`ExpandingView.swift`**
+   - Updated to use `ScrollableMeditationTextDisplay` (line 373)
+   - Pass `phraseHistory`, `currentPhrase`, and `hasNewCaptionContent` binding (lines 374-376)
+   - Added `.allowsHitTesting(true)` to enable scrolling (line 381)
+
+4. **`zz-time.xcodeproj/project.pbxproj`**
+   - Added new file to Xcode project build phases
+
+### **Result**
+✅ Users can now scroll through full caption history
+✅ Voice continues narrating while scrolling
+✅ Auto-scrolls when at bottom
+✅ "New text" indicator when scrolled up
+✅ Maintains compact 100pt height
+✅ Smooth animations and responsive scrolling
+✅ No performance degradation
+
+---
+
 ## 2026-01-01: Added "Done" Button to Content Browser View ✅
 
 ### **Change**

@@ -370,15 +370,15 @@ struct ExpandingView: View {
             if showMeditationText && ttsManager.isPlayingMeditation {
                 VStack {
                     Spacer()
-                    MeditationTextDisplay(
+                    ScrollableMeditationTextDisplay(
+                        phraseHistory: ttsManager.phraseHistory,
                         currentPhrase: ttsManager.currentPhrase,
-                        previousPhrase: ttsManager.previousPhrase
+                        hasNewContent: $ttsManager.hasNewCaptionContent
                     )
                     .padding(.bottom, 140) // Position clearly above buttons
                     .transition(.opacity.combined(with: .move(edge: .bottom)))
-                    .animation(.easeInOut(duration: 0.4), value: ttsManager.currentPhrase)
                 }
-                .allowsHitTesting(false)  // Allow taps to pass through to buttons below
+                .allowsHitTesting(true)  // Allow scrolling in the caption area
             }
         }
         .gesture(

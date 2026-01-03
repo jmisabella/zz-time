@@ -100,6 +100,7 @@
 		0079DC752EF8B2CE006820B9 /* ambient_07.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0079DC742EF8B2CE006820B9 /* ambient_07.m4a */; };
 		0094618B2EDFF40000DC9E82 /* ambient_03.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0094618A2EDFF40000DC9E82 /* ambient_03.m4a */; };
 		00C3BE3B5FABFD46F4B777F4 /* MeditationTextDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EF8E543D50C3461BA2D7C4 /* MeditationTextDisplay.swift */; };
+		00C3BE3C5FABFD46F4B888G5 /* ScrollableMeditationTextDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EF8E553D50C3461BA2D8D5 /* ScrollableMeditationTextDisplay.swift */; };
 		00F91E912EE3C357002FD154 /* CustomMeditation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00F91E902EE3C357002FD154 /* CustomMeditation.swift */; };
 		00F91E932EE3C3FC002FD154 /* CustomMeditationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00F91E922EE3C3FC002FD154 /* CustomMeditationManager.swift */; };
 		00F91E952EE3C536002FD154 /* CustomMeditationListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00F91E942EE3C536002FD154 /* CustomMeditationListView.swift */; };
@@ -203,6 +204,7 @@
 		0079DC742EF8B2CE006820B9 /* ambient_07.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_07.m4a; sourceTree = "<group>"; };
 		0094618A2EDFF40000DC9E82 /* ambient_03.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_03.m4a; sourceTree = "<group>"; };
 		00EF8E543D50C3461BA2D7C4 /* MeditationTextDisplay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeditationTextDisplay.swift; sourceTree = "<group>"; };
+		00EF8E553D50C3461BA2D8D5 /* ScrollableMeditationTextDisplay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollableMeditationTextDisplay.swift; sourceTree = "<group>"; };
 		00F91E902EE3C357002FD154 /* CustomMeditation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomMeditation.swift; sourceTree = "<group>"; };
 		00F91E922EE3C3FC002FD154 /* CustomMeditationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomMeditationManager.swift; sourceTree = "<group>"; };
 		00F91E942EE3C536002FD154 /* CustomMeditationListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomMeditationListView.swift; sourceTree = "<group>"; };
@@ -349,6 +351,7 @@
 				00F91E922EE3C3FC002FD154 /* CustomMeditationManager.swift */,
 				0033F8C62EE297CF006D3319 /* CustomSlider.swift */,
 				00EF8E543D50C3461BA2D7C4 /* MeditationTextDisplay.swift */,
+				00EF8E553D50C3461BA2D8D5 /* ScrollableMeditationTextDisplay.swift */,
 				0033F8D12EE297CF006D3319 /* TextToSpeechManager.swift */,
 			);
 			path = Components;
@@ -576,6 +579,7 @@
 				0033F8DD2EE297CF006D3319 /* PlasmaBackgroundView.swift in Sources */,
 				0033F8DE2EE297CF006D3319 /* TextToSpeechManager.swift in Sources */,
 				00C3BE3B5FABFD46F4B777F4 /* MeditationTextDisplay.swift in Sources */,
+				00C3BE3C5FABFD46F4B888G5 /* ScrollableMeditationTextDisplay.swift in Sources */,
 				000D5F7B2EFDC29000C82A83 /* VoiceManager.swift in Sources */,
 				0033F8DF2EE297CF006D3319 /* zz_timeApp.swift in Sources */,
 			);
