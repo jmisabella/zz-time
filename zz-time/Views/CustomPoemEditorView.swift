@@ -1,28 +1,26 @@
 //
-//  CustomMeditationEditorView.swift
+//  CustomPoemEditorView.swift
 //  zz-time
-//
-//  Created by Jeffrey Isabella on 12/5/25.
 //
 
 
 import SwiftUI
 
-struct CustomMeditationEditorView: View {
-    @ObservedObject var manager: CustomMeditationManager
-    let meditation: CustomMeditation
-    @Binding var isPresented: CustomMeditation?
-    
+struct CustomPoemEditorView: View {
+    @ObservedObject var manager: CustomPoemManager
+    let poem: CustomPoem
+    @Binding var isPresented: Bool
+
     @State private var title: String = ""
     @State private var text: String = ""
 
-    init(manager: CustomMeditationManager, meditation: CustomMeditation, isPresented: Binding<CustomMeditation?>) {
+    init(manager: CustomPoemManager, poem: CustomPoem, isPresented: Binding<Bool>) {
         self.manager = manager
-        self.meditation = meditation
+        self.poem = poem
         self._isPresented = isPresented
         // Don't initialize @State in init - use onAppear instead
     }
-    
+
     var body: some View {
         NavigationView {
             ScrollView {
@@ -39,7 +37,7 @@ struct CustomMeditationEditorView: View {
                             .foregroundColor(.secondary)
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
-                            .background(Color.gray.opacity(0.1))
+                            .background(Color.purple.opacity(0.1))
                             .cornerRadius(4)
                     }
                     .padding(.horizontal)
@@ -51,14 +49,14 @@ struct CustomMeditationEditorView: View {
                             .font(.caption)
                             .foregroundColor(.secondary)
 
-                        TextField("Meditation title", text: $title)
+                        TextField("Poem title", text: $title)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
                     }
                     .padding(.horizontal)
 
                     // Text Editor
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Meditation Text")
+                        Text("Poem Text")
                             .font(.caption)
                             .foregroundColor(.secondary)
 
@@ -69,7 +67,7 @@ struct CustomMeditationEditorView: View {
                             .cornerRadius(8)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 8)
-                                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                                    .stroke(Color.purple.opacity(0.3), lineWidth: 1)
                             )
                             .frame(minHeight: 200, maxHeight: 400)  // Give it a minimum and maximum height
                     }
@@ -79,34 +77,34 @@ struct CustomMeditationEditorView: View {
             .scrollDismissesKeyboard(.interactively)
             .onAppear {
                 // Initialize state when view appears
-                title = meditation.title
-                text = meditation.text
+                title = poem.title
+                text = poem.text
             }
-            .navigationTitle(meditation.title.isEmpty ? "New Meditation" : "Edit Meditation")
+            .navigationTitle(poem.title.isEmpty ? "New Poem" : "Edit Poem")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
-                        isPresented = nil
+                        isPresented = false
                     }
                 }
 
                 ToolbarItem(placement: .primaryAction) {
                     Button("Save") {
-                        let updatedMeditation = CustomMeditation(
-                            id: meditation.id,
+                        let updatedPoem = CustomPoem(
+                            id: poem.id,
                             title: title.isEmpty ? "Untitled" : title,
                             text: text,
-                            dateCreated: meditation.dateCreated
+                            dateCreated: poem.dateCreated
                         )
 
-                        if manager.meditations.contains(where: { $0.id == meditation.id }) {
-                            manager.updateMeditation(updatedMeditation)
+                        if manager.poems.contains(where: { $0.id == poem.id }) {
+                            manager.updatePoem(updatedPoem)
                         } else {
-                            manager.addMeditation(updatedMeditation)
+                            manager.addPoem(updatedPoem)
                         }
 
-                        isPresented = nil
+                        isPresented = false
                     }
                     .disabled(text.isEmpty)
                 }

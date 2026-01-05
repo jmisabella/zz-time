@@ -9,6 +9,7 @@ struct ContentView: View {
     @State private var currentPlayer: AVAudioPlayer? = nil
     @State private var currentTimer: Timer? = nil
     @State private var currentAudioFile: String? = nil
+    @State private var targetAmbientVolume: Float = 0.48  // Default to 80% balance (0.80 * 0.6 = 0.48)
     
 //    @State private var durationMinutes: Double = UserDefaults.standard.double(forKey: "durationMinutes")
     
@@ -222,7 +223,8 @@ struct ContentView: View {
                         showingAlarmSelection = true
                     },
                     onAmbientVolumeChanged: { newVolume in
-                        // Update the ambient audio player's volume
+                        // Update the target volume and current player's volume
+                        targetAmbientVolume = newVolume
                         currentPlayer?.volume = newVolume
                     }
                 )
@@ -380,11 +382,11 @@ struct ContentView: View {
             let fadeDuration: Double = 2.0
             let fadeSteps: Int = 20
             let stepDuration = fadeDuration / Double(fadeSteps)
-            let stepIncrement = 1.0 / Float(fadeSteps)
+            let stepIncrement = targetAmbientVolume / Float(fadeSteps)
             currentTimer = Timer.scheduledTimer(withTimeInterval: stepDuration, repeats: true) { _ in
                 let currentVolume = newPlayer.volume
-                if currentVolume < 1.0 {
-                    newPlayer.volume = min(1.0, currentVolume + stepIncrement)
+                if currentVolume < self.targetAmbientVolume {
+                    newPlayer.volume = min(self.targetAmbientVolume, currentVolume + stepIncrement)
                 } else {
                     self.currentTimer?.invalidate()
                     self.currentTimer = nil
@@ -487,8 +489,8 @@ struct ContentView: View {
         fadeOutCurrent()
         UserDefaults.standard.removeObject(forKey: "lastWakeTime")
 
-        // Check if meditation was completed successfully for wake-up greeting
-        let meditationCompleted = UserDefaults.standard.bool(forKey: "meditationCompletedSuccessfully")
+        // Check if content (meditation or poetry) was completed successfully for wake-up greeting
+        let contentCompleted = UserDefaults.standard.bool(forKey: "contentCompletedSuccessfully")
 
         do {
             try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
@@ -518,9 +520,9 @@ struct ContentView: View {
                 self.hapticGenerator?.notificationOccurred(.warning)
             }
 
-            // Trigger wake-up greeting if meditation was completed successfully
+            // Trigger wake-up greeting if content (meditation or poetry) was completed successfully
             // Only play if alarm is NOT silence (idx is valid and not nil means a sound is selected)
-            if meditationCompleted {
+            if contentCompleted {
                 // Schedule greeting to play 5 seconds after alarm audio starts
                 DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
                     // Only speak if alarm is still active
@@ -530,7 +532,7 @@ struct ContentView: View {
                 }
 
                 // Clear the flag after using it
-                UserDefaults.standard.removeObject(forKey: "meditationCompletedSuccessfully")
+                UserDefaults.standard.removeObject(forKey: "contentCompletedSuccessfully")
             }
         } catch {
             print("Error playing alarm: \(error.localizedDescription)")

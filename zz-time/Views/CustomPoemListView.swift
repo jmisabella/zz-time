@@ -1,19 +1,19 @@
 import SwiftUI
 
-struct CustomMeditationListView: View {
-    @ObservedObject var manager: CustomMeditationManager
+struct CustomPoemListView: View {
+    @ObservedObject var manager: CustomPoemManager
     @Binding var isPresented: Bool
     let onPlay: (String) -> Void
 
-    @State private var editingMeditation: CustomMeditation?
+    @State private var editingPoem: CustomPoem?
     @AppStorage("showMeditationText") private var showMeditationText: Bool = false
-    
+
     var body: some View {
         VStack(spacing: 0) {
-            if manager.meditations.isEmpty {
+            if manager.poems.isEmpty {
                 emptyStateView
             } else {
-                meditationList
+                poemList
             }
         }
         .toolbar {
@@ -25,67 +25,71 @@ struct CustomMeditationListView: View {
                     } label: {
                         Image(systemName: "captions.bubble.fill")
                             .font(.title3)
-                            .foregroundColor(showMeditationText ? Color(hex: 0x64B5F6) : Color(hex: 0x757575))
+                            .foregroundColor(showMeditationText ? Color.purple : Color(hex: 0x757575))
                     }
 
                     // Add Button
                     if manager.canAddMore {
                         Button {
-                            editingMeditation = CustomMeditation(title: "", text: "")
+                            editingPoem = CustomPoem(title: "", text: "")
                         } label: {
                             Image(systemName: "plus.circle.fill")
                                 .font(.title3)
+                                .foregroundColor(.purple)
                         }
                     }
                 }
             }
         }
-        .sheet(item: $editingMeditation) { meditation in
-            CustomMeditationEditorView(
+        .sheet(item: $editingPoem) { poem in
+            CustomPoemEditorView(
                 manager: manager,
-                meditation: meditation,
-                isPresented: $editingMeditation
+                poem: poem,
+                isPresented: Binding(
+                    get: { editingPoem != nil },
+                    set: { if !$0 { editingPoem = nil } }
+                )
             )
         }
     }
-    
+
     private var emptyStateView: some View {
         VStack(spacing: 20) {
-            Image(systemName: "text.quote")
+            Image(systemName: "theatermasks")
                 .font(.system(size: 60))
-                .foregroundColor(.gray)
-            
-            Text("No Custom Meditations")
+                .foregroundColor(.purple)
+
+            Text("No Custom Poems")
                 .font(.title2)
                 .foregroundColor(.secondary)
-            
-            Text("Create your own guided meditation with custom pauses and pacing")
+
+            Text("Create your own poems with custom pauses and pacing")
                 .font(.caption)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 40)
-            
+
             Button {
-                editingMeditation = CustomMeditation(title: "", text: "")
+                editingPoem = CustomPoem(title: "", text: "")
             } label: {
-                Label("Create First Meditation", systemImage: "plus.circle.fill")
+                Label("Create First Poem", systemImage: "plus.circle.fill")
                     .font(.headline)
                     .foregroundColor(.white)
                     .padding()
-                    .background(Color.blue)
+                    .background(Color.purple)
                     .cornerRadius(10)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
-    
-    private var meditationList: some View {
+
+    private var poemList: some View {
         List {
             // Play Random button at the top
-            if manager.meditations.count > 1 {
+            if manager.poems.count > 1 {
                 Button {
-                    if let randomMeditation = manager.meditations.randomElement() {
-                        onPlay(randomMeditation.text)
+                    if let randomPoem = manager.poems.randomElement() {
+                        onPlay(randomPoem.text)
                         isPresented = false
                     }
                 } label: {
@@ -93,7 +97,7 @@ struct CustomMeditationListView: View {
                         Image(systemName: "shuffle.circle.fill")
                             .font(.title2)
                             .foregroundColor(.purple)
-                        Text("Play Random Meditation")
+                        Text("Play Random Poem")
                             .font(.headline)
                             .foregroundColor(.primary)
                         Spacer()
@@ -103,36 +107,36 @@ struct CustomMeditationListView: View {
                 .listRowBackground(Color.purple.opacity(0.1))
             }
 
-            ForEach(manager.meditations) { meditation in
-                MeditationRowView(
-                    meditation: meditation,
+            ForEach(manager.poems) { poem in
+                PoemRowView(
+                    poem: poem,
                     onPlay: {
-                        onPlay(meditation.text)
+                        onPlay(poem.text)
                         isPresented = false
                     },
                     onEdit: {
-                        editingMeditation = meditation
+                        editingPoem = poem
                     },
                     onDuplicate: {
-                        manager.duplicateMeditation(meditation)
+                        manager.duplicatePoem(poem)
                     }
                 )
             }
             .onDelete { indexSet in
                 indexSet.forEach { index in
-                    manager.deleteMeditation(manager.meditations[index])
+                    manager.deletePoem(manager.poems[index])
                 }
             }
-            
+
             if manager.canAddMore {
                 Button {
-                    editingMeditation = CustomMeditation(title: "", text: "")
+                    editingPoem = CustomPoem(title: "", text: "")
                 } label: {
-                    Label("Add New Meditation", systemImage: "plus.circle")
-                        .foregroundColor(.blue)
+                    Label("Add New Poem", systemImage: "plus.circle")
+                        .foregroundColor(.purple)
                 }
             } else {
-                Text("Maximum \(manager.meditations.count) meditations reached")
+                Text("Maximum \(manager.poems.count) poems reached")
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .listRowBackground(Color.clear)
@@ -141,37 +145,37 @@ struct CustomMeditationListView: View {
     }
 }
 
-struct MeditationRowView: View {
-    let meditation: CustomMeditation
+struct PoemRowView: View {
+    let poem: CustomPoem
     let onPlay: () -> Void
     let onEdit: () -> Void
     let onDuplicate: () -> Void
-    
+
     var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
-                Text(meditation.title.isEmpty ? "Untitled" : meditation.title)
+                Text(poem.title.isEmpty ? "Untitled" : poem.title)
                     .font(.headline)
-                
-                Text(meditation.text.prefix(60) + (meditation.text.count > 60 ? "..." : ""))
+
+                Text(poem.text.prefix(60) + (poem.text.count > 60 ? "..." : ""))
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .lineLimit(2)
             }
-            
+
             Spacer()
-            
+
             Button(action: onDuplicate) {
                 Image(systemName: "doc.on.doc.fill")
                     .font(.title3)
-                    .foregroundColor(.blue)
+                    .foregroundColor(.purple)
             }
             .buttonStyle(PlainButtonStyle())
-            
+
             Button(action: onPlay) {
                 Image(systemName: "play.circle.fill")
                     .font(.title2)
-                    .foregroundColor(.green)
+                    .foregroundColor(.purple)
             }
             .buttonStyle(PlainButtonStyle())
         }

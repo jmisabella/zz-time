@@ -5,52 +5,39 @@ struct MeditationTextDisplay: View {
     let previousPhrase: String
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Spacer()
+        // Only show the caption box if there's text to display
+        if !currentPhrase.isEmpty || !previousPhrase.isEmpty {
+            ZStack {
+                // Semi-transparent dark rounded rectangle
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color.black.opacity(0.55))
 
-            // Gradient overlay container
-            ZStack(alignment: .bottom) {
-                // Semi-transparent gradient overlay
-                LinearGradient(
-                    gradient: Gradient(stops: [
-                        .init(color: Color.black.opacity(0), location: 0),
-                        .init(color: Color.black.opacity(0.4), location: 0.5),
-                        .init(color: Color.black.opacity(0.7), location: 1.0)
-                    ]),
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .frame(height: 200)
-
-                // Text content
-                VStack(alignment: .leading, spacing: 8) {
-                    // Previous phrase (faded)
+                VStack(spacing: 8) {
+                    // Previous phrase (centered, faded)
                     if !previousPhrase.isEmpty {
                         Text(previousPhrase)
                             .font(.system(size: 16, weight: .regular))
                             .foregroundColor(.white.opacity(0.4))
-                            .multilineTextAlignment(.leading)
+                            .multilineTextAlignment(.center)
                             .lineLimit(2)
                             .transition(.opacity.combined(with: .move(edge: .bottom)))
                     }
 
-                    // Current phrase (fully visible)
+                    // Current phrase (centered, full brightness)
                     if !currentPhrase.isEmpty {
                         Text(currentPhrase)
                             .font(.system(size: 18, weight: .medium))
                             .foregroundColor(.white)
-                            .multilineTextAlignment(.leading)
+                            .multilineTextAlignment(.center)
                             .lineLimit(2)
                             .transition(.opacity.combined(with: .move(edge: .bottom)))
                     }
                 }
-                .padding(.horizontal, 24)
-                .padding(.vertical, 16)
-                .padding(.bottom, 80)  // Move text higher to clear buttons
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(16) // Internal padding
             }
+            .fixedSize(horizontal: false, vertical: true) // Wrap to content height
+            .padding(.horizontal, 24) // Margins from screen edges
         }
-        .ignoresSafeArea()
     }
 }
 
