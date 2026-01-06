@@ -749,6 +749,7 @@ class TextToSpeechManager: ObservableObject {
                 queuedUtteranceCount = 0
                 currentPhrase = ""
                 previousPhrase = ""
+                phraseHistory = []
 
                 // Mark that a meditation completed successfully (for wake-up greeting feature)
                 UserDefaults.standard.set(true, forKey: "contentCompletedSuccessfully")

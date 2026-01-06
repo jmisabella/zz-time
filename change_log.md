@@ -1,5 +1,47 @@
 # Problems and Solutions
 
+## 2026-01-05 16:45: Fixed Closed Caption Box Not Disappearing After Meditation/Poem Completion ✅
+
+### **The Problem**
+After implementing the scrollable closed caption feature (2026-01-03), a regression bug was introduced: the closed caption box no longer disappeared when meditations or poems finished playing. The box would remain visible on screen even though narration had completed.
+
+### **Root Cause**
+The new `ScrollableMeditationTextDisplay` component checks if `phraseHistory` is empty to determine whether to show the closed caption box:
+
+```swift
+if !phraseHistory.isEmpty || !currentPhrase.isEmpty {
+```
+
+However, when meditation/poem completion occurred in `TextToSpeechManager.swift`, the code cleared `currentPhrase` and `previousPhrase` but forgot to clear `phraseHistory`. This left the history populated, causing the box to remain visible.
+
+The original `MeditationTextDisplay` component only checked `currentPhrase` and `previousPhrase`:
+```swift
+if !currentPhrase.isEmpty || !previousPhrase.isEmpty {
+```
+
+So it worked correctly before the scrollable feature was added.
+
+### **The Solution**
+Added `phraseHistory = []` to the completion handler in `TextToSpeechManager.swift` at line 752, inside the `didFinishSpeaking()` method when `queuedUtteranceCount <= 0`.
+
+This ensures that when a meditation or poem completes naturally, all three caption-related properties are cleared:
+- `currentPhrase = ""`
+- `previousPhrase = ""`
+- `phraseHistory = []`
+
+This matches the existing behavior when starting a new meditation (line 341) or manually stopping (line 627), maintaining consistency throughout the codebase.
+
+### **Files Modified**
+- `TextToSpeechManager.swift` - Added `phraseHistory = []` at line 752 in completion handler
+
+### **Result**
+✅ Closed caption box now properly disappears when meditation/poem finishes
+✅ Scrollable caption history feature continues to work during playback
+✅ Consistent state clearing across start, stop, and completion events
+✅ Build verified successful with no errors
+
+---
+
 ## 2026-01-03 17:30: Added Scrollable Closed Caption History ✅
 
 ### **Feature Request**
