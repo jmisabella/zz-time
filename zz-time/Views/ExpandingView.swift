@@ -422,9 +422,9 @@ struct ExpandingView: View {
             // This allows the theater masks button to randomly select from ALL poems (presets + customs)
             ttsManager.customPoemManager = poemManager
 
-            // Restore last session (meditation or poetry mode)
-            ttsManager.restoreLastSession()
-            
+            // Do NOT auto-restore poetry/meditation mode when entering a room
+            // User must explicitly activate it via the buttons
+
             dimMode = .duration(defaultDimDurationSeconds)
             if case .duration(let seconds) = dimMode {
                 flashOverlayOpacity = 0

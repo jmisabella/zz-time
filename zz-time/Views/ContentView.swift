@@ -277,6 +277,11 @@ struct ContentView: View {
                 fadeOutAlarm() // Ensure alarm is stopped and cleaned up
                 stopTimer?.invalidate() // Invalidate stopTimer to prevent it from triggering startAlarm
                 stopTimer = nil
+
+                // Reset poetry/meditation mode when exiting a room
+                ttsManager.currentContentMode = .off
+                UserDefaults.standard.removeObject(forKey: "lastContentMode")
+                UserDefaults.standard.removeObject(forKey: "contentMode")
             } else if let new = newValue {
                 let selectedIndex = new.id
                 fadeOutCurrent {
