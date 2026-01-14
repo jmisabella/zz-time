@@ -195,7 +195,7 @@ class TextToSpeechManager: ObservableObject {
     }
     
     func getRandomMeditation() -> String? {
-        // Build pool of all available meditations (presets + customs)
+        // Build pool of all available preset meditations
         var allMeditations: [(text: String, source: String)] = []
 
         // Add all preset meditation files (check up to 100 to future-proof)
@@ -203,13 +203,6 @@ class TextToSpeechManager: ObservableObject {
             if let url = Bundle.main.url(forResource: "preset_meditation\(i)", withExtension: "txt"),
                let text = try? String(contentsOf: url, encoding: .utf8) {
                 allMeditations.append((text.trimmingCharacters(in: .whitespacesAndNewlines), "preset \(i)"))
-            }
-        }
-
-        // Add all custom meditations
-        if let customManager = customMeditationManager {
-            for meditation in customManager.meditations {
-                allMeditations.append((meditation.text, "custom: \(meditation.title)"))
             }
         }
 
@@ -223,7 +216,7 @@ class TextToSpeechManager: ObservableObject {
     }
 
     func getRandomPoem() -> String? {
-        // Build pool of all available poems (presets + customs)
+        // Build pool of all available preset poems
         var allPoems: [(text: String, source: String)] = []
 
         // Add all preset poem files (check up to 100 to future-proof)
@@ -232,13 +225,6 @@ class TextToSpeechManager: ObservableObject {
                let text = try? String(contentsOf: url, encoding: .utf8) {
                 let trimmedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
                 allPoems.append((trimmedText, "preset \(i)"))
-            }
-        }
-
-        // Add all custom poems
-        if let customManager = customPoemManager {
-            for poem in customManager.poems {
-                allPoems.append((poem.text, "custom: \(poem.title)"))
             }
         }
 
@@ -331,14 +317,11 @@ class TextToSpeechManager: ObservableObject {
         // Clear any previous meditation completion flag
         UserDefaults.standard.removeObject(forKey: "contentCompletedSuccessfully")
 
-        // Remove question marks to prevent voice inflection changes
-        let textWithoutQuestions = text.replacingOccurrences(of: "?", with: "")
-
         // Check if text has any pause markers
-        let hasPauseMarkers = textWithoutQuestions.range(of: #"\(\d+(?:\.\d+)?[sm]\)"#, options: .regularExpression) != nil
+        let hasPauseMarkers = text.range(of: #"\(\d+(?:\.\d+)?[sm]\)"#, options: .regularExpression) != nil
 
         // If no pause markers found, add automatic ones
-        let processedText = hasPauseMarkers ? textWithoutQuestions : addAutomaticPauses(to: textWithoutQuestions)
+        let processedText = hasPauseMarkers ? text : addAutomaticPauses(to: text)
 
         // Split by both newlines and pause markers
         let phrases = extractPhrasesWithPauses(from: processedText)

@@ -1,5 +1,50 @@
 # Problems and Solutions
 
+## 2026-01-13 23:00: Restored Question Mark Pronunciation in TTS for Stories ✅
+
+### **The Problem**
+Question marks were stripped from TTS text, causing questions to be spoken without rising intonation, which sounded unnatural for story content.
+
+### **Root Cause**
+Question marks were intentionally removed to prevent voice inflection changes in meditative content.
+
+### **The Solution**
+Removed the code that replaces question marks with empty strings, preserving them for proper pronunciation.
+
+### **Files Modified**
+- `TextToSpeechManager.swift` - Removed question mark replacement in startSpeakingWithPauses function
+
+### **Result**
+✅ Questions are now pronounced with correct rising intonation
+✅ Closed captions display question marks visually
+✅ TTS sounds more natural for narrative content
+✅ Build verified successful with no errors
+
+---
+
+## 2026-01-13 23:30: Limited Leaf and Poetry Buttons to Preset Content Only ✅
+
+### **The Problem**
+The Leaf (meditation) and Poetry buttons randomly selected from both preset and custom content, but for the app's focus on presets, they should only play presets.
+
+### **Root Cause**
+The random selection functions included custom content when managers were available.
+
+### **The Solution**
+Modified getRandomMeditation and getRandomPoem to only include preset content, removing custom additions.
+
+### **Files Modified**
+- `TextToSpeechManager.swift` - Removed custom content inclusion in getRandomMeditation and getRandomPoem
+- `ExpandingView.swift` - Updated comments to reflect preset-only selection
+
+### **Result**
+✅ Leaf and Poetry buttons now only play from presets
+✅ Custom content remains accessible via dedicated list views
+✅ Ensures consistent experience focused on curated presets
+✅ Build verified successful with no errors
+
+---
+
 ## 2026-01-13 12:00: Reverted TTS Sentence Pauses - Too Artificial ✅
 
 ### **The Problem**

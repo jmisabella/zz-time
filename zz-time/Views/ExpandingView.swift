@@ -415,11 +415,11 @@ struct ExpandingView: View {
             ttsManager.updateVolumesFromBalance()
 
             // Connect the custom meditation manager to the TTS manager
-            // This allows the leaf button to randomly select from ALL meditations (presets + customs)
+            // This allows the leaf button to randomly select from preset meditations
             ttsManager.customMeditationManager = meditationManager
 
             // Connect the custom poem manager to the TTS manager
-            // This allows the theater masks button to randomly select from ALL poems (presets + customs)
+            // This allows the theater masks button to randomly select from preset poems
             ttsManager.customPoemManager = poemManager
 
             // Do NOT auto-restore poetry/meditation mode when entering a room
