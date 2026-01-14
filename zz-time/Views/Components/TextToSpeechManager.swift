@@ -277,7 +277,7 @@ class TextToSpeechManager: ObservableObject {
         synthesizer.speak(utterance)
     }
     
-    /// Automatically adds pauses to text: 2s after sentences, 4s after paragraphs
+    /// Automatically adds pauses to text: 2s after paragraphs
     private func addAutomaticPauses(to text: String) -> String {
         var result = ""
         let paragraphs = text.components(separatedBy: .newlines)
@@ -291,26 +291,12 @@ class TextToSpeechManager: ObservableObject {
                 continue
             }
             
-            // Split into sentences (roughly)
-            let sentences = trimmed.components(separatedBy: CharacterSet(charactersIn: ".!?"))
+            // Add the paragraph as-is (no sentence splitting or pauses)
+            result += trimmed + "\n"
             
-            for sentence in sentences {
-                let trimmedSentence = sentence.trimmingCharacters(in: .whitespacesAndNewlines)
-                guard !trimmedSentence.isEmpty else { continue }
-                
-                // Check if this sentence already has a pause marker
-                if trimmedSentence.range(of: #"\(\d+(?:\.\d+)?s\)\s*$"#, options: .regularExpression) == nil {
-                    // No pause found, add automatic 2s pause
-                    result += trimmedSentence + " (2s)\n"
-                } else {
-                    // Already has a pause, keep it
-                    result += trimmedSentence + "\n"
-                }
-            }
-            
-            // Add longer pause between paragraphs (except after the last one)
+            // Add pause between paragraphs (except after the last one)
             if index < paragraphs.count - 1 {
-                result += "(4s)\n"
+                result += "(2s)\n"
             }
         }
         

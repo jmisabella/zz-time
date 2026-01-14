@@ -1,5 +1,70 @@
 # Problems and Solutions
 
+## 2026-01-13 12:00: Reverted TTS Sentence Pauses - Too Artificial ✅
+
+### **The Problem**
+The 0.5-second pauses after sentences made TTS speech sound artificial and overly segmented.
+
+### **Root Cause**
+Sentence-level pauses created unnatural breaks that disrupted the natural flow of speech.
+
+### **The Solution**
+Reverted to the previous state with no automatic pauses after sentences, keeping only 2-second pauses between paragraphs.
+
+### **Files Modified**
+- `TextToSpeechManager.swift` - Reverted `addAutomaticPauses` function to remove sentence pauses
+
+### **Result**
+✅ TTS flows more naturally without sentence interruptions
+✅ Maintains 2-second paragraph breaks for structural pauses
+✅ Build verified successful with no errors
+
+---
+
+## 2026-01-13 11:00: Refined TTS Pauses for Better Sentence Flow ✅
+
+### **The Problem**
+After removing sentence pauses, TTS speech felt too rushed with sentences running together, lacking natural breaks after periods.
+
+### **Root Cause**
+The previous change eliminated all automatic pauses after sentences, but brief pauses are necessary for comprehensible speech flow in stories.
+
+### **The Solution**
+Reintroduced sentence splitting with shorter 0.5-second pauses after each sentence, while maintaining 2-second pauses between paragraphs.
+
+### **Files Modified**
+- `TextToSpeechManager.swift` - Updated `addAutomaticPauses` function to add 0.5s pauses after sentences and 2s between paragraphs
+
+### **Result**
+✅ TTS now provides natural sentence breaks without excessive delays
+✅ Paragraph pauses remain at optimal 2 seconds
+✅ Improved comprehension for story-like content
+✅ Build verified successful with no errors
+
+---
+
+## 2026-01-13 10:00: Improved TTS Naturalness by Reducing Automatic Pauses ✅
+
+### **The Problem**
+TTS functionality paused for 1 second after every period when reading preset meditation text files, making listening to stories difficult and unnatural.
+
+### **Root Cause**
+The `addAutomaticPauses` function in `TextToSpeechManager.swift` split text into sentences and added 2-second pauses after each period, exclamation, or question mark, plus 4-second pauses between paragraphs.
+
+### **The Solution**
+Modified `addAutomaticPauses` to remove sentence-level splitting and pauses, keeping only 2-second pauses between paragraphs for better narrative flow.
+
+### **Files Modified**
+- `TextToSpeechManager.swift` - Updated `addAutomaticPauses` function to eliminate sentence pauses and reduce paragraph pauses from 4s to 2s
+
+### **Result**
+✅ TTS now sounds more natural for story reading
+✅ Preserves paragraph breaks for structural pauses
+✅ Custom meditations with explicit pause markers remain unaffected
+✅ Build verified successful with no errors
+
+---
+
 ## 2026-01-05 16:45: Fixed Closed Caption Box Not Disappearing After Meditation/Poem Completion ✅
 
 ### **The Problem**
