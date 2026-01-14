@@ -1,5 +1,52 @@
 # Problems and Solutions
 
+## 2026-01-13 23:45: Improved Skip Button Positioning and Size in Story Mode ✅
+
+### **The Problem**
+The skip back/forward buttons (< >) for story chapter navigation were poorly positioned (left button centered, vertically in middle of screen) and too large, looking unprofessional.
+
+### **Root Cause**
+The HStack layout used Spacers with individual button paddings that pushed buttons away from screen edges, and large padding made buttons oversized.
+
+### **The Solution**
+Repositioned buttons immediately below the closed caption box, fixed layout to place them on screen edges, and reduced size for better aesthetics.
+
+### **Files Modified**
+- `ExpandingView.swift` - Changed HStack layout from Spacer/Button/Spacer/Button/Spacer to Button/Spacer/Button with horizontal padding, reduced font size from .title to .title2, reduced padding from 20 to 10, adjusted bottom padding from 200 to 120
+
+### **Result**
+✅ Skip buttons now positioned below closed captions
+✅ Left button on left screen edge, right button on right edge
+✅ Buttons are smaller and less obtrusive
+✅ Improved visual balance and professionalism
+✅ Build verified successful with no errors
+
+---
+
+## 2026-01-13 22:00: Repurposed Leaf Button for Sequential Story Chapters ✅
+
+### **The Problem**
+The Leaf button randomly played preset meditation files, but the app is being repurposed for story mode where chapters should play sequentially starting from chapter 1, with progress tracking and skip controls.
+
+### **Root Cause**
+Original implementation used random selection from all preset meditation files without tracking progress or providing navigation controls.
+
+### **The Solution**
+Modified the Leaf button functionality to play preset meditations (now story chapters) sequentially, added persistent progress tracking, and implemented skip back/forward controls that appear only when Leaf mode is active.
+
+### **Files Modified**
+- `TextToSpeechManager.swift` - Added currentChapterIndex with UserDefaults persistence, replaced getRandomMeditation with getSequentialMeditation, added skipToNextChapter/skipToPreviousChapter methods, updated didFinishSpeaking to auto-advance chapters
+- `ExpandingView.swift` - Updated calls to use getSequentialMeditation, added conditional < > skip buttons on left/right sides when Leaf mode active
+
+### **Result**
+✅ Leaf button now plays story chapters sequentially starting from chapter 1
+✅ Progress persists across sessions
+✅ Skip controls (< >) appear only in Leaf mode for navigation
+✅ Auto-advances to next chapter after completion
+✅ Build verified successful with no errors
+
+---
+
 ## 2026-01-13 23:00: Restored Question Mark Pronunciation in TTS for Stories ✅
 
 ### **The Problem**

@@ -49,6 +49,39 @@ This document summarizes the changes made to the iOS version of the zz-time app 
 
 **Result:** Leaf and Poetry buttons now provide a consistent, curated experience with only preset content.
 
+### 4. Sequential Story Chapter Playback for Leaf Button
+**Problem:** The Leaf button randomly selected preset meditations, but for story mode, it should play chapters sequentially with progress tracking and navigation controls.
+
+**Changes:**
+- Replaced random selection with sequential playback starting from chapter 1 (preset_meditation1.txt).
+- Added persistent progress tracking using UserDefaults to remember current chapter across sessions.
+- Implemented skip back/forward controls (< > triangles) that appear on screen sides only when Leaf mode is active.
+- Auto-advances to next chapter after completing a session.
+
+**Implementation Details:**
+- Added `currentChapterIndex` property with `@AppStorage` persistence in `TextToSpeechManager.swift`
+- Replaced `getRandomMeditation()` with `getSequentialMeditation()` to load current chapter
+- Added `skipToNextChapter()` and `skipToPreviousChapter()` methods with bounds checking
+- Updated `didFinishSpeaking()` to auto-advance chapters on completion
+- Added conditional UI elements in `ExpandingView.swift` for skip controls
+
+**Result:** Users can now experience stories as sequential chapters with full navigation, progress persistence, and intuitive controls.
+
+### 5. Improved Skip Button UI Positioning and Size
+**Problem:** The skip back/forward buttons for story navigation were poorly positioned (left button appeared centered, buttons vertically centered on screen) and oversized, creating a bad visual experience.
+
+**Changes:**
+- Repositioned buttons immediately below the closed caption box instead of above main buttons.
+- Fixed layout to place left button on left screen edge, right button on right edge.
+- Reduced button size by changing font from .title to .title2 and padding from 20 to 10.
+
+**Implementation Details:**
+- Modified `ExpandingView.swift` HStack layout from Spacer/Button/Spacer/Button/Spacer to Button/Spacer/Button with .padding(.horizontal, 20)
+- Adjusted .padding(.bottom) from 200 to 120 to position below captions
+- Reduced button styling for smaller appearance
+
+**Result:** Skip buttons are now properly positioned, smaller, and visually balanced. (Note: This is iOS-specific UI; Android may need equivalent layout adjustments for similar controls.)
+
 ## Files Modified
 - `TextToSpeechManager.swift`: Core TTS processing changes
 - `ExpandingView.swift`: Comments updated for content selection

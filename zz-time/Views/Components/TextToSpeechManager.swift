@@ -65,6 +65,9 @@ class TextToSpeechManager: ObservableObject {
     @Published var phraseHistory: [String] = []  // Full history of all spoken phrases
     @Published var hasNewCaptionContent: Bool = false  // Indicates new content while user is scrolled up
 
+    // Current chapter index for sequential story playback
+    @AppStorage("currentChapterIndex") private var currentChapterIndex: Int = 1
+
 
     var synthesizer = AVSpeechSynthesizer()  // Internal access for pause/resume from VoiceSettingsView
     private var speechDelegate: SpeechDelegate
@@ -194,25 +197,49 @@ class TextToSpeechManager: ObservableObject {
         synthesizer.speak(utterance)
     }
     
-    func getRandomMeditation() -> String? {
-        // Build pool of all available preset meditations
-        var allMeditations: [(text: String, source: String)] = []
+    func getSequentialMeditation() -> String? {
+        // Load the current chapter
+        if let url = Bundle.main.url(forResource: "preset_meditation\(currentChapterIndex)", withExtension: "txt"),
+           let text = try? String(contentsOf: url, encoding: .utf8) {
+            return text.trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        return nil
+    }
 
-        // Add all preset meditation files (check up to 100 to future-proof)
-        for i in 1...100 {
-            if let url = Bundle.main.url(forResource: "preset_meditation\(i)", withExtension: "txt"),
-               let text = try? String(contentsOf: url, encoding: .utf8) {
-                allMeditations.append((text.trimmingCharacters(in: .whitespacesAndNewlines), "preset \(i)"))
+    func skipToNextChapter(startIfPlaying: Bool = true) {
+        // Increment chapter index, but don't go beyond available files
+        var nextIndex = currentChapterIndex + 1
+        while nextIndex <= 100 {
+            if Bundle.main.url(forResource: "preset_meditation\(nextIndex)", withExtension: "txt") != nil {
+                currentChapterIndex = nextIndex
+                break
+            }
+            nextIndex += 1
+        }
+        // If playing and requested, start the new chapter
+        if startIfPlaying && isPlayingMeditation {
+            if let text = getSequentialMeditation() {
+                Task {
+                    await stopSpeaking()
+                    startSpeakingWithPauses(text)
+                }
             }
         }
+    }
 
-        guard !allMeditations.isEmpty else {
-            return nil
+    func skipToPreviousChapter(startIfPlaying: Bool = true) {
+        if currentChapterIndex > 1 {
+            currentChapterIndex -= 1
+            // If playing and requested, start the new chapter
+            if startIfPlaying && isPlayingMeditation {
+                if let text = getSequentialMeditation() {
+                    Task {
+                        await stopSpeaking()
+                        startSpeakingWithPauses(text)
+                    }
+                }
+            }
         }
-
-        // Randomly select one meditation from the pool (repeats allowed)
-        let selected = allMeditations.randomElement()!
-        return selected.text
     }
 
     func getRandomPoem() -> String? {
@@ -628,7 +655,7 @@ class TextToSpeechManager: ObservableObject {
         // Auto-start content based on mode
         switch mode {
         case .meditation:
-            if let text = getRandomMeditation() {
+            if let text = getSequentialMeditation() {
                 startSpeakingWithPauses(text)
             }
         case .poetry:
@@ -722,6 +749,9 @@ class TextToSpeechManager: ObservableObject {
 
                 // Mark that a meditation completed successfully (for wake-up greeting feature)
                 UserDefaults.standard.set(true, forKey: "contentCompletedSuccessfully")
+
+                // Advance to next chapter for sequential story playback
+                skipToNextChapter(startIfPlaying: false)
             }
             return
         }

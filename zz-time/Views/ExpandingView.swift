@@ -91,7 +91,7 @@ struct ExpandingView: View {
         let nextText: String?
         switch nextMode {
         case .meditation:
-            nextText = ttsManager.getRandomMeditation()
+            nextText = ttsManager.getSequentialMeditation()
         case .poetry:
             nextText = ttsManager.getRandomPoem()
             print("🎭 Poetry mode - got poem text: \(nextText != nil)")
@@ -293,7 +293,7 @@ struct ExpandingView: View {
 
                                 switch ttsManager.currentContentMode {
                                 case .meditation:
-                                    guard let text = ttsManager.getRandomMeditation() else { return }
+                                    guard let text = ttsManager.getSequentialMeditation() else { return }
                                     ttsManager.startSpeakingWithPauses(text)
                                 case .poetry:
                                     guard let text = ttsManager.getRandomPoem() else { return }
@@ -379,6 +379,37 @@ struct ExpandingView: View {
                     .transition(.opacity.combined(with: .move(edge: .bottom)))
                 }
                 .allowsHitTesting(true)  // Allow scrolling in the caption area
+            }
+
+            // Skip buttons for story mode (only when meditation/Leaf mode is active)
+            if ttsManager.currentContentMode == .meditation {
+                HStack(spacing: 0) {
+                    Button {
+                        ttsManager.skipToPreviousChapter()
+                    } label: {
+                        Image(systemName: "chevron.left")
+                            .font(.title2)
+                            .foregroundColor(.white.opacity(0.7))
+                            .padding(10)
+                            .background(Circle().fill(Color.black.opacity(0.5)))
+                    }
+                    .contentShape(Circle())
+                    
+                    Spacer()
+                    
+                    Button {
+                        ttsManager.skipToNextChapter()
+                    } label: {
+                        Image(systemName: "chevron.right")
+                            .font(.title2)
+                            .foregroundColor(.white.opacity(0.7))
+                            .padding(10)
+                            .background(Circle().fill(Color.black.opacity(0.5)))
+                    }
+                    .contentShape(Circle())
+                }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 120) // Position below closed caption box
             }
         }
         .gesture(
