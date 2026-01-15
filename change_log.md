@@ -1,5 +1,34 @@
 # Problems and Solutions
 
+## 2026-01-14 00:30: Chapter Navigation Wrapping and Portrait Mode Button Positioning ✅
+
+### **The Problem**
+When users reached the last chapter and clicked the right button, nothing happened (couldn't wrap to first chapter). Similarly, clicking left on the first chapter didn't wrap to the last. Additionally, in portrait mode the skip buttons appeared too high on the screen (almost halfway up), while they were correctly positioned in landscape mode.
+
+### **Root Cause**
+- `skipToNextChapter()` function stopped searching when no next chapter was found, without wrapping back to chapter 1
+- `skipToPreviousChapter()` only decremented the index, with no logic to wrap to the last chapter when at the first
+- Skip buttons HStack was positioned absolutely with bottom padding, but not anchored to the bottom of the screen, causing different positioning in portrait vs landscape
+
+### **The Solution**
+Updated chapter navigation to implement circular wrapping behavior, and wrapped skip buttons in a VStack with Spacer() to anchor them to the bottom in all orientations.
+
+### **Files Modified**
+- `TextToSpeechManager.swift` (lines 209-262):
+  - Modified `skipToNextChapter()` to search for next available chapter, and if none found (reached end), wrap back to chapter 1
+  - Modified `skipToPreviousChapter()` to scan all files (1-100) to find the last available chapter when at chapter 1, then jump to it
+- `ExpandingView.swift` (lines 384-416):
+  - Wrapped skip buttons HStack in VStack with Spacer() to push buttons to bottom of screen
+  - Maintains 120pt bottom padding for consistent positioning near closed captions in all orientations
+
+### **Result**
+✅ Right button on last chapter now wraps to first chapter (preset_meditation1.txt)
+✅ Left button on first chapter now wraps to last chapter (preset_meditation8.txt)
+✅ Skip buttons correctly positioned near closed captions in both portrait and landscape modes
+✅ Circular navigation allows seamless browsing through all story chapters
+
+---
+
 ## 2026-01-13 23:45: Improved Skip Button Positioning and Size in Story Mode ✅
 
 ### **The Problem**

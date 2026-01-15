@@ -207,15 +207,24 @@ class TextToSpeechManager: ObservableObject {
     }
 
     func skipToNextChapter(startIfPlaying: Bool = true) {
-        // Increment chapter index, but don't go beyond available files
+        // Find the next available chapter file
         var nextIndex = currentChapterIndex + 1
+        var found = false
+
         while nextIndex <= 100 {
             if Bundle.main.url(forResource: "preset_meditation\(nextIndex)", withExtension: "txt") != nil {
                 currentChapterIndex = nextIndex
+                found = true
                 break
             }
             nextIndex += 1
         }
+
+        // If we reached the end, wrap back to chapter 1
+        if !found {
+            currentChapterIndex = 1
+        }
+
         // If playing and requested, start the new chapter
         if startIfPlaying && isPlayingMeditation {
             if let text = getSequentialMeditation() {
@@ -230,13 +239,23 @@ class TextToSpeechManager: ObservableObject {
     func skipToPreviousChapter(startIfPlaying: Bool = true) {
         if currentChapterIndex > 1 {
             currentChapterIndex -= 1
-            // If playing and requested, start the new chapter
-            if startIfPlaying && isPlayingMeditation {
-                if let text = getSequentialMeditation() {
-                    Task {
-                        await stopSpeaking()
-                        startSpeakingWithPauses(text)
-                    }
+        } else {
+            // If at first chapter, wrap to the last available chapter
+            var lastIndex = 1
+            for i in 1...100 {
+                if Bundle.main.url(forResource: "preset_meditation\(i)", withExtension: "txt") != nil {
+                    lastIndex = i
+                }
+            }
+            currentChapterIndex = lastIndex
+        }
+
+        // If playing and requested, start the new chapter
+        if startIfPlaying && isPlayingMeditation {
+            if let text = getSequentialMeditation() {
+                Task {
+                    await stopSpeaking()
+                    startSpeakingWithPauses(text)
                 }
             }
         }

@@ -383,33 +383,36 @@ struct ExpandingView: View {
 
             // Skip buttons for story mode (only when meditation/Leaf mode is active)
             if ttsManager.currentContentMode == .meditation {
-                HStack(spacing: 0) {
-                    Button {
-                        ttsManager.skipToPreviousChapter()
-                    } label: {
-                        Image(systemName: "chevron.left")
-                            .font(.title2)
-                            .foregroundColor(.white.opacity(0.7))
-                            .padding(10)
-                            .background(Circle().fill(Color.black.opacity(0.5)))
-                    }
-                    .contentShape(Circle())
-                    
+                VStack {
                     Spacer()
-                    
-                    Button {
-                        ttsManager.skipToNextChapter()
-                    } label: {
-                        Image(systemName: "chevron.right")
-                            .font(.title2)
-                            .foregroundColor(.white.opacity(0.7))
-                            .padding(10)
-                            .background(Circle().fill(Color.black.opacity(0.5)))
+                    HStack(spacing: 0) {
+                        Button {
+                            ttsManager.skipToPreviousChapter()
+                        } label: {
+                            Image(systemName: "chevron.left")
+                                .font(.title2)
+                                .foregroundColor(.white.opacity(0.7))
+                                .padding(10)
+                                .background(Circle().fill(Color.black.opacity(0.5)))
+                        }
+                        .contentShape(Circle())
+
+                        Spacer()
+
+                        Button {
+                            ttsManager.skipToNextChapter()
+                        } label: {
+                            Image(systemName: "chevron.right")
+                                .font(.title2)
+                                .foregroundColor(.white.opacity(0.7))
+                                .padding(10)
+                                .background(Circle().fill(Color.black.opacity(0.5)))
+                        }
+                        .contentShape(Circle())
                     }
-                    .contentShape(Circle())
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 120) // Position below closed caption box
                 }
-                .padding(.horizontal, 20)
-                .padding(.bottom, 120) // Position below closed caption box
             }
         }
         .gesture(
