@@ -1,5 +1,60 @@
 # Problems and Solutions
 
+## 2026-01-15 16:45: Sentence-by-Sentence Closed Captions with Paragraph Grouping ✅
+
+### **The Problem**
+Closed captions were displaying entire paragraphs at once instead of showing the current sentence being spoken. This made them feel less like true closed captions. Additionally, when scrolling up to view historical text, all previously spoken sentences appeared as separate lines, losing the original paragraph structure.
+
+### **Root Cause**
+- The `addAutomaticPauses()` function treated each paragraph as a single phrase, adding pauses only between paragraphs, not between sentences
+- No sentence boundary detection existed - the system couldn't identify where sentences ended within paragraphs
+- Historical text display showed each phrase separately without grouping sentences back into their original paragraphs
+
+### **The Solution**
+Implemented sentence-level text parsing with paragraph boundary markers, allowing current text to display sentence-by-sentence while historical text maintains paragraph structure.
+
+### **Files Modified**
+- `TextToSpeechManager.swift`:
+  - Lines 312-352: Modified `addAutomaticPauses()` to split paragraphs into sentences using sentence boundary detection
+  - Lines 354-403: Added new `splitIntoSentences()` helper function that:
+    - Detects sentence endings (`.`, `!`, `?`)
+    - Handles common abbreviations (Dr., Mr., Mrs., Ms., vs., etc., e.g., i.e.) to avoid false splits
+    - Returns array of individual sentences
+  - Lines 312-344: Added `<<PARAGRAPH_BREAK>>` marker after last sentence of each paragraph (shortened to `<<PB>>` in storage)
+  - Lines 391-422: Updated phrase cleaning logic to:
+    - Detect and preserve paragraph break markers before cleaning
+    - Strip markers from spoken text (never spoken aloud)
+    - Tag phrases with `<<PB>>` marker in `allPhrases` array for display grouping
+  - Added 0.5s pauses between sentences within paragraphs
+  - Maintained 2s pauses between paragraphs
+
+- `ScrollableStoryTextDisplay.swift`:
+  - Lines 22-52: Modified display logic to group phrases into paragraphs using `<<PB>>` marker
+  - Lines 31-42: For current paragraph (containing current phrase), display each sentence individually with current sentence highlighted
+  - Lines 43-51: For historical paragraphs, combine all sentences into single paragraph display
+  - Lines 112-137: Added `groupIntoParagraphs()` helper function that:
+    - Iterates through phrase history
+    - Detects `<<PB>>` markers to identify paragraph boundaries
+    - Groups sentences between markers into paragraph arrays
+    - Removes markers during display (clean presentation)
+
+### **Technical Implementation Details**
+- Sentence detection uses character-by-character parsing with lookahead to check for spaces after punctuation
+- Abbreviation detection prevents splitting mid-sentence (e.g., "Dr. Smith went..." stays together)
+- Paragraph markers (`<<PARAGRAPH_BREAK>>`) added during text processing, shortened to `<<PB>>` for storage efficiency
+- Markers stripped before speech synthesis (never spoken)
+- Display component intelligently groups historical sentences while keeping current paragraph sentence-by-sentence
+
+### **Result**
+✅ Closed captions now show only the current sentence being spoken (true closed caption behavior)
+✅ Current paragraph displays individual sentences with current one highlighted
+✅ Historical text (when scrolling up) shows complete paragraphs for better readability
+✅ Natural 0.5s pauses between sentences, 2s pauses between paragraphs
+✅ Handles abbreviations correctly without splitting mid-sentence
+✅ Minimal overhead - simple string markers, no complex data structures
+
+---
+
 ## 2026-01-14 00:30: Chapter Navigation Wrapping and Portrait Mode Button Positioning ✅
 
 ### **The Problem**
