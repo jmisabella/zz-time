@@ -310,6 +310,7 @@ class TextToSpeechManager: ObservableObject {
     }
     
     /// Automatically adds pauses to text: splits into sentences and adds 0.5s between sentences, 2s between paragraphs
+    /// Uses special marker "<<PARAGRAPH_BREAK>>" to indicate paragraph boundaries for caption display
     private func addAutomaticPauses(to text: String) -> String {
         var result = ""
         let paragraphs = text.components(separatedBy: .newlines)
@@ -339,8 +340,8 @@ class TextToSpeechManager: ObservableObject {
                     // 0.5s pause between sentences within a paragraph
                     result += " (0.5s)\n"
                 } else if !isLastParagraph {
-                    // 2s pause between paragraphs
-                    result += " (2s)\n"
+                    // 2s pause between paragraphs + special marker for caption display
+                    result += " <<PARAGRAPH_BREAK>> (2s)\n"
                 } else {
                     result += "\n"
                 }
@@ -456,9 +457,18 @@ class TextToSpeechManager: ObservableObject {
         }
 
         // ULTRA-CLEAN all phrases one more time before using them
-        let ultraCleanedPhrases: [(phrase: String, delay: TimeInterval)] = cleanedPhrases.compactMap { (phrase, delay) in
-            // ULTRA-PARANOID SAFETY CHECK: Strip ALL parenthetical content
+        let ultraCleanedPhrases: [(phrase: String, delay: TimeInterval, isParagraphBreak: Bool)] = cleanedPhrases.compactMap { (phrase, delay) in
+            // Check if this phrase contains the paragraph break marker
+            let isParagraphBreak = phrase.contains("<<PARAGRAPH_BREAK>>")
+
+            // ULTRA-PARANOID SAFETY CHECK: Strip ALL parenthetical content AND paragraph markers
             var ultraCleanPhrase = phrase
+
+            // Remove paragraph break marker
+            ultraCleanPhrase = ultraCleanPhrase.replacingOccurrences(
+                of: "<<PARAGRAPH_BREAK>>",
+                with: ""
+            )
 
             // First try the specific regex
             ultraCleanPhrase = ultraCleanPhrase.replacingOccurrences(
@@ -476,7 +486,7 @@ class TextToSpeechManager: ObservableObject {
 
             ultraCleanPhrase = ultraCleanPhrase.trimmingCharacters(in: .whitespacesAndNewlines)
 
-            return ultraCleanPhrase.isEmpty ? nil : (ultraCleanPhrase, delay)
+            return ultraCleanPhrase.isEmpty ? nil : (ultraCleanPhrase, delay, isParagraphBreak)
         }
 
         // CRITICAL BUG FIX: Validate that we have content to speak before setting state
@@ -486,12 +496,15 @@ class TextToSpeechManager: ObservableObject {
             return
         }
 
-        // Store ULTRA-cleaned phrases for closed captioning (so VoiceOver doesn't read pause markers)
-        allPhrases = ultraCleanedPhrases.map { $0.phrase }
+        // Store ULTRA-cleaned phrases for closed captioning with paragraph break info
+        // Format: "PHRASE" or "PHRASE<<PB>>" where <<PB>> indicates paragraph break after this phrase
+        allPhrases = ultraCleanedPhrases.map { phrase, _, isParagraphBreak in
+            isParagraphBreak ? phrase + "<<PB>>" : phrase
+        }
 
         // Calculate total utterance count (speech + silent pause utterances)
         var totalUtteranceCount = 0
-        for (_, delay) in ultraCleanedPhrases {
+        for (_, delay, _) in ultraCleanedPhrases {
             totalUtteranceCount += 1  // Count the speech utterance
 
             // Count silent pause utterances
@@ -519,7 +532,7 @@ class TextToSpeechManager: ObservableObject {
         }
 
         // Queue ALL utterances FIRST before transitioning to playing
-        for (ultraCleanPhrase, delay) in ultraCleanedPhrases {
+        for (ultraCleanPhrase, delay, _) in ultraCleanedPhrases {
             let utterance = AVSpeechUtterance(string: ultraCleanPhrase)
             utterance.rate = AVSpeechUtteranceDefaultSpeechRate * speechRateMultiplier
             utterance.pitchMultiplier = Self.storyPitchMultiplier

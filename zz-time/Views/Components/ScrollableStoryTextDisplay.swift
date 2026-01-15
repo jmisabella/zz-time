@@ -19,16 +19,36 @@ struct ScrollableStoryTextDisplay: View {
                 ScrollViewReader { proxy in
                     ScrollView {
                         VStack(alignment: .leading, spacing: 12) {
-                            // Display all phrases in history, with the last one highlighted as current
-                            ForEach(Array(phraseHistory.enumerated()), id: \.offset) { index, phrase in
-                                let isCurrentPhrase = (index == phraseHistory.count - 1) && phrase == currentPhrase
+                            // Group phrases into paragraphs for historical display
+                            let groupedPhrases = groupIntoParagraphs(phraseHistory)
 
-                                Text(phrase)
-                                    .font(.system(size: isCurrentPhrase ? 18 : 16, weight: isCurrentPhrase ? .medium : .regular))
-                                    .foregroundColor(isCurrentPhrase ? .white : .white.opacity(0.7))
-                                    .multilineTextAlignment(.leading)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .id(index)
+                            ForEach(Array(groupedPhrases.enumerated()), id: \.offset) { groupIndex, paragraphPhrases in
+                                let isLastGroup = groupIndex == groupedPhrases.count - 1
+
+                                // Check if the current phrase is in this group
+                                let containsCurrentPhrase = isLastGroup && paragraphPhrases.last == currentPhrase
+
+                                if containsCurrentPhrase {
+                                    // For the group containing current phrase, show each sentence separately
+                                    ForEach(Array(paragraphPhrases.enumerated()), id: \.offset) { sentenceIndex, phrase in
+                                        let isCurrentSentence = phrase == currentPhrase
+
+                                        Text(phrase)
+                                            .font(.system(size: isCurrentSentence ? 18 : 16, weight: isCurrentSentence ? .medium : .regular))
+                                            .foregroundColor(isCurrentSentence ? .white : .white.opacity(0.7))
+                                            .multilineTextAlignment(.leading)
+                                            .frame(maxWidth: .infinity, alignment: .leading)
+                                            .id("group\(groupIndex)_sentence\(sentenceIndex)")
+                                    }
+                                } else {
+                                    // For historical paragraphs, combine sentences into one paragraph
+                                    Text(paragraphPhrases.joined(separator: " "))
+                                        .font(.system(size: 16, weight: .regular))
+                                        .foregroundColor(.white.opacity(0.7))
+                                        .multilineTextAlignment(.leading)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .id("group\(groupIndex)")
+                                }
                             }
 
                             // Invisible anchor at the bottom for scrolling
@@ -107,6 +127,33 @@ struct ScrollableStoryTextDisplay: View {
             .frame(height: 100) // Constrain the entire ZStack height
             .padding(.horizontal, 24)
         }
+    }
+
+    // Groups phrases into paragraphs based on the <<PB>> marker
+    private func groupIntoParagraphs(_ phrases: [String]) -> [[String]] {
+        var paragraphs: [[String]] = []
+        var currentParagraph: [String] = []
+
+        for phrase in phrases {
+            // Check if this phrase has the paragraph break marker
+            if phrase.hasSuffix("<<PB>>") {
+                // Remove the marker and add to current paragraph
+                let cleanPhrase = String(phrase.dropLast(6)) // Remove "<<PB>>"
+                currentParagraph.append(cleanPhrase)
+                // Start new paragraph
+                paragraphs.append(currentParagraph)
+                currentParagraph = []
+            } else {
+                currentParagraph.append(phrase)
+            }
+        }
+
+        // Add any remaining phrases as the final paragraph
+        if !currentParagraph.isEmpty {
+            paragraphs.append(currentParagraph)
+        }
+
+        return paragraphs
     }
 }
 
