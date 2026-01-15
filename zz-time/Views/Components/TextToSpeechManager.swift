@@ -3,20 +3,20 @@ import SwiftUI
 
 enum ContentMode: String, Codable {
     case off = "off"
-    case meditation = "meditation"
+    case story = "story"
     case poetry = "poetry"
 
     func next() -> ContentMode {
         switch self {
-        case .off: return .meditation
-        case .meditation: return .poetry
+        case .off: return .story
+        case .story: return .poetry
         case .poetry: return .off
         }
     }
 }
 
-enum MeditationState: Equatable {
-    case idle                           // No meditation playing
+enum StoryState: Equatable {
+    case idle                           // No story playing
     case starting(sessionId: UUID)      // Transitioning to play
     case playing(sessionId: UUID)       // Actively playing
     case stopping(sessionId: UUID)      // Transitioning to stop
@@ -40,18 +40,18 @@ enum MeditationState: Equatable {
 /// This uses the built-in iOS voices without requiring any downloads.
 @MainActor
 class TextToSpeechManager: ObservableObject {
-    @Published private(set) var meditationState: MeditationState = .idle
+    @Published private(set) var storyState: StoryState = .idle
 
     // Backward compatibility computed properties for UI
     var isSpeaking: Bool {
-        switch meditationState {
+        switch storyState {
         case .starting, .playing: return true
         case .idle, .stopping: return false
         }
     }
 
-    var isPlayingMeditation: Bool {
-        switch meditationState {
+    var isPlayingStory: Bool {
+        switch storyState {
         case .playing: return true
         case .idle, .starting, .stopping: return false
         }
@@ -75,10 +75,10 @@ class TextToSpeechManager: ObservableObject {
     private let maxRepeats = 10
     private var isCustomMode: Bool = false
     private var queuedUtteranceCount: Int = 0
-    private static let meditationSpeechRate: Float = 1.0  // Calm, slow rate for meditation
-    private static let meditationPitchMultiplier: Float = 1.0  // Slightly lower pitch for calmer
+    private static let storySpeechRate: Float = 1.0  // Calm, slow rate for story
+    private static let storyPitchMultiplier: Float = 1.0  // Slightly lower pitch for calmer
 
-    // Wake-up greeting phrases (randomly selected when alarm triggers after meditation completion)
+    // Wake-up greeting phrases (randomly selected when alarm triggers after story completion)
     private static let wakeUpGreetings: [String] = [
         "Welcome back",
         "Greetings",
@@ -91,8 +91,8 @@ class TextToSpeechManager: ObservableObject {
     private var allPhrases: [String] = []
     private var currentPhraseIndex: Int = 0
 
-    // Reference to custom meditation manager for random selection
-    weak var customMeditationManager: CustomMeditationManager?
+    // Reference to custom story manager for random selection
+    weak var customStoryManager: CustomStoryManager?
 
     // Reference to custom poem manager for random selection
     weak var customPoemManager: CustomPoemManager?
@@ -126,18 +126,18 @@ class TextToSpeechManager: ObservableObject {
 
     // MARK: - State Machine
 
-    private func transitionState(to newState: MeditationState, reason: String) -> Bool {
-        let oldState = meditationState
+    private func transitionState(to newState: StoryState, reason: String) -> Bool {
+        let oldState = storyState
 
         guard isValidTransition(from: oldState, to: newState) else {
             return false
         }
 
-        meditationState = newState
+        storyState = newState
         return true
     }
 
-    private func isValidTransition(from old: MeditationState, to new: MeditationState) -> Bool {
+    private func isValidTransition(from old: StoryState, to new: StoryState) -> Bool {
         switch (old, new) {
         case (.idle, .starting): return true
         case (.starting, .playing): return true
@@ -190,16 +190,16 @@ class TextToSpeechManager: ObservableObject {
         let voice = VoiceManager.shared.getPreferredVoice()
         let speechRateMultiplier = VoiceManager.shared.getSpeechRateMultiplier(for: voice)
         utterance.rate = AVSpeechUtteranceDefaultSpeechRate * speechRateMultiplier
-        utterance.pitchMultiplier = Self.meditationPitchMultiplier
+        utterance.pitchMultiplier = Self.storyPitchMultiplier
         utterance.volume = voiceVolume
         utterance.voice = voice
 
         synthesizer.speak(utterance)
     }
     
-    func getSequentialMeditation() -> String? {
+    func getSequentialStory() -> String? {
         // Load the current chapter
-        if let url = Bundle.main.url(forResource: "preset_meditation\(currentChapterIndex)", withExtension: "txt"),
+        if let url = Bundle.main.url(forResource: "preset_story\(currentChapterIndex)", withExtension: "txt"),
            let text = try? String(contentsOf: url, encoding: .utf8) {
             return text.trimmingCharacters(in: .whitespacesAndNewlines)
         }
@@ -212,7 +212,7 @@ class TextToSpeechManager: ObservableObject {
         var found = false
 
         while nextIndex <= 100 {
-            if Bundle.main.url(forResource: "preset_meditation\(nextIndex)", withExtension: "txt") != nil {
+            if Bundle.main.url(forResource: "preset_story\(nextIndex)", withExtension: "txt") != nil {
                 currentChapterIndex = nextIndex
                 found = true
                 break
@@ -226,8 +226,8 @@ class TextToSpeechManager: ObservableObject {
         }
 
         // If playing and requested, start the new chapter
-        if startIfPlaying && isPlayingMeditation {
-            if let text = getSequentialMeditation() {
+        if startIfPlaying && isPlayingStory {
+            if let text = getSequentialStory() {
                 Task {
                     await stopSpeaking()
                     startSpeakingWithPauses(text)
@@ -243,7 +243,7 @@ class TextToSpeechManager: ObservableObject {
             // If at first chapter, wrap to the last available chapter
             var lastIndex = 1
             for i in 1...100 {
-                if Bundle.main.url(forResource: "preset_meditation\(i)", withExtension: "txt") != nil {
+                if Bundle.main.url(forResource: "preset_story\(i)", withExtension: "txt") != nil {
                     lastIndex = i
                 }
             }
@@ -251,8 +251,8 @@ class TextToSpeechManager: ObservableObject {
         }
 
         // If playing and requested, start the new chapter
-        if startIfPlaying && isPlayingMeditation {
-            if let text = getSequentialMeditation() {
+        if startIfPlaying && isPlayingStory {
+            if let text = getSequentialStory() {
                 Task {
                     await stopSpeaking()
                     startSpeakingWithPauses(text)
@@ -283,56 +283,123 @@ class TextToSpeechManager: ObservableObject {
         return selected.text
     }
 
-    /// Starts speaking a random meditation from text files
-    func startSpeakingRandomMeditation() {
+    /// Starts speaking a random story from text files
+    func startSpeakingRandomStory() {
         guard !isSpeaking else { return }
 
-        // Try to load a random meditation file
-        guard let meditationText = loadRandomMeditationFile() else {
+        // Try to load a random story file
+        guard let storyText = loadRandomStoryFile() else {
             return
         }
 
         let newSessionId = UUID()
-        _ = transitionState(to: .starting(sessionId: newSessionId), reason: "Start random meditation")
-        _ = transitionState(to: .playing(sessionId: newSessionId), reason: "Playing random meditation")
+        _ = transitionState(to: .starting(sessionId: newSessionId), reason: "Start random story")
+        _ = transitionState(to: .playing(sessionId: newSessionId), reason: "Playing random story")
 
         isCustomMode = true  // Treat like custom - play once, don't repeat
 
-        let utterance = AVSpeechUtterance(string: meditationText)
+        let utterance = AVSpeechUtterance(string: storyText)
         let voice = VoiceManager.shared.getPreferredVoice()
         let speechRateMultiplier = VoiceManager.shared.getSpeechRateMultiplier(for: voice)
         utterance.rate = AVSpeechUtteranceDefaultSpeechRate * speechRateMultiplier
-        utterance.pitchMultiplier = Self.meditationPitchMultiplier
+        utterance.pitchMultiplier = Self.storyPitchMultiplier
         utterance.volume = voiceVolume
         utterance.voice = voice
 
         synthesizer.speak(utterance)
     }
     
-    /// Automatically adds pauses to text: 2s after paragraphs
+    /// Automatically adds pauses to text: splits into sentences and adds 0.5s between sentences, 2s between paragraphs
     private func addAutomaticPauses(to text: String) -> String {
         var result = ""
         let paragraphs = text.components(separatedBy: .newlines)
-        
-        for (index, paragraph) in paragraphs.enumerated() {
+
+        for (paragraphIndex, paragraph) in paragraphs.enumerated() {
             let trimmed = paragraph.trimmingCharacters(in: .whitespacesAndNewlines)
-            
+
             // Skip empty lines
             guard !trimmed.isEmpty else {
-                result += "\n"
                 continue
             }
-            
-            // Add the paragraph as-is (no sentence splitting or pauses)
-            result += trimmed + "\n"
-            
-            // Add pause between paragraphs (except after the last one)
-            if index < paragraphs.count - 1 {
-                result += "(2s)\n"
+
+            // Split paragraph into sentences using sentence boundary detection
+            let sentences = splitIntoSentences(trimmed)
+
+            for (sentenceIndex, sentence) in sentences.enumerated() {
+                let trimmedSentence = sentence.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !trimmedSentence.isEmpty else { continue }
+
+                result += trimmedSentence
+
+                // Add small pause between sentences (except after the last sentence in last paragraph)
+                let isLastSentenceInParagraph = (sentenceIndex == sentences.count - 1)
+                let isLastParagraph = (paragraphIndex == paragraphs.count - 1)
+
+                if !isLastSentenceInParagraph {
+                    // 0.5s pause between sentences within a paragraph
+                    result += " (0.5s)\n"
+                } else if !isLastParagraph {
+                    // 2s pause between paragraphs
+                    result += " (2s)\n"
+                } else {
+                    result += "\n"
+                }
             }
         }
-        
+
         return result
+    }
+
+    /// Splits text into sentences based on sentence-ending punctuation
+    private func splitIntoSentences(_ text: String) -> [String] {
+        var sentences: [String] = []
+        var currentSentence = ""
+        var i = text.startIndex
+
+        while i < text.endIndex {
+            let char = text[i]
+            currentSentence.append(char)
+
+            // Check for sentence-ending punctuation: . ! ?
+            if char == "." || char == "!" || char == "?" {
+                // Look ahead to see if this is a sentence boundary
+                let nextIndex = text.index(after: i)
+
+                // If we're at the end, it's definitely a sentence
+                if nextIndex >= text.endIndex {
+                    sentences.append(currentSentence)
+                    currentSentence = ""
+                } else {
+                    let nextChar = text[nextIndex]
+
+                    // Check if followed by space or end of text (sentence boundary)
+                    // Also check for common abbreviations to avoid false splits
+                    let isPotentialAbbreviation = char == "." && currentSentence.count >= 3 &&
+                        (currentSentence.hasSuffix("Dr.") ||
+                         currentSentence.hasSuffix("Mr.") ||
+                         currentSentence.hasSuffix("Mrs.") ||
+                         currentSentence.hasSuffix("Ms.") ||
+                         currentSentence.hasSuffix("vs.") ||
+                         currentSentence.hasSuffix("etc.") ||
+                         currentSentence.hasSuffix("e.g.") ||
+                         currentSentence.hasSuffix("i.e."))
+
+                    if !isPotentialAbbreviation && (nextChar == " " || nextChar == "\n") {
+                        sentences.append(currentSentence)
+                        currentSentence = ""
+                    }
+                }
+            }
+
+            i = text.index(after: i)
+        }
+
+        // Add any remaining text as the last sentence
+        if !currentSentence.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            sentences.append(currentSentence)
+        }
+
+        return sentences
     }
     
     /// Starts speaking text with embedded pauses like "(4s)" – splits into utterances automatically
@@ -343,11 +410,11 @@ class TextToSpeechManager: ObservableObject {
 
         let newSessionId = UUID()
 
-        // CRITICAL: Recreate synthesizer on each meditation start to avoid corruption
+        // CRITICAL: Recreate synthesizer on each story start to avoid corruption
         recreateSynthesizer()
 
         // Transition to STARTING state FIRST
-        guard transitionState(to: .starting(sessionId: newSessionId), reason: "User started meditation") else {
+        guard transitionState(to: .starting(sessionId: newSessionId), reason: "User started story") else {
             return
         }
 
@@ -360,7 +427,7 @@ class TextToSpeechManager: ObservableObject {
         allPhrases = []
         currentPhraseIndex = 0
 
-        // Clear any previous meditation completion flag
+        // Clear any previous story completion flag
         UserDefaults.standard.removeObject(forKey: "contentCompletedSuccessfully")
 
         // Check if text has any pause markers
@@ -413,7 +480,7 @@ class TextToSpeechManager: ObservableObject {
         }
 
         // CRITICAL BUG FIX: Validate that we have content to speak before setting state
-        // If text processing resulted in no speakable content, don't show meditation as playing
+        // If text processing resulted in no speakable content, don't show story as playing
         guard !ultraCleanedPhrases.isEmpty else {
             _ = transitionState(to: .idle, reason: "No valid content")
             return
@@ -445,7 +512,7 @@ class TextToSpeechManager: ObservableObject {
         let speechRateMultiplier = VoiceManager.shared.getSpeechRateMultiplier(for: voice)
 
         // Auto-save the voice preference for first-time users
-        // This ensures the same random voice is used across all meditation sessions
+        // This ensures the same random voice is used across all story sessions
         // until the user explicitly selects a different voice in Voice Settings
         if VoiceManager.shared.preferredVoiceIdentifier == nil {
             VoiceManager.shared.preferredVoiceIdentifier = voice?.identifier
@@ -455,7 +522,7 @@ class TextToSpeechManager: ObservableObject {
         for (ultraCleanPhrase, delay) in ultraCleanedPhrases {
             let utterance = AVSpeechUtterance(string: ultraCleanPhrase)
             utterance.rate = AVSpeechUtteranceDefaultSpeechRate * speechRateMultiplier
-            utterance.pitchMultiplier = Self.meditationPitchMultiplier
+            utterance.pitchMultiplier = Self.storyPitchMultiplier
             utterance.volume = voiceVolume
             utterance.voice = voice
 
@@ -571,13 +638,13 @@ class TextToSpeechManager: ObservableObject {
         return result
     }
         
-    /// Loads a random meditation text file from the bundle (checks up to 100 preset files)
-    private func loadRandomMeditationFile() -> String? {
-        // Load all available preset meditation files (check up to 100 to future-proof)
+    /// Loads a random story text file from the bundle (checks up to 100 preset files)
+    private func loadRandomStoryFile() -> String? {
+        // Load all available preset story files (check up to 100 to future-proof)
         var validURLs: [URL] = []
 
         for i in 1...100 {
-            if let url = Bundle.main.url(forResource: "preset_meditation\(i)", withExtension: "txt") {
+            if let url = Bundle.main.url(forResource: "preset_story\(i)", withExtension: "txt") {
                 validURLs.append(url)
             }
         }
@@ -586,7 +653,7 @@ class TextToSpeechManager: ObservableObject {
             return nil
         }
 
-        // Pick a random preset meditation file
+        // Pick a random preset story file
         let randomURL = validURLs.randomElement()!
 
         // Load the text
@@ -597,7 +664,7 @@ class TextToSpeechManager: ObservableObject {
         return text.trimmingCharacters(in: .whitespacesAndNewlines)
     }
     
-    /// Speaks a random wake-up greeting (used when alarm triggers after meditation completion)
+    /// Speaks a random wake-up greeting (used when alarm triggers after story completion)
     func speakWakeUpGreeting() {
         guard let greeting = Self.wakeUpGreetings.randomElement() else { return }
 
@@ -605,7 +672,7 @@ class TextToSpeechManager: ObservableObject {
         let voice = VoiceManager.shared.getPreferredVoice()
         let speechRateMultiplier = VoiceManager.shared.getSpeechRateMultiplier(for: voice)
         utterance.rate = AVSpeechUtteranceDefaultSpeechRate * speechRateMultiplier
-        utterance.pitchMultiplier = Self.meditationPitchMultiplier
+        utterance.pitchMultiplier = Self.storyPitchMultiplier
         utterance.volume = voiceVolume
         utterance.voice = voice
 
@@ -622,7 +689,7 @@ class TextToSpeechManager: ObservableObject {
     }
 
     private func stopSpeakingInternal(completion: @escaping () -> Void) {
-        guard let currentSessionId = meditationState.sessionId else {
+        guard let currentSessionId = storyState.sessionId else {
             completion()
             return
         }
@@ -644,7 +711,7 @@ class TextToSpeechManager: ObservableObject {
         currentPhraseIndex = 0
         isCustomMode = false
 
-        // Clear meditation completion flag since it was stopped manually
+        // Clear story completion flag since it was stopped manually
         UserDefaults.standard.removeObject(forKey: "contentCompletedSuccessfully")
 
         // Transition to idle immediately
@@ -673,8 +740,8 @@ class TextToSpeechManager: ObservableObject {
 
         // Auto-start content based on mode
         switch mode {
-        case .meditation:
-            if let text = getSequentialMeditation() {
+        case .story:
+            if let text = getSequentialStory() {
                 startSpeakingWithPauses(text)
             }
         case .poetry:
@@ -697,10 +764,10 @@ class TextToSpeechManager: ObservableObject {
         let utterance = AVSpeechUtterance(string: "All work and no play makes Jack a dull boy.")
         
         // Configure the voice - using the default system voice
-        utterance.rate = AVSpeechUtteranceDefaultSpeechRate * Self.meditationSpeechRate
+        utterance.rate = AVSpeechUtteranceDefaultSpeechRate * Self.storySpeechRate
         utterance.pitchMultiplier = 1.0
         utterance.volume = voiceVolume
-        utterance.pitchMultiplier = Self.meditationPitchMultiplier
+        utterance.pitchMultiplier = Self.storyPitchMultiplier
         
         // Use default US English voice
         if let voice = AVSpeechSynthesisVoice(language: "en-US") {
@@ -735,7 +802,7 @@ class TextToSpeechManager: ObservableObject {
     // Called by the delegate when speech finishes
     fileprivate func didFinishSpeaking(_ utterance: AVSpeechUtterance, sessionId: UUID) {
         // Validate callback belongs to current state's session
-        guard let currentSessionId = meditationState.sessionId else {
+        guard let currentSessionId = storyState.sessionId else {
             return
         }
 
@@ -743,11 +810,11 @@ class TextToSpeechManager: ObservableObject {
             return
         }
 
-        guard case .playing = meditationState else {
+        guard case .playing = storyState else {
             return
         }
 
-        // If custom mode (meditation), update closed captioning and track utterance completion
+        // If custom mode (story), update closed captioning and track utterance completion
         if isCustomMode {
             // Only increment phrase index for actual speech (not silent utterances)
             if !utterance.speechString.isEmpty {
@@ -766,7 +833,7 @@ class TextToSpeechManager: ObservableObject {
                 previousPhrase = ""
                 phraseHistory = []
 
-                // Mark that a meditation completed successfully (for wake-up greeting feature)
+                // Mark that a story completed successfully (for wake-up greeting feature)
                 UserDefaults.standard.set(true, forKey: "contentCompletedSuccessfully")
 
                 // Advance to next chapter for sequential story playback
@@ -775,7 +842,7 @@ class TextToSpeechManager: ObservableObject {
             return
         }
 
-        // Handle non-meditation mode (existing logic)
+        // Handle non-story mode (existing logic)
         if repeatCount < maxRepeats {
             // Small pause between repetitions
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in

@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct ScrollableMeditationTextDisplay: View {
+struct ScrollableStoryTextDisplay: View {
     let phraseHistory: [String]
     let currentPhrase: String
     @Binding var hasNewContent: Bool
@@ -114,9 +114,9 @@ struct ScrollableMeditationTextDisplay: View {
     ZStack {
         Color.blue.ignoresSafeArea()
 
-        ScrollableMeditationTextDisplay(
+        ScrollableStoryTextDisplay(
             phraseHistory: [
-                "Welcome to this meditation.",
+                "Welcome to this story.",
                 "Find a comfortable position.",
                 "Close your eyes gently.",
                 "Begin to notice your breath.",

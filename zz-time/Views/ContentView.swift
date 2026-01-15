@@ -278,7 +278,7 @@ struct ContentView: View {
                 stopTimer?.invalidate() // Invalidate stopTimer to prevent it from triggering startAlarm
                 stopTimer = nil
 
-                // Reset poetry/meditation mode when exiting a room
+                // Reset poetry/story mode when exiting a room
                 ttsManager.currentContentMode = .off
                 UserDefaults.standard.removeObject(forKey: "lastContentMode")
                 UserDefaults.standard.removeObject(forKey: "contentMode")
@@ -494,7 +494,7 @@ struct ContentView: View {
         fadeOutCurrent()
         UserDefaults.standard.removeObject(forKey: "lastWakeTime")
 
-        // Check if content (meditation or poetry) was completed successfully for wake-up greeting
+        // Check if content (story or poetry) was completed successfully for wake-up greeting
         let contentCompleted = UserDefaults.standard.bool(forKey: "contentCompletedSuccessfully")
 
         do {
@@ -525,7 +525,7 @@ struct ContentView: View {
                 self.hapticGenerator?.notificationOccurred(.warning)
             }
 
-            // Trigger wake-up greeting if content (meditation or poetry) was completed successfully
+            // Trigger wake-up greeting if content (story or poetry) was completed successfully
             // Only play if alarm is NOT silence (idx is valid and not nil means a sound is selected)
             if contentCompleted {
                 // Schedule greeting to play 5 seconds after alarm audio starts

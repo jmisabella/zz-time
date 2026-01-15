@@ -1,5 +1,5 @@
 //
-//  CustomMeditationEditorView.swift
+//  CustomStoryEditorView.swift
 //  zz-time
 //
 //  Created by Jeffrey Isabella on 12/5/25.
@@ -8,17 +8,17 @@
 
 import SwiftUI
 
-struct CustomMeditationEditorView: View {
-    @ObservedObject var manager: CustomMeditationManager
-    let meditation: CustomMeditation
-    @Binding var isPresented: CustomMeditation?
+struct CustomStoryEditorView: View {
+    @ObservedObject var manager: CustomStoryManager
+    let story: CustomStory
+    @Binding var isPresented: CustomStory?
     
     @State private var title: String = ""
     @State private var text: String = ""
 
-    init(manager: CustomMeditationManager, meditation: CustomMeditation, isPresented: Binding<CustomMeditation?>) {
+    init(manager: CustomStoryManager, story: CustomStory, isPresented: Binding<CustomStory?>) {
         self.manager = manager
-        self.meditation = meditation
+        self.story = story
         self._isPresented = isPresented
         // Don't initialize @State in init - use onAppear instead
     }
@@ -51,14 +51,14 @@ struct CustomMeditationEditorView: View {
                             .font(.caption)
                             .foregroundColor(.secondary)
 
-                        TextField("Meditation title", text: $title)
+                        TextField("Story title", text: $title)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
                     }
                     .padding(.horizontal)
 
                     // Text Editor
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Meditation Text")
+                        Text("Story Text")
                             .font(.caption)
                             .foregroundColor(.secondary)
 
@@ -79,10 +79,10 @@ struct CustomMeditationEditorView: View {
             .scrollDismissesKeyboard(.interactively)
             .onAppear {
                 // Initialize state when view appears
-                title = meditation.title
-                text = meditation.text
+                title = story.title
+                text = story.text
             }
-            .navigationTitle(meditation.title.isEmpty ? "New Meditation" : "Edit Meditation")
+            .navigationTitle(story.title.isEmpty ? "New Story" : "Edit Story")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -93,17 +93,17 @@ struct CustomMeditationEditorView: View {
 
                 ToolbarItem(placement: .primaryAction) {
                     Button("Save") {
-                        let updatedMeditation = CustomMeditation(
-                            id: meditation.id,
+                        let updatedStory = CustomStory(
+                            id: story.id,
                             title: title.isEmpty ? "Untitled" : title,
                             text: text,
-                            dateCreated: meditation.dateCreated
+                            dateCreated: story.dateCreated
                         )
 
-                        if manager.meditations.contains(where: { $0.id == meditation.id }) {
-                            manager.updateMeditation(updatedMeditation)
+                        if manager.stories.contains(where: { $0.id == story.id }) {
+                            manager.updateStory(updatedStory)
                         } else {
-                            manager.addMeditation(updatedMeditation)
+                            manager.addStory(updatedStory)
                         }
 
                         isPresented = nil

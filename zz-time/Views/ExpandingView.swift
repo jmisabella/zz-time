@@ -32,8 +32,8 @@ struct ExpandingView: View {
     // Text-to-speech manager
     @StateObject private var ttsManager = TextToSpeechManager()
 
-    // Custom meditation manager
-    @StateObject private var meditationManager = CustomMeditationManager()
+    // Custom story manager
+    @StateObject private var storyManager = CustomStoryManager()
 
     // Custom poem manager
     @StateObject private var poemManager = CustomPoemManager()
@@ -44,7 +44,7 @@ struct ExpandingView: View {
     @State private var showVoiceSettings: Bool = false
 
     // Closed captioning toggle
-    @AppStorage("showMeditationText") private var showMeditationText: Bool = true
+    @AppStorage("showStoryText") private var showStoryText: Bool = true
 
     // Crossfade loading state
     @State private var isCrossfading: Bool = false
@@ -60,7 +60,7 @@ struct ExpandingView: View {
         switch mode {
         case .off:
             return "leaf"
-        case .meditation:
+        case .story:
             return isPlaying ? "leaf.fill" : "leaf"
         case .poetry:
             return isPlaying ? "theatermasks.fill" : "theatermasks"
@@ -76,7 +76,7 @@ struct ExpandingView: View {
         switch mode {
         case .off:
             return Color(white: 0.7)
-        case .meditation:
+        case .story:
             return isPlaying ? Color.green : Color(white: 0.7)
         case .poetry:
             return isPlaying ? Color.purple : Color(white: 0.7)
@@ -90,8 +90,8 @@ struct ExpandingView: View {
         // Get next content
         let nextText: String?
         switch nextMode {
-        case .meditation:
-            nextText = ttsManager.getSequentialMeditation()
+        case .story:
+            nextText = ttsManager.getSequentialStory()
         case .poetry:
             nextText = ttsManager.getRandomPoem()
             print("🎭 Poetry mode - got poem text: \(nextText != nil)")
@@ -104,8 +104,8 @@ struct ExpandingView: View {
             return
         }
 
-        // Show loading indicator only when transitioning from meditation to poetry
-        if currentMode == .meditation && nextMode == .poetry {
+        // Show loading indicator only when transitioning from story to poetry
+        if currentMode == .story && nextMode == .poetry {
             isCrossfading = true
         }
 
@@ -286,14 +286,14 @@ struct ExpandingView: View {
                     .contentShape(Circle())
                     .simultaneousGesture(
                         TapGesture().onEnded { _ in
-                            switch ttsManager.meditationState {
+                            switch ttsManager.storyState {
                             case .idle:
                                 // Cycle to next mode and start content
                                 ttsManager.cycleContentMode()
 
                                 switch ttsManager.currentContentMode {
-                                case .meditation:
-                                    guard let text = ttsManager.getSequentialMeditation() else { return }
+                                case .story:
+                                    guard let text = ttsManager.getSequentialStory() else { return }
                                     ttsManager.startSpeakingWithPauses(text)
                                 case .poetry:
                                     guard let text = ttsManager.getRandomPoem() else { return }
@@ -366,11 +366,11 @@ struct ExpandingView: View {
                 }
             }
 
-            // Meditation text display in modal window above room label and buttons
-            if showMeditationText && ttsManager.isPlayingMeditation {
+            // Story text display in modal window above room label and buttons
+            if showStoryText && ttsManager.isPlayingStory {
                 VStack {
                     Spacer()
-                    ScrollableMeditationTextDisplay(
+                    ScrollableStoryTextDisplay(
                         phraseHistory: ttsManager.phraseHistory,
                         currentPhrase: ttsManager.currentPhrase,
                         hasNewContent: $ttsManager.hasNewCaptionContent
@@ -381,8 +381,8 @@ struct ExpandingView: View {
                 .allowsHitTesting(true)  // Allow scrolling in the caption area
             }
 
-            // Skip buttons for story mode (only when meditation/Leaf mode is active)
-            if ttsManager.currentContentMode == .meditation {
+            // Skip buttons for story mode (only when story/Leaf mode is active)
+            if ttsManager.currentContentMode == .story {
                 VStack {
                     Spacer()
                     HStack(spacing: 0) {
@@ -448,15 +448,15 @@ struct ExpandingView: View {
             ttsManager.onAmbientVolumeChanged = onAmbientVolumeChanged
             ttsManager.updateVolumesFromBalance()
 
-            // Connect the custom meditation manager to the TTS manager
-            // This allows the leaf button to randomly select from preset meditations
-            ttsManager.customMeditationManager = meditationManager
+            // Connect the custom story manager to the TTS manager
+            // This allows the leaf button to randomly select from preset stories
+            ttsManager.customStoryManager = storyManager
 
             // Connect the custom poem manager to the TTS manager
             // This allows the theater masks button to randomly select from preset poems
             ttsManager.customPoemManager = poemManager
 
-            // Do NOT auto-restore poetry/meditation mode when entering a room
+            // Do NOT auto-restore poetry/story mode when entering a room
             // User must explicitly activate it via the buttons
 
             dimMode = .duration(defaultDimDurationSeconds)
@@ -576,11 +576,11 @@ struct ExpandingView: View {
         }
         .sheet(isPresented: $showContentBrowser) {
             ContentBrowserView(
-                meditationManager: meditationManager,
+                storyManager: storyManager,
                 poemManager: poemManager,
                 isPresented: $showContentBrowser,
-                onPlayMeditation: { meditationText in
-                    ttsManager.startSpeakingWithPauses(meditationText)
+                onPlayStory: { storyText in
+                    ttsManager.startSpeakingWithPauses(storyText)
                 },
                 onPlayPoem: { poemText in
                     ttsManager.startSpeakingWithPauses(poemText)

@@ -22,7 +22,7 @@ class VoiceManager {
     }
 
     /// List of voice names to exclude from all voice offerings
-    /// These are novelty/robotic voices unsuitable for meditation
+    /// These are novelty/robotic voices unsuitable for stories
     private let excludedVoiceNames: [String] = [
         "albert", "bad news", "bahh", "bells", "boing", "bubbles", "cellos",
         "eddy", "flo", "fred", "good news", "grandma", "grandpa", "jester",
@@ -43,24 +43,24 @@ class VoiceManager {
         return false
     }
 
-    /// Returns meditation-appropriate voices (all quality levels)
+    /// Returns story-appropriate voices (all quality levels)
     /// Filters out novelty/robotic voices to ensure a calming experience
     /// For first-time users, a random voice from this list will be selected
-    func getMeditationAppropriateVoices() -> [AVSpeechSynthesisVoice] {
+    func getStoryAppropriateVoices() -> [AVSpeechSynthesisVoice] {
         // Get ALL English voices (includes compact/default, enhanced, and premium)
         let allEnglishVoices = AVSpeechSynthesisVoice.speechVoices()
             .filter { $0.language.hasPrefix("en") }
 
         // Filter out excluded novelty voices
-        let meditationVoices = allEnglishVoices.filter { !isVoiceExcluded($0) }
+        let storyVoices = allEnglishVoices.filter { !isVoiceExcluded($0) }
 
-        return meditationVoices
+        return storyVoices
     }
 
     /// Returns the voice to use for speech based on user preferences
     /// Priority order:
     /// 1. User's selected voice (if they have one saved)
-    /// 2. Random selection from meditation-appropriate voices (for first-time users)
+    /// 2. Random selection from story-appropriate voices (for first-time users)
     /// 3. System default voice (fallback if no voices available - should never happen)
     func getPreferredVoice() -> AVSpeechSynthesisVoice? {
         // Check if user explicitly selected system default
@@ -78,13 +78,13 @@ class VoiceManager {
             // Fall through to select a random voice but DON'T auto-save it
         }
 
-        // For first-time users OR invalid saved voice: randomly select from meditation-appropriate voices
-        let meditationVoices = getMeditationAppropriateVoices()
+        // For first-time users OR invalid saved voice: randomly select from story-appropriate voices
+        let storyVoices = getStoryAppropriateVoices()
 
-        if !meditationVoices.isEmpty {
+        if !storyVoices.isEmpty {
             // Use explicit random index selection
-            let randomIndex = Int.random(in: 0..<meditationVoices.count)
-            let randomVoice = meditationVoices[randomIndex]
+            let randomIndex = Int.random(in: 0..<storyVoices.count)
+            let randomVoice = storyVoices[randomIndex]
 
             // DO NOT auto-save - only save when user explicitly selects a voice in settings
             // This prevents overwriting user's selection if their voice becomes temporarily unavailable

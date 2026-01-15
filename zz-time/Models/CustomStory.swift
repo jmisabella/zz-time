@@ -1,7 +1,7 @@
 
 import Foundation
 
-struct CustomMeditation: Identifiable, Codable {
+struct CustomStory: Identifiable, Codable {
     let id: UUID
     var title: String
     var text: String

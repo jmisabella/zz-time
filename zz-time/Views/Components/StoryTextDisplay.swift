@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct MeditationTextDisplay: View {
+struct StoryTextDisplay: View {
     let currentPhrase: String
     let previousPhrase: String
 
@@ -45,7 +45,7 @@ struct MeditationTextDisplay: View {
     ZStack {
         Color.blue.ignoresSafeArea()
 
-        MeditationTextDisplay(
+        StoryTextDisplay(
             currentPhrase: "Notice your breath for a moment.",
             previousPhrase: "Close your eyes and settle in."
         )

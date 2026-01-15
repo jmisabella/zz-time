@@ -1,19 +1,19 @@
 import SwiftUI
 
-struct CustomMeditationListView: View {
-    @ObservedObject var manager: CustomMeditationManager
+struct CustomStoryListView: View {
+    @ObservedObject var manager: CustomStoryManager
     @Binding var isPresented: Bool
     let onPlay: (String) -> Void
 
-    @State private var editingMeditation: CustomMeditation?
-    @AppStorage("showMeditationText") private var showMeditationText: Bool = false
+    @State private var editingStory: CustomStory?
+    @AppStorage("showStoryText") private var showStoryText: Bool = false
     
     var body: some View {
         VStack(spacing: 0) {
-            if manager.meditations.isEmpty {
+            if manager.stories.isEmpty {
                 emptyStateView
             } else {
-                meditationList
+                storyList
             }
         }
         .toolbar {
@@ -21,17 +21,17 @@ struct CustomMeditationListView: View {
                 HStack(spacing: 16) {
                     // CC Toggle Button
                     Button {
-                        showMeditationText.toggle()
+                        showStoryText.toggle()
                     } label: {
                         Image(systemName: "captions.bubble.fill")
                             .font(.title3)
-                            .foregroundColor(showMeditationText ? Color(hex: 0x64B5F6) : Color(hex: 0x757575))
+                            .foregroundColor(showStoryText ? Color(hex: 0x64B5F6) : Color(hex: 0x757575))
                     }
 
                     // Add Button
                     if manager.canAddMore {
                         Button {
-                            editingMeditation = CustomMeditation(title: "", text: "")
+                            editingStory = CustomStory(title: "", text: "")
                         } label: {
                             Image(systemName: "plus.circle.fill")
                                 .font(.title3)
@@ -40,11 +40,11 @@ struct CustomMeditationListView: View {
                 }
             }
         }
-        .sheet(item: $editingMeditation) { meditation in
-            CustomMeditationEditorView(
+        .sheet(item: $editingStory) { story in
+            CustomStoryEditorView(
                 manager: manager,
-                meditation: meditation,
-                isPresented: $editingMeditation
+                story: story,
+                isPresented: $editingStory
             )
         }
     }
@@ -55,20 +55,20 @@ struct CustomMeditationListView: View {
                 .font(.system(size: 60))
                 .foregroundColor(.gray)
             
-            Text("No Custom Meditations")
+            Text("No Custom Storys")
                 .font(.title2)
                 .foregroundColor(.secondary)
             
-            Text("Create your own guided meditation with custom pauses and pacing")
+            Text("Create your own guided story with custom pauses and pacing")
                 .font(.caption)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 40)
             
             Button {
-                editingMeditation = CustomMeditation(title: "", text: "")
+                editingStory = CustomStory(title: "", text: "")
             } label: {
-                Label("Create First Meditation", systemImage: "plus.circle.fill")
+                Label("Create First Story", systemImage: "plus.circle.fill")
                     .font(.headline)
                     .foregroundColor(.white)
                     .padding()
@@ -79,13 +79,13 @@ struct CustomMeditationListView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
-    private var meditationList: some View {
+    private var storyList: some View {
         List {
             // Play Random button at the top
-            if manager.meditations.count > 1 {
+            if manager.stories.count > 1 {
                 Button {
-                    if let randomMeditation = manager.meditations.randomElement() {
-                        onPlay(randomMeditation.text)
+                    if let randomStory = manager.stories.randomElement() {
+                        onPlay(randomStory.text)
                         isPresented = false
                     }
                 } label: {
@@ -93,7 +93,7 @@ struct CustomMeditationListView: View {
                         Image(systemName: "shuffle.circle.fill")
                             .font(.title2)
                             .foregroundColor(.purple)
-                        Text("Play Random Meditation")
+                        Text("Play Random Story")
                             .font(.headline)
                             .foregroundColor(.primary)
                         Spacer()
@@ -103,36 +103,36 @@ struct CustomMeditationListView: View {
                 .listRowBackground(Color.purple.opacity(0.1))
             }
 
-            ForEach(manager.meditations) { meditation in
-                MeditationRowView(
-                    meditation: meditation,
+            ForEach(manager.stories) { story in
+                StoryRowView(
+                    story: story,
                     onPlay: {
-                        onPlay(meditation.text)
+                        onPlay(story.text)
                         isPresented = false
                     },
                     onEdit: {
-                        editingMeditation = meditation
+                        editingStory = story
                     },
                     onDuplicate: {
-                        manager.duplicateMeditation(meditation)
+                        manager.duplicateStory(story)
                     }
                 )
             }
             .onDelete { indexSet in
                 indexSet.forEach { index in
-                    manager.deleteMeditation(manager.meditations[index])
+                    manager.deleteStory(manager.stories[index])
                 }
             }
             
             if manager.canAddMore {
                 Button {
-                    editingMeditation = CustomMeditation(title: "", text: "")
+                    editingStory = CustomStory(title: "", text: "")
                 } label: {
-                    Label("Add New Meditation", systemImage: "plus.circle")
+                    Label("Add New Story", systemImage: "plus.circle")
                         .foregroundColor(.blue)
                 }
             } else {
-                Text("Maximum \(manager.meditations.count) meditations reached")
+                Text("Maximum \(manager.stories.count) storys reached")
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .listRowBackground(Color.clear)
@@ -141,8 +141,8 @@ struct CustomMeditationListView: View {
     }
 }
 
-struct MeditationRowView: View {
-    let meditation: CustomMeditation
+struct StoryRowView: View {
+    let story: CustomStory
     let onPlay: () -> Void
     let onEdit: () -> Void
     let onDuplicate: () -> Void
@@ -150,10 +150,10 @@ struct MeditationRowView: View {
     var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
-                Text(meditation.title.isEmpty ? "Untitled" : meditation.title)
+                Text(story.title.isEmpty ? "Untitled" : story.title)
                     .font(.headline)
                 
-                Text(meditation.text.prefix(60) + (meditation.text.count > 60 ? "..." : ""))
+                Text(story.text.prefix(60) + (story.text.count > 60 ? "..." : ""))
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .lineLimit(2)

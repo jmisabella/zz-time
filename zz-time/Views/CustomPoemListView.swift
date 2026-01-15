@@ -6,7 +6,7 @@ struct CustomPoemListView: View {
     let onPlay: (String) -> Void
 
     @State private var editingPoem: CustomPoem?
-    @AppStorage("showMeditationText") private var showMeditationText: Bool = false
+    @AppStorage("showStoryText") private var showStoryText: Bool = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -21,11 +21,11 @@ struct CustomPoemListView: View {
                 HStack(spacing: 16) {
                     // CC Toggle Button
                     Button {
-                        showMeditationText.toggle()
+                        showStoryText.toggle()
                     } label: {
                         Image(systemName: "captions.bubble.fill")
                             .font(.title3)
-                            .foregroundColor(showMeditationText ? Color.purple : Color(hex: 0x757575))
+                            .foregroundColor(showStoryText ? Color.purple : Color(hex: 0x757575))
                     }
 
                     // Add Button
