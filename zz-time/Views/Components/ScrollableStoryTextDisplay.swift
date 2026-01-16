@@ -58,7 +58,7 @@ struct ScrollableStoryTextDisplay: View {
                         }
                         .padding(16)
                     }
-                    .frame(maxHeight: 100) // Compact height for the scrollable area
+                    .frame(maxHeight: 300) // Taller height for better readability (up to ~45% of screen)
                     .onAppear {
                         scrollViewProxy = proxy
                         // Start at bottom
@@ -124,7 +124,7 @@ struct ScrollableStoryTextDisplay: View {
                     }
                 }
             }
-            .frame(height: 100) // Constrain the entire ZStack height
+            .frame(height: 300) // Constrain the entire ZStack height
             .padding(.horizontal, 24)
         }
     }

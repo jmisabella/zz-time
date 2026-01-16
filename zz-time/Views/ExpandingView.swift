@@ -375,7 +375,7 @@ struct ExpandingView: View {
                         currentPhrase: ttsManager.currentPhrase,
                         hasNewContent: $ttsManager.hasNewCaptionContent
                     )
-                    .padding(.bottom, 140) // Position clearly above buttons
+                    .padding(.bottom, 180) // Position clearly above buttons with spacing
                     .transition(.opacity.combined(with: .move(edge: .bottom)))
                 }
                 .allowsHitTesting(true)  // Allow scrolling in the caption area

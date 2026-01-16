@@ -1,3 +1,31 @@
+# 2026-01-15 (Latest): Increased Closed Caption Height and Fixed Button Spacing ✅
+
+### Summary of Changes
+- **Increased closed caption text box height from 100 to 300 points** for better readability
+- The caption box now uses approximately 35-40% of screen height (well within the 45-50% maximum target)
+- **Added spacing between closed caption box and skip buttons** to prevent visual overlap
+- Left/right chevron buttons now have proper clearance from the caption box (60-point gap)
+
+### Files Modified
+- `zz-time/Views/Components/ScrollableStoryTextDisplay.swift`:
+  - Line 61: Changed `maxHeight` from 100 to 300 points
+  - Line 127: Changed `frame(height:)` from 100 to 300 points
+- `zz-time/Views/ExpandingView.swift`:
+  - Line 378: Changed caption bottom padding from 140 to 180 points
+
+### Result
+- Closed caption text box is now significantly taller and more readable
+- Text content is easier to follow without excessive scrolling
+- Skip buttons (left/right chevrons) no longer touch the caption box
+- Proper visual hierarchy maintained with clear spacing between UI elements
+
+### User Experience Impact
+- Users can read more text at once without scrolling
+- Better accessibility for users who rely on closed captions
+- Cleaner, more polished UI appearance with proper spacing
+
+---
+
 # 2026-01-15 (Later): TTS Voice Volume Successfully Reduced ✅
 
 ### Summary of Changes
