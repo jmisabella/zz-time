@@ -1,4 +1,27 @@
-# 2026-01-15: TTS Volume Adjustment, Ambient Audio Default, and Investigation
+# 2026-01-15 (Later): TTS Voice Volume Successfully Reduced ✅
+
+### Summary of Changes
+- **Successfully lowered TTS voice volume from 0.25 to 0.1** - a 60% reduction in voice volume
+- This resolves the issue where the TTS voice was perceived as too loud compared to the ambient audio
+- Previous attempt to change volume to 0.5 (which increased it) failed because it went in the wrong direction
+- This change reduces voice from 25% to 10% of maximum volume
+
+### Files Modified
+- `zz-time/Views/Components/TextToSpeechManager.swift`: Line 106 - Changed `voiceVolume` from 0.25 to 0.1
+
+### Result
+- TTS voice is now significantly quieter relative to ambient audio (10% vs 60% max)
+- Voice narration provides a subtle, calming background rather than overpowering the ambient sounds
+- User tested and confirmed the new volume level sounds great
+
+### Technical Notes
+- iOS `AVSpeechUtterance.volume` property DOES work when set to appropriate values (0.0 to 1.0 range)
+- The previous attempt set volume to 0.5 (50%), which was actually HIGHER than the original 0.25 (25%), explaining why it seemed to have no effect
+- Setting to 0.1 (10%) successfully reduces volume as intended
+
+---
+
+# 2026-01-15 (Earlier): TTS Volume Adjustment Investigation - SUPERSEDED BY ABOVE
 
 ### Summary of Changes
 - Attempted to lower TTS (text-to-speech) voice volume from 0.25 to 0.5 for all voices (default, enhanced, premium).
@@ -18,6 +41,10 @@
 - TTS voice volume remains at 0.25, but actual loudness is unchanged due to iOS system limitations.
 - No further reduction in TTS volume is possible via AVSpeechSynthesizer.
 - User feedback and investigation documented for future reference.
+
+### Post-Mortem Note
+- **This entry was incorrect** - the issue was that 0.5 is HIGHER than 0.25, not lower
+- Volume WAS successfully reduced later by setting to 0.1 (see entry above)
 # Problems and Solutions
 
 ## 2026-01-15 16:45: Sentence-by-Sentence Closed Captions with Paragraph Grouping ✅

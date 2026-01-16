@@ -103,7 +103,7 @@ class TextToSpeechManager: ObservableObject {
     // Callback to notify when ambient volume changes
     var onAmbientVolumeChanged: ((Float) -> Void)? = nil
 
-    let voiceVolume: Float = 0.25
+    let voiceVolume: Float = 0.1
 
     var ambientVolume: Float {
         // Balance ranges from 0.0 (0% ambient) to 1.0 (100% ambient)
