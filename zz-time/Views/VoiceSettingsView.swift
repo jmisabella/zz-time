@@ -70,6 +70,7 @@ struct VoiceSettingsView: View {
                                 onSelect: {
                                     selectedVoiceIdentifier = voice.identifier
                                     VoiceManager.shared.preferredVoiceIdentifier = voice.identifier
+                                    VoiceManager.shared.userExplicitlySelectedVoice = true
                                 },
                                 onPreview: {
                                     if previewingVoiceIdentifier == voice.identifier {
@@ -88,6 +89,7 @@ struct VoiceSettingsView: View {
                             onSelect: {
                                 selectedVoiceIdentifier = systemDefaultIdentifier
                                 VoiceManager.shared.preferredVoiceIdentifier = systemDefaultIdentifier
+                                VoiceManager.shared.userExplicitlySelectedVoice = true
                             },
                             onPreview: {
                                 if previewingVoiceIdentifier == systemDefaultIdentifier {

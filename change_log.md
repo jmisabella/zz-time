@@ -1,4 +1,72 @@
-# 2026-01-15 (Latest): Increased Closed Caption Height and Fixed Button Spacing ✅
+# 2026-01-15 (Latest): Intelligent Voice Preference Hierarchy ✅
+
+### Summary of Changes
+- **Implemented smart voice preference hierarchy** to automatically select better quality voices (Lee AU, Daniel GB) for new and existing users
+- Added user selection tracking to distinguish between auto-selected and manually-chosen voices
+- Voice hierarchy prioritizes: Lee (AU) Premium → Enhanced → Default, then Daniel (GB) Premium → Enhanced → Default
+- Users who manually select a voice in settings will have their choice permanently respected
+- Existing users will automatically upgrade to better voices on next app launch (if no manual selection was made)
+
+### Voice Priority Order
+1. Lee (AU) Premium (`com.apple.voice.premium.en-AU.Lee`)
+2. Lee (AU) Enhanced (`com.apple.voice.enhanced.en-AU.Lee`)
+3. Daniel (GB) Premium (`com.apple.voice.premium.en-GB.Daniel`)
+4. Daniel (GB) Enhanced (`com.apple.voice.enhanced.en-GB.Daniel`)
+5. Lee (AU) Default (`com.apple.voice.compact.en-AU.Lee`)
+6. Daniel (GB) Default (`com.apple.voice.compact.en-GB.Daniel`)
+7. Fallback to random story-appropriate voice if none available
+
+### Files Modified
+- `zz-time/Views/Components/VoiceManager.swift`:
+  - Line 11: Added `userExplicitlySelectedVoiceKey` UserDefaults key
+  - Lines 25-33: Added `userExplicitlySelectedVoice` property to track manual selections
+  - Lines 46-65: Added `getVoiceFromHierarchy()` method to check for preferred voices in priority order
+  - Lines 88-124: Updated `getPreferredVoice()` logic with new 5-step hierarchy:
+    1. Honor user's explicit voice selection (if manually chosen)
+    2. Try voice hierarchy (best available voice from priority list)
+    3. Use previously auto-selected voice if still valid
+    4. Fallback to random story-appropriate voice
+    5. Final fallback to system default
+- `zz-time/Views/VoiceSettingsView.swift`:
+  - Line 73: Set `userExplicitlySelectedVoice = true` when user selects a voice
+  - Line 92: Set `userExplicitlySelectedVoice = true` when user selects system default
+
+### How It Works
+**For New Users:**
+- App automatically selects the best voice from the hierarchy
+- Voice is auto-saved on first story playback
+- No explicit selection flag is set, allowing future upgrades
+
+**For Existing Users:**
+- On next app launch, automatically upgraded to best hierarchy voice
+- Old preference preserved as fallback if no hierarchy voices available
+- Seamless migration with no user action required
+
+**When User Manually Changes Voice:**
+- `userExplicitlySelectedVoice` flag is set to true
+- Choice is permanently respected until user changes it again
+- Hierarchy is bypassed for users with explicit selections
+
+### Edge Cases Handled
+- User's selected voice deleted from device → Clears explicit flag, falls back to hierarchy
+- None of hierarchy voices available → Falls back to random story-appropriate voice
+- User downloads better voice later → Auto-upgrades if no explicit selection made
+
+### Result
+- New users get Lee (AU) Premium by default if available on device (better fit for dark sci-fi story)
+- Existing users seamlessly upgrade to better voices
+- User preferences are always respected when manually selected
+- No cheery voices as defaults - Lee and Daniel provide appropriate tone for dark sci-fi content
+
+### User Experience Impact
+- Better default voice quality for first-time users (no more random cheery voices)
+- Existing users benefit from automatic upgrade to premium voices
+- Manual voice selections always honored and preserved
+- Improved narrative immersion with appropriate voice tones for dark sci-fi stories
+
+---
+
+# 2026-01-15: Increased Closed Caption Height and Fixed Button Spacing ✅
 
 ### Summary of Changes
 - **Increased closed caption text box height from 100 to 300 points** for better readability
