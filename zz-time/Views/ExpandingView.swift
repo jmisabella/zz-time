@@ -140,34 +140,43 @@ struct ExpandingView: View {
         34: "Schubert: Sonata No. 6 in E minor, II. Allegretto (excerpt)",
     ]
 
+    // Detect device orientation
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
+
+    private var isLandscape: Bool {
+        verticalSizeClass == .compact
+    }
+
     var body: some View {
-        ZStack {
+        GeometryReader { geometry in
             ZStack {
-                if usePlasmaStyle {
-                    PlasmaBackground(color: color).ignoresSafeArea()
-                } else {
-                    BreathingBackground(color: color).ignoresSafeArea()
+                ZStack {
+                    if usePlasmaStyle {
+                        PlasmaBackground(color: color).ignoresSafeArea()
+                    } else {
+                        BreathingBackground(color: color).ignoresSafeArea()
+                    }
+
+                    Rectangle()
+                        .fill(
+                            isAlarmActive
+                            ? Color(hue: 0.58, saturation: 0.3, brightness: 0.9)
+                            : .black
+                        )
+                        .opacity(dimOverlayOpacity)
+                        .ignoresSafeArea()
+
+                    Rectangle()
+                        .fill(Color.white)
+                        .opacity(flashOverlayOpacity)
+                        .ignoresSafeArea()
                 }
 
-                Rectangle()
-                    .fill(
-                        isAlarmActive
-                        ? Color(hue: 0.58, saturation: 0.3, brightness: 0.9)
-                        : .black
-                    )
-                    .opacity(dimOverlayOpacity)
-                    .ignoresSafeArea()
-
-                Rectangle()
-                    .fill(Color.white)
-                    .opacity(flashOverlayOpacity)
-                    .ignoresSafeArea()
-            }
-            
-            ZStack {
-                VStack {
-                    // Duration slider
-                    CustomSlider(
+                ZStack {
+                    VStack {
+                        // Duration slider
+                        CustomSlider(
                         value: $durationMinutes,
                         minValue: 0,
                         maxValue: 1440,  // 24 hours in minutes
@@ -177,6 +186,7 @@ struct ExpandingView: View {
                         }
                     )
                     .padding(.horizontal, 40)
+                    .padding(.top, isLandscape ? 10 : 0) // Add top padding in landscape
 
                     // Audio balance slider
                     BalanceSlider(
@@ -186,7 +196,7 @@ struct ExpandingView: View {
                         }
                     )
                     .padding(.horizontal, 40)
-                    .padding(.top, 8)
+                    .padding(.top, isLandscape ? 4 : 8) // Reduce spacing in landscape
                     .onChange(of: ttsManager.audioBalance) { _, _ in
                         ttsManager.updateVolumesFromBalance()
                     }
@@ -214,7 +224,7 @@ struct ExpandingView: View {
                     .foregroundColor(
                         (currentIndex < 10) ? Color(white: 0.7) : Color(white: 0.3)
                     )
-                    .padding(.bottom, 20)
+                    .padding(.bottom, isLandscape ? 10 : 20) // Reduce spacing in landscape
 
                     HStack(spacing: 30) {
                     Button {
@@ -325,6 +335,7 @@ struct ExpandingView: View {
                         }
                     )
                 }
+                .padding(.bottom, isLandscape ? 10 : 0) // Add bottom padding in landscape to keep buttons on screen
 
                 }
 
@@ -375,7 +386,7 @@ struct ExpandingView: View {
                         currentPhrase: ttsManager.currentPhrase,
                         hasNewContent: $ttsManager.hasNewCaptionContent
                     )
-                    .padding(.bottom, 180) // Position clearly above buttons with spacing
+                    .padding(.bottom, isLandscape ? 80 : 180) // Reduce bottom padding in landscape
                     .transition(.opacity.combined(with: .move(edge: .bottom)))
                 }
                 .allowsHitTesting(true)  // Allow scrolling in the caption area
@@ -411,8 +422,9 @@ struct ExpandingView: View {
                         .contentShape(Circle())
                     }
                     .padding(.horizontal, 20)
-                    .padding(.bottom, 120) // Position below closed caption box
+                    .padding(.bottom, isLandscape ? 60 : 120) // Reduce padding in landscape
                 }
+            }
             }
         }
         .gesture(

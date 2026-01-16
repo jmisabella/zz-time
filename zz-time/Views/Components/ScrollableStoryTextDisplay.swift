@@ -9,6 +9,19 @@ struct ScrollableStoryTextDisplay: View {
     @State private var isUserScrolling = false
     @State private var isAtBottom = true
 
+    // Detect device orientation to adjust caption box height
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
+
+    private var isLandscape: Bool {
+        verticalSizeClass == .compact
+    }
+
+    private var captionHeight: CGFloat {
+        // Use smaller height in landscape to avoid covering sliders
+        isLandscape ? 150 : 300
+    }
+
     var body: some View {
         if !phraseHistory.isEmpty || !currentPhrase.isEmpty {
             ZStack(alignment: .bottom) {
@@ -58,7 +71,7 @@ struct ScrollableStoryTextDisplay: View {
                         }
                         .padding(16)
                     }
-                    .frame(maxHeight: 300) // Taller height for better readability (up to ~45% of screen)
+                    .frame(maxHeight: captionHeight) // Responsive height based on orientation
                     .onAppear {
                         scrollViewProxy = proxy
                         // Start at bottom
@@ -124,7 +137,7 @@ struct ScrollableStoryTextDisplay: View {
                     }
                 }
             }
-            .frame(height: 300) // Constrain the entire ZStack height
+            .frame(height: captionHeight) // Constrain the entire ZStack height based on orientation
             .padding(.horizontal, 24)
         }
     }
