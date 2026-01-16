@@ -57,7 +57,7 @@ class TextToSpeechManager: ObservableObject {
         }
     }
 
-    @Published var audioBalance: Double = 0.80  // 0.0 (0% ambient) to 1.0 (100% ambient), default 80%
+    @Published var audioBalance: Double = 1.0  // 0.0 (0% ambient) to 1.0 (100% ambient), default 100%
 
     // Closed captioning support
     @Published var currentPhrase: String = ""

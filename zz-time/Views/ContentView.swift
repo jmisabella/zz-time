@@ -9,7 +9,7 @@ struct ContentView: View {
     @State private var currentPlayer: AVAudioPlayer? = nil
     @State private var currentTimer: Timer? = nil
     @State private var currentAudioFile: String? = nil
-    @State private var targetAmbientVolume: Float = 0.48  // Default to 80% balance (0.80 * 0.6 = 0.48)
+    @State private var targetAmbientVolume: Float = 0.6  // Default to 100% balance (1.0 * 0.6 = 0.6)
     
 //    @State private var durationMinutes: Double = UserDefaults.standard.double(forKey: "durationMinutes")
     
@@ -263,12 +263,15 @@ struct ContentView: View {
         )
         .onAppear {
             configureAudioSession()
-            if !UserDefaults.standard.bool(forKey: "hasLaunched") {
-                withAnimation(.easeInOut(duration: 2.0)) {
-                    backgroundOpacity = 1.0
-                }
-                UserDefaults.standard.set(true, forKey: "hasLaunched")
+            // Always reset audio balance and ambient volume to new defaults for all users
+            UserDefaults.standard.set(1.0, forKey: "audioBalance")
+            targetAmbientVolume = 0.6
+            ttsManager.audioBalance = 1.0
+            ttsManager.updateVolumesFromBalance()
+            withAnimation(.easeInOut(duration: 2.0)) {
+                backgroundOpacity = 1.0
             }
+            UserDefaults.standard.set(true, forKey: "hasLaunched")
         }
         .onChange(of: selectedItem) { oldValue, newValue in
             if let old = oldValue, newValue == nil {

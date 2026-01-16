@@ -1,3 +1,23 @@
+# 2026-01-15: TTS Volume Adjustment, Ambient Audio Default, and Investigation
+
+### Summary of Changes
+- Attempted to lower TTS (text-to-speech) voice volume from 0.25 to 0.5 for all voices (default, enhanced, premium).
+- Increased default ambient audio volume from 80% (audioBalance = 0.80) to 100% (audioBalance = 1.0).
+- Updated app launch logic to always reset ambient audio and TTS volume defaults for all users (new and existing), overwriting previous settings.
+- After testing, found that lowering TTS volume had no effect on actual playback loudness. iOS AVSpeechSynthesizer appears to ignore or normalize the utterance.volume property, making voice volume control ineffective.
+- Reverted TTS voice volume to previous value (0.25).
+- Documented iOS limitation: TTS voice volume cannot be reliably controlled via code; ambient audio can be adjusted, but TTS remains at system volume.
+
+### Files Modified
+- zz-time/Views/Components/TextToSpeechManager.swift: Changed voiceVolume to 0.5, then reverted to 0.25 after investigation.
+- zz-time/Views/ContentView.swift: Set default ambient audio to 100% and forced reset for all users on launch.
+- CHANGE_LOG.md: Added this summary and rationale.
+
+### Result
+- Ambient audio now defaults to 100% for all users.
+- TTS voice volume remains at 0.25, but actual loudness is unchanged due to iOS system limitations.
+- No further reduction in TTS volume is possible via AVSpeechSynthesizer.
+- User feedback and investigation documented for future reference.
 # Problems and Solutions
 
 ## 2026-01-15 16:45: Sentence-by-Sentence Closed Captions with Paragraph Grouping ✅
