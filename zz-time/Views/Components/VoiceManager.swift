@@ -8,6 +8,7 @@ class VoiceManager {
 
     // UserDefaults keys
     private let preferredVoiceIdentifierKey = "preferredVoiceIdentifier"
+    private let userExplicitlySelectedVoiceKey = "userExplicitlySelectedVoice"
 
     private init() {}
 
@@ -21,8 +22,18 @@ class VoiceManager {
         }
     }
 
+    /// Tracks whether user explicitly selected their voice via settings
+    var userExplicitlySelectedVoice: Bool {
+        get {
+            UserDefaults.standard.bool(forKey: userExplicitlySelectedVoiceKey)
+        }
+        set {
+            UserDefaults.standard.set(newValue, forKey: userExplicitlySelectedVoiceKey)
+        }
+    }
+
     /// List of voice names to exclude from all voice offerings
-    /// These are novelty/robotic voices unsuitable for meditation
+    /// These are novelty/robotic voices unsuitable for stories
     private let excludedVoiceNames: [String] = [
         "albert", "bad news", "bahh", "bells", "boing", "bubbles", "cellos",
         "eddy", "flo", "fred", "good news", "grandma", "grandpa", "jester",
@@ -43,56 +54,83 @@ class VoiceManager {
         return false
     }
 
-    /// Returns meditation-appropriate voices (all quality levels)
+    /// Returns the best available voice from the preferred hierarchy
+    /// Priority: Lee (AU) Premium/Enhanced/Default, then Daniel (GB) Premium/Enhanced/Default
+    private func getVoiceFromHierarchy() -> AVSpeechSynthesisVoice? {
+        let preferredVoiceIdentifiers = [
+            "com.apple.voice.premium.en-AU.Lee",
+            "com.apple.voice.enhanced.en-AU.Lee",
+            "com.apple.voice.premium.en-GB.Daniel",
+            "com.apple.voice.enhanced.en-GB.Daniel",
+            "com.apple.voice.compact.en-AU.Lee",
+            "com.apple.voice.compact.en-GB.Daniel"
+        ]
+
+        for identifier in preferredVoiceIdentifiers {
+            if let voice = AVSpeechSynthesisVoice(identifier: identifier) {
+                return voice
+            }
+        }
+
+        return nil  // None from hierarchy available
+    }
+
+    /// Returns story-appropriate voices (all quality levels)
     /// Filters out novelty/robotic voices to ensure a calming experience
     /// For first-time users, a random voice from this list will be selected
-    func getMeditationAppropriateVoices() -> [AVSpeechSynthesisVoice] {
+    func getStoryAppropriateVoices() -> [AVSpeechSynthesisVoice] {
         // Get ALL English voices (includes compact/default, enhanced, and premium)
         let allEnglishVoices = AVSpeechSynthesisVoice.speechVoices()
             .filter { $0.language.hasPrefix("en") }
 
         // Filter out excluded novelty voices
-        let meditationVoices = allEnglishVoices.filter { !isVoiceExcluded($0) }
+        let storyVoices = allEnglishVoices.filter { !isVoiceExcluded($0) }
 
-        return meditationVoices
+        return storyVoices
     }
 
     /// Returns the voice to use for speech based on user preferences
     /// Priority order:
-    /// 1. User's selected voice (if they have one saved)
-    /// 2. Random selection from meditation-appropriate voices (for first-time users)
-    /// 3. System default voice (fallback if no voices available - should never happen)
+    /// 1. User's explicitly selected voice (if they manually chose one in settings)
+    /// 2. Voice hierarchy (Lee AU Premium/Enhanced/Default, then Daniel GB Premium/Enhanced/Default)
+    /// 3. Previously auto-selected voice (if still valid)
+    /// 4. Random selection from story-appropriate voices (fallback)
+    /// 5. System default voice (final fallback if no voices available - should never happen)
     func getPreferredVoice() -> AVSpeechSynthesisVoice? {
-        // Check if user explicitly selected system default
-        if let identifier = preferredVoiceIdentifier {
+        // STEP 1: Check if user explicitly selected a voice
+        if userExplicitlySelectedVoice, let identifier = preferredVoiceIdentifier {
+            // User made an explicit choice - honor it completely
             if identifier == "SYSTEM_DEFAULT" {
                 return AVSpeechSynthesisVoice(language: "en-US")
             }
 
-            // Try to get the user's preferred voice
             if let voice = AVSpeechSynthesisVoice(identifier: identifier) {
                 return voice
             }
 
-            // If we have a saved identifier but can't find the voice, it might have been deleted
-            // Fall through to select a random voice but DON'T auto-save it
+            // User's voice no longer available - clear the explicit flag and fall through
+            userExplicitlySelectedVoice = false
         }
 
-        // For first-time users OR invalid saved voice: randomly select from meditation-appropriate voices
-        let meditationVoices = getMeditationAppropriateVoices()
-
-        if !meditationVoices.isEmpty {
-            // Use explicit random index selection
-            let randomIndex = Int.random(in: 0..<meditationVoices.count)
-            let randomVoice = meditationVoices[randomIndex]
-
-            // DO NOT auto-save - only save when user explicitly selects a voice in settings
-            // This prevents overwriting user's selection if their voice becomes temporarily unavailable
-
-            return randomVoice
+        // STEP 2: Try voice hierarchy (for new users or users who haven't explicitly chosen)
+        if let hierarchyVoice = getVoiceFromHierarchy() {
+            return hierarchyVoice
         }
 
-        // Final fallback to system default if no voices available (should never happen)
+        // STEP 3: Check if we have a previously auto-selected voice that's still valid
+        if let identifier = preferredVoiceIdentifier,
+           let voice = AVSpeechSynthesisVoice(identifier: identifier) {
+            return voice
+        }
+
+        // STEP 4: Fallback to random story-appropriate voice
+        let storyVoices = getStoryAppropriateVoices()
+        if !storyVoices.isEmpty {
+            let randomIndex = Int.random(in: 0..<storyVoices.count)
+            return storyVoices[randomIndex]
+        }
+
+        // STEP 5: Final fallback to system default
         return AVSpeechSynthesisVoice(language: "en-US")
     }
 

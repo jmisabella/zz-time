@@ -7,7 +7,7 @@ struct VoiceSettingsView: View {
     @State private var selectedVoiceIdentifier: String? = VoiceManager.shared.preferredVoiceIdentifier
     @State private var availableVoices: [AVSpeechSynthesisVoice] = []
     @State private var previewingVoiceIdentifier: String? = nil  // Track which voice is being previewed
-    @State private var wasMeditationPlayingBeforePreview: Bool = false  // Track if meditation was playing
+    @State private var wasStoryPlayingBeforePreview: Bool = false  // Track if story was playing
 
     // TTS for preview
     @State private var previewSynthesizer: AVSpeechSynthesizer? = nil
@@ -15,7 +15,7 @@ struct VoiceSettingsView: View {
 
     // Special identifier for system default voice
     private let systemDefaultIdentifier = "SYSTEM_DEFAULT"
-    private let previewText = "Welcome to your meditation practice. Find a comfortable position and take a deep breath."
+    private let previewText = "Welcome to your story practice. Find a comfortable position and take a deep breath."
 
     var body: some View {
         NavigationView {
@@ -70,6 +70,7 @@ struct VoiceSettingsView: View {
                                 onSelect: {
                                     selectedVoiceIdentifier = voice.identifier
                                     VoiceManager.shared.preferredVoiceIdentifier = voice.identifier
+                                    VoiceManager.shared.userExplicitlySelectedVoice = true
                                 },
                                 onPreview: {
                                     if previewingVoiceIdentifier == voice.identifier {
@@ -88,6 +89,7 @@ struct VoiceSettingsView: View {
                             onSelect: {
                                 selectedVoiceIdentifier = systemDefaultIdentifier
                                 VoiceManager.shared.preferredVoiceIdentifier = systemDefaultIdentifier
+                                VoiceManager.shared.userExplicitlySelectedVoice = true
                             },
                             onPreview: {
                                 if previewingVoiceIdentifier == systemDefaultIdentifier {
@@ -119,7 +121,7 @@ struct VoiceSettingsView: View {
             loadAvailableVoices()
         }
         .onDisappear {
-            // Stop any playing preview and resume meditation if needed
+            // Stop any playing preview and resume story if needed
             stopPreview()
         }
     }
@@ -140,9 +142,9 @@ struct VoiceSettingsView: View {
         previewSynthesizer = nil
         previewDelegate = nil
 
-        // Pause meditation if it's playing (only if not already paused)
-        if ttsManager.isSpeaking && !wasMeditationPlayingBeforePreview {
-            wasMeditationPlayingBeforePreview = true
+        // Pause story if it's playing (only if not already paused)
+        if ttsManager.isSpeaking && !wasStoryPlayingBeforePreview {
+            wasStoryPlayingBeforePreview = true
             ttsManager.synthesizer.pauseSpeaking(at: .word)
         }
 
@@ -152,11 +154,11 @@ struct VoiceSettingsView: View {
         let utterance = AVSpeechUtterance(string: previewText)
         utterance.voice = voice
 
-        // Use the same speech rate logic as actual meditation
+        // Use the same speech rate logic as actual story
         let speechRateMultiplier = VoiceManager.shared.getSpeechRateMultiplier(for: voice)
         utterance.rate = AVSpeechUtteranceDefaultSpeechRate * speechRateMultiplier
-        utterance.pitchMultiplier = 1.0  // Same as meditation pitch
-        utterance.volume = ttsManager.voiceVolume  // Use same volume as meditation (0.25)
+        utterance.pitchMultiplier = 1.0  // Same as story pitch
+        utterance.volume = ttsManager.voiceVolume  // Use same volume as story (0.25)
 
         // Set up delegate to detect when preview finishes - MUST be retained!
         let delegate = PreviewDelegate {
@@ -180,10 +182,10 @@ struct VoiceSettingsView: View {
         previewDelegate = nil
         previewingVoiceIdentifier = nil
 
-        // Resume meditation if it was playing before preview
-        if wasMeditationPlayingBeforePreview {
+        // Resume story if it was playing before preview
+        if wasStoryPlayingBeforePreview {
             ttsManager.synthesizer.continueSpeaking()
-            wasMeditationPlayingBeforePreview = false
+            wasStoryPlayingBeforePreview = false
         }
     }
 
@@ -193,9 +195,9 @@ struct VoiceSettingsView: View {
         previewSynthesizer = nil
         previewDelegate = nil
 
-        // Pause meditation if it's playing (only if not already paused)
-        if ttsManager.isSpeaking && !wasMeditationPlayingBeforePreview {
-            wasMeditationPlayingBeforePreview = true
+        // Pause story if it's playing (only if not already paused)
+        if ttsManager.isSpeaking && !wasStoryPlayingBeforePreview {
+            wasStoryPlayingBeforePreview = true
             ttsManager.synthesizer.pauseSpeaking(at: .word)
         }
 

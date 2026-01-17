@@ -32,11 +32,14 @@ struct ExpandingView: View {
     // Text-to-speech manager
     @StateObject private var ttsManager = TextToSpeechManager()
 
-    // Custom meditation manager
-    @StateObject private var meditationManager = CustomMeditationManager()
+    // Custom story manager
+    @StateObject private var storyManager = CustomStoryManager()
 
     // Custom poem manager
     @StateObject private var poemManager = CustomPoemManager()
+
+    // Story collection manager for multi-story support
+    @StateObject private var storyCollectionManager = StoryCollectionManager()
 
     @State private var showContentBrowser: Bool = false
 
@@ -44,10 +47,15 @@ struct ExpandingView: View {
     @State private var showVoiceSettings: Bool = false
 
     // Closed captioning toggle
-    @AppStorage("showMeditationText") private var showMeditationText: Bool = true
+    @AppStorage("showStoryText") private var showStoryText: Bool = true
 
     // Crossfade loading state
     @State private var isCrossfading: Bool = false
+
+    // Story title display state
+    @State private var showStoryTitle: Bool = false
+    @State private var storyTitleOpacity: Double = 0.0
+    @State private var showStorySelector: Bool = false
 
     // MARK: - Helper Functions for Content Mode
 
@@ -60,7 +68,7 @@ struct ExpandingView: View {
         switch mode {
         case .off:
             return "leaf"
-        case .meditation:
+        case .story:
             return isPlaying ? "leaf.fill" : "leaf"
         case .poetry:
             return isPlaying ? "theatermasks.fill" : "theatermasks"
@@ -76,7 +84,7 @@ struct ExpandingView: View {
         switch mode {
         case .off:
             return Color(white: 0.7)
-        case .meditation:
+        case .story:
             return isPlaying ? Color.green : Color(white: 0.7)
         case .poetry:
             return isPlaying ? Color.purple : Color(white: 0.7)
@@ -90,8 +98,8 @@ struct ExpandingView: View {
         // Get next content
         let nextText: String?
         switch nextMode {
-        case .meditation:
-            nextText = ttsManager.getRandomMeditation()
+        case .story:
+            nextText = ttsManager.getSequentialStory()
         case .poetry:
             nextText = ttsManager.getRandomPoem()
             print("🎭 Poetry mode - got poem text: \(nextText != nil)")
@@ -104,8 +112,8 @@ struct ExpandingView: View {
             return
         }
 
-        // Show loading indicator only when transitioning from meditation to poetry
-        if currentMode == .meditation && nextMode == .poetry {
+        // Show loading indicator only when transitioning from story to poetry
+        if currentMode == .story && nextMode == .poetry {
             isCrossfading = true
         }
 
@@ -140,34 +148,43 @@ struct ExpandingView: View {
         34: "Schubert: Sonata No. 6 in E minor, II. Allegretto (excerpt)",
     ]
 
+    // Detect device orientation
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
+
+    private var isLandscape: Bool {
+        verticalSizeClass == .compact
+    }
+
     var body: some View {
-        ZStack {
+        GeometryReader { geometry in
             ZStack {
-                if usePlasmaStyle {
-                    PlasmaBackground(color: color).ignoresSafeArea()
-                } else {
-                    BreathingBackground(color: color).ignoresSafeArea()
+                ZStack {
+                    if usePlasmaStyle {
+                        PlasmaBackground(color: color).ignoresSafeArea()
+                    } else {
+                        BreathingBackground(color: color).ignoresSafeArea()
+                    }
+
+                    Rectangle()
+                        .fill(
+                            isAlarmActive
+                            ? Color(hue: 0.58, saturation: 0.3, brightness: 0.9)
+                            : .black
+                        )
+                        .opacity(dimOverlayOpacity)
+                        .ignoresSafeArea()
+
+                    Rectangle()
+                        .fill(Color.white)
+                        .opacity(flashOverlayOpacity)
+                        .ignoresSafeArea()
                 }
 
-                Rectangle()
-                    .fill(
-                        isAlarmActive
-                        ? Color(hue: 0.58, saturation: 0.3, brightness: 0.9)
-                        : .black
-                    )
-                    .opacity(dimOverlayOpacity)
-                    .ignoresSafeArea()
-
-                Rectangle()
-                    .fill(Color.white)
-                    .opacity(flashOverlayOpacity)
-                    .ignoresSafeArea()
-            }
-            
-            ZStack {
-                VStack {
-                    // Duration slider
-                    CustomSlider(
+                ZStack {
+                    VStack {
+                        // Duration slider
+                        CustomSlider(
                         value: $durationMinutes,
                         minValue: 0,
                         maxValue: 1440,  // 24 hours in minutes
@@ -177,6 +194,7 @@ struct ExpandingView: View {
                         }
                     )
                     .padding(.horizontal, 40)
+                    .padding(.top, isLandscape ? 10 : 0) // Add top padding in landscape
 
                     // Audio balance slider
                     BalanceSlider(
@@ -186,7 +204,7 @@ struct ExpandingView: View {
                         }
                     )
                     .padding(.horizontal, 40)
-                    .padding(.top, 8)
+                    .padding(.top, isLandscape ? 4 : 8) // Reduce spacing in landscape
                     .onChange(of: ttsManager.audioBalance) { _, _ in
                         ttsManager.updateVolumesFromBalance()
                     }
@@ -214,7 +232,7 @@ struct ExpandingView: View {
                     .foregroundColor(
                         (currentIndex < 10) ? Color(white: 0.7) : Color(white: 0.3)
                     )
-                    .padding(.bottom, 20)
+                    .padding(.bottom, isLandscape ? 10 : 20) // Reduce spacing in landscape
 
                     HStack(spacing: 30) {
                     Button {
@@ -286,14 +304,19 @@ struct ExpandingView: View {
                     .contentShape(Circle())
                     .simultaneousGesture(
                         TapGesture().onEnded { _ in
-                            switch ttsManager.meditationState {
+                            switch ttsManager.storyState {
                             case .idle:
                                 // Cycle to next mode and start content
                                 ttsManager.cycleContentMode()
 
+                                // Show title when activating story or poetry mode
+                                if ttsManager.currentContentMode != .off {
+                                    showTitleBriefly()
+                                }
+
                                 switch ttsManager.currentContentMode {
-                                case .meditation:
-                                    guard let text = ttsManager.getRandomMeditation() else { return }
+                                case .story:
+                                    guard let text = ttsManager.getSequentialStory() else { return }
                                     ttsManager.startSpeakingWithPauses(text)
                                 case .poetry:
                                     guard let text = ttsManager.getRandomPoem() else { return }
@@ -314,6 +337,8 @@ struct ExpandingView: View {
                                         UserDefaults.standard.set("off", forKey: "contentMode")
                                     }
                                 } else {
+                                    // Show title when switching between modes
+                                    showTitleBriefly()
                                     // Crossfade to next content type
                                     crossfadeToNextContent()
                                 }
@@ -325,6 +350,7 @@ struct ExpandingView: View {
                         }
                     )
                 }
+                .padding(.bottom, isLandscape ? 10 : 0) // Add bottom padding in landscape to keep buttons on screen
 
                 }
 
@@ -366,19 +392,81 @@ struct ExpandingView: View {
                 }
             }
 
-            // Meditation text display in modal window above room label and buttons
-            if showMeditationText && ttsManager.isPlayingMeditation {
+            // Story title overlay - appears for 4-5 seconds when toggling Leaf/Theater
+            if showStoryTitle, let collection = storyCollectionManager.selectedCollection {
+                VStack {
+                    Button {
+                        showStorySelector = true
+                    } label: {
+                        HStack(spacing: 8) {
+                            Text(collection.displayName)
+                                .font(.title2)
+                            Image(systemName: "chevron.compact.down")
+                                .font(.caption)
+                                .foregroundColor(.white.opacity(0.8))
+                        }
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 12)
+                        .background(Color.black.opacity(0.7))
+                        .cornerRadius(10)
+                    }
+                    .opacity(storyTitleOpacity)
+                    .padding(.top, 100)
+
+                    Spacer()
+                }
+                .allowsHitTesting(storyTitleOpacity > 0.5)
+            }
+
+            // Story text display in modal window above room label and buttons
+            if showStoryText && ttsManager.isPlayingStory {
                 VStack {
                     Spacer()
-                    ScrollableMeditationTextDisplay(
+                    ScrollableStoryTextDisplay(
                         phraseHistory: ttsManager.phraseHistory,
                         currentPhrase: ttsManager.currentPhrase,
                         hasNewContent: $ttsManager.hasNewCaptionContent
                     )
-                    .padding(.bottom, 140) // Position clearly above buttons
+                    .padding(.bottom, isLandscape ? 80 : 180) // Reduce bottom padding in landscape
                     .transition(.opacity.combined(with: .move(edge: .bottom)))
                 }
                 .allowsHitTesting(true)  // Allow scrolling in the caption area
+            }
+
+            // Skip buttons for story mode (only when story/Leaf mode is active)
+            if ttsManager.currentContentMode == .story {
+                VStack {
+                    Spacer()
+                    HStack(spacing: 0) {
+                        Button {
+                            ttsManager.skipToPreviousChapter()
+                        } label: {
+                            Image(systemName: "chevron.left")
+                                .font(.title2)
+                                .foregroundColor(.white.opacity(0.7))
+                                .padding(10)
+                                .background(Circle().fill(Color.black.opacity(0.5)))
+                        }
+                        .contentShape(Circle())
+
+                        Spacer()
+
+                        Button {
+                            ttsManager.skipToNextChapter()
+                        } label: {
+                            Image(systemName: "chevron.right")
+                                .font(.title2)
+                                .foregroundColor(.white.opacity(0.7))
+                                .padding(10)
+                                .background(Circle().fill(Color.black.opacity(0.5)))
+                        }
+                        .contentShape(Circle())
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, isLandscape ? 60 : 120) // Reduce padding in landscape
+                }
+            }
             }
         }
         .gesture(
@@ -414,17 +502,20 @@ struct ExpandingView: View {
             ttsManager.onAmbientVolumeChanged = onAmbientVolumeChanged
             ttsManager.updateVolumesFromBalance()
 
-            // Connect the custom meditation manager to the TTS manager
-            // This allows the leaf button to randomly select from ALL meditations (presets + customs)
-            ttsManager.customMeditationManager = meditationManager
+            // Connect the custom story manager to the TTS manager
+            // This allows the leaf button to randomly select from preset stories
+            ttsManager.customStoryManager = storyManager
 
             // Connect the custom poem manager to the TTS manager
-            // This allows the theater masks button to randomly select from ALL poems (presets + customs)
+            // This allows the theater masks button to randomly select from preset poems
             ttsManager.customPoemManager = poemManager
 
-            // Restore last session (meditation or poetry mode)
-            ttsManager.restoreLastSession()
-            
+            // Connect the story collection manager for multi-story support
+            ttsManager.storyCollectionManager = storyCollectionManager
+
+            // Do NOT auto-restore poetry/story mode when entering a room
+            // User must explicitly activate it via the buttons
+
             dimMode = .duration(defaultDimDurationSeconds)
             if case .duration(let seconds) = dimMode {
                 flashOverlayOpacity = 0
@@ -542,19 +633,40 @@ struct ExpandingView: View {
         }
         .sheet(isPresented: $showContentBrowser) {
             ContentBrowserView(
-                meditationManager: meditationManager,
+                storyManager: storyManager,
                 poemManager: poemManager,
                 isPresented: $showContentBrowser,
-                onPlayMeditation: { meditationText in
-                    ttsManager.startSpeakingWithPauses(meditationText)
+                onPlayStory: { storyText in
+                    ttsManager.startSpeakingWithPauses(storyText)
                 },
                 onPlayPoem: { poemText in
                     ttsManager.startSpeakingWithPauses(poemText)
                 }
             )
         }
-        .sheet(isPresented: $showVoiceSettings) {
+        .sheet(isPresented: $showVoiceSettings, onDismiss: {
+            // Refresh voice settings to ensure new voice selection takes effect immediately
+            ttsManager.refreshVoiceSettings()
+        }) {
             VoiceSettingsView(ttsManager: ttsManager)
+        }
+        .sheet(isPresented: $showStorySelector) {
+            StorySelectionView(
+                collections: storyCollectionManager.collections,
+                selectedCollectionID: $storyCollectionManager.selectedCollectionID,
+                isPresented: $showStorySelector,
+                onSelectionChanged: {
+                    // When story changes, restart playback if currently playing
+                    if ttsManager.isPlayingStory {
+                        Task {
+                            await ttsManager.stopSpeaking()
+                            if let text = ttsManager.getSequentialStory() {
+                                ttsManager.startSpeakingWithPauses(text)
+                            }
+                        }
+                    }
+                }
+            )
         }
     }
     
@@ -577,6 +689,23 @@ struct ExpandingView: View {
             // NO WAKE TIME: Ensure infinite
             durationMinutes = 0
             UserDefaults.standard.set(0.0, forKey: "durationMinutes")
+        }
+    }
+
+    private func showTitleBriefly() {
+        showStoryTitle = true
+        withAnimation(.easeIn(duration: 0.5)) {
+            storyTitleOpacity = 1.0
+        }
+
+        // Fade out after 4.5 seconds
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4.5) {
+            withAnimation(.easeOut(duration: 1.0)) {
+                storyTitleOpacity = 0.0
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                showStoryTitle = false
+            }
         }
     }
 }

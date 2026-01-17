@@ -1,4 +1,840 @@
+# 2026-01-17 (Latest): Multi-Story Architecture Bug Fixes & UI Improvements ✅
+
+### Summary of Changes
+- **Fixed story persistence** - Selected story now correctly persists when navigating between views
+- **Fixed stable UUIDs** - Story collections maintain consistent IDs across app launches
+- **Fixed auto-playback** - Switching stories while playing now automatically starts the new story
+- **Added visual indicator** - Chevron icon added to story title to indicate it's tappable
+- **Enhanced discovery** - Story title now displays in both Story mode AND Poetry mode
+- **Default story selection** - New users now start with Signal Decay (if available) instead of first alphabetical story
+
+### Bug Fixes
+
+#### 1. Story Persistence Issue
+**Problem**: When selecting Signal Decay, exiting to ContentView, then re-entering ExpandingView, the selection incorrectly reverted to Hello_World (first story alphabetically).
+
+**Root Cause**: Initialization order in StoryCollectionManager:
+- `loadCollections()` ran first and auto-selected the first collection alphabetically
+- This triggered `didSet` observer which saved "Hello_World" to AppStorage
+- Then `loadSelectedCollection()` tried to restore "Signal_Decay" but it was already overwritten
+
+**Solution**: Changed initialization order to restore saved selection BEFORE loading collections:
+```swift
+init() {
+    loadChapterPositions()
+    // Restore saved selection before loading collections
+    if !selectedCollectionIDString.isEmpty, let uuid = UUID(uuidString: selectedCollectionIDString) {
+        selectedCollectionID = uuid
+    }
+    loadCollections()  // Auto-select only runs if selectedCollectionID == nil
+}
+```
+
+#### 2. UUID Stability Issue
+**Problem**: UUIDs were regenerated on each app launch, causing saved selection IDs to become invalid.
+
+**Solution**: Generate stable UUIDs from directory names using consistent hashing:
+```swift
+private static func stableUUID(from string: String) -> String {
+    let hash = string.utf8.reduce(0) { ($0 &+ UInt64($1)) &* 31 }
+    return String(format: "%08X-%04X-%04X-%04X-%012X", ...)
+}
+```
+
+Now "Signal_Decay" always generates the same UUID across app launches.
+
+#### 3. Story Switch Playback Issue
+**Problem**: When switching from Hello_World to Signal_Decay while in Story mode, the new story didn't automatically start playing.
+
+**Solution**: Added `onSelectionChanged` callback to StorySelectionView:
+- ExpandingView monitors for selection changes
+- When story changes while playing, stops current playback and starts new story
+- Provides seamless transition between stories
+
+### Enhancements
+
+#### 1. Default Story Selection for New Users
+New users now have Signal Decay automatically selected as their first story:
+- If Signal Decay exists in TTSContent/, it's selected by default for first-time users
+- If Signal Decay doesn't exist, falls back to first available story alphabetically
+- Existing users with saved preferences are completely unaffected
+- Implementation: Modified auto-selection logic in `loadCollections()` to prefer Signal Decay
+
+**File**: `StoryCollectionManager.swift:112-119`
+
+### UI Improvements
+
+#### 1. Visual Indicator for Story Selector
+Added subtle chevron-down icon after story title to indicate it's tappable:
+- SF Symbol: `chevron.compact.down`
+- Small, subtle design maintains minimal aesthetic
+- Increases discoverability without cluttering UI
+
+#### 2. Story Title Display in Poetry Mode
+Story title now appears when activating EITHER:
+- Leaf button (Story mode) - was already working
+- Theater button (Poetry mode) - NEW
+
+This allows users to change story collections from poetry mode without switching to story mode first.
+
+### Files Modified
+- **StoryCollectionManager.swift**: Fixed initialization order, added stable UUID generation
+- **StoryCollection.swift**: Implemented stable UUID generation from directory name
+- **StorySelectionView.swift**: Added onSelectionChanged callback
+- **ExpandingView.swift**: Added chevron indicator, enabled title display in poetry mode
+
+---
+
+# 2026-01-17: Multi-Story Architecture Implementation ✅
+
+### Summary of Changes
+- **Implemented scalable multi-story architecture** allowing app to support unlimited stories with associated poems
+- **Story title display** - Title appears and fades when toggling Leaf/Theater buttons, tappable to select different stories
+- **Per-story chapter memory** - Each story independently remembers its chapter position across app sessions
+- **Scoped poems** - Theater button plays random poems only from the currently selected story's collection
+- **Directory-based content organization** - Stories discovered automatically from TTSContent/ filesystem structure
+- **Story selection UI** - Clean menu showing all available stories with metadata (chapter/poem counts)
+
+### Architecture Overview
+
+Converted from flat file structure (`preset_story1.txt`, `preset_poem1.txt`) to hierarchical directory structure:
+
+```
+TTSContent/
+├── default_custom_story.txt
+├── default_custom_poem.txt
+├── Signal_Decay/
+│   ├── Stories/
+│   │   ├── 01_prelude.txt
+│   │   ├── 02_chapter1.txt
+│   │   └── ... (numbered sequentially)
+│   └── Poems/
+│       └── *.txt (any filenames)
+└── [Future_Stories]/
+    ├── Stories/
+    └── Poems/
+```
+
+### New Features
+
+#### 1. Story Title Overlay
+- Appears for 4-5 seconds when user toggles Leaf (story) or Theater (poetry) buttons
+- Smooth fade-in/fade-out animation
+- Displays formatted story name (e.g., "Signal_Decay" → "Signal Decay")
+- Positioned at top of ExpandingView with semi-transparent black background
+- Only tappable when fully visible (prevents accidental taps during fade)
+
+#### 2. Story Selection
+- Tapping title opens navigation sheet with list of all available stories
+- Each story shows:
+  - Display name (underscores/dashes replaced with spaces)
+  - Chapter count with book icon
+  - Poem count with theater masks icon
+  - Checkmark for currently selected story
+- Selecting story immediately switches content and dismisses sheet
+- Familiar iOS Settings app-style UI
+
+#### 3. Per-Story Chapter Tracking
+- Chapter positions stored as dictionary in UserDefaults: `[directoryName: chapterIndex]`
+- Example: `{"Signal_Decay": 4, "Another_Story": 2}`
+- Encoded as JSON Data for @AppStorage compatibility
+- When switching stories, previous story's chapter position is remembered
+- Returning to a story resumes at the last-played chapter
+
+#### 4. Scoped Poem Playback
+- Theater button now plays random poems ONLY from currently selected story's Poems/ directory
+- Previously played from ALL preset poems regardless of story
+- Ensures thematic consistency between stories and their poems
+
+#### 5. Automatic Story Discovery
+- App scans TTSContent/ directory on launch
+- Discovers all subdirectories containing Stories/ and Poems/ folders
+- No code changes needed to add new stories - just add directory and rebuild
+- Gracefully handles missing directories, empty collections, malformed filenames
+
+### Files Created
+
+1. **zz-time/Models/StoryCollection.swift** - NEW
+   - Data model representing a story collection
+   - Properties: id (UUID), directoryName, displayName, storyFiles, poemFiles
+   - StoryFile nested struct with filename and sequenceNumber
+   - `formatDisplayName()` - Converts directory names to user-friendly display names
+   - `sortedChapters` computed property for ordered chapter access
+
+2. **zz-time/Views/Components/StoryCollectionManager.swift** - NEW
+   - ObservableObject managing story discovery and chapter positions
+   - `loadCollections()` - Scans TTSContent/ directory and discovers stories
+   - `getChapterIndex()` / `setChapterIndex()` - Per-story chapter position management
+   - `getStoryText()` - Loads story content from filesystem
+   - `getRandomPoem()` - Selects random poem from current story's collection
+   - File discovery with regex pattern matching for sequence numbers (`^\d+_`)
+   - Error handling for missing directories, empty collections, malformed files
+
+3. **zz-time/Views/StorySelectionView.swift** - NEW
+   - SwiftUI view for story selection UI
+   - NavigationView with List of collections
+   - Shows metadata (chapter count, poem count) for each story
+   - Visual checkmark indicates currently selected story
+   - Done button in toolbar to dismiss
+
+### Files Modified
+
+1. **zz-time/Views/Components/TextToSpeechManager.swift**
+   - Line 69: REMOVED `@AppStorage("currentChapterIndex")` (replaced by per-story tracking)
+   - Line 98+: Added `weak var storyCollectionManager: StoryCollectionManager?`
+   - Lines 210-217: Replaced `getSequentialStory()` to use StoryCollectionManager
+   - Lines 219-272: Replaced `skipToNextChapter()` and `skipToPreviousChapter()` with collection-aware logic
+   - Lines 274-294: Replaced `getRandomPoem()` to load from current story's Poems/ directory
+   - Now queries manager for current collection and chapter index
+   - Wraps to first/last chapter within current story's chapter list
+
+2. **zz-time/Views/ExpandingView.swift**
+   - Line 39+: Added `@StateObject private var storyCollectionManager = StoryCollectionManager()`
+   - Line 50+: Added state variables for title display: `showStoryTitle`, `storyTitleOpacity`, `showStorySelector`
+   - Line 377+: Added story title overlay with fade animation
+   - Line 298-313: Modified Leaf/Theater button tap gesture to trigger `showTitleBriefly()`
+   - Line 469+: Injected storyCollectionManager into ttsManager in onAppear
+   - Line 607+: Added .sheet for StorySelectionView
+   - New `showTitleBriefly()` method: Animates title fade-in (0.5s) → display (4.5s) → fade-out (1.0s)
+
+### How It Works
+
+#### Story Discovery Flow
+1. On app launch, StoryCollectionManager.init() calls `loadCollections()`
+2. Scans TTSContent/ for subdirectories
+3. For each subdirectory:
+   - Scans Stories/ folder for .txt files
+   - Extracts sequence number from filename prefix (e.g., "01_prelude.txt" → 1)
+   - Scans Poems/ folder for .txt files
+   - Creates StoryCollection with metadata
+4. Sorts collections alphabetically by directory name
+5. Auto-selects first collection if none previously selected
+
+#### Chapter Position Persistence
+1. User navigates chapters via skip forward/back buttons
+2. StoryCollectionManager.setChapterIndex() updates in-memory dictionary
+3. Dictionary automatically JSON-encoded to UserDefaults via @AppStorage
+4. On app relaunch, dictionary decoded and chapter positions restored
+5. Switching stories preserves both stories' chapter positions
+
+#### Content Loading
+1. User toggles Leaf button → story mode activated
+2. ExpandingView calls `showTitleBriefly()` → title appears and fades
+3. TextToSpeechManager.getSequentialStory() queries collection manager
+4. Manager looks up current collection and chapter index for that collection
+5. Loads story file from TTSContent/{directoryName}/Stories/{filename}.txt
+6. Returns text to TTS manager for playback
+
+#### Poem Scoping
+1. User toggles Theater button → poetry mode activated
+2. TextToSpeechManager.getRandomPoem() queries collection manager
+3. Manager gets current collection's poemFiles array
+4. Randomly selects one poem from that array
+5. Loads poem from TTSContent/{directoryName}/Poems/{filename}.txt
+6. Returns text to TTS manager for playback
+
+### Error Handling & Edge Cases
+
+1. **TTSContent/ Missing** - Returns empty collections array, Leaf/Theater buttons show no content
+2. **Selected Story Deleted** - Falls back to first available collection
+3. **Empty Stories/ or Poems/** - Collection still added if has either stories OR poems
+4. **Malformed Filenames** - Files without sequence prefix excluded from collection
+5. **Chapter Index Out of Bounds** - Resets to first chapter if stored chapter no longer exists
+6. **File Loading Errors** - Returns nil, TTS gracefully handles absence of content
+
+### File Naming Conventions
+
+- **Directory names**: Use underscores or dashes (e.g., `Signal_Decay`, `My-New_Story`)
+- **Display names**: Automatically formatted (e.g., "Signal Decay", "My New Story")
+- **Story files**: MUST have numeric prefix (`01_`, `02_`, etc.) for proper ordering
+- **Poem files**: Can have any filename - selected randomly regardless of name
+
+### Migration Notes
+
+- Manual file reorganization required (no auto-migration)
+- Old flat Stories/ and Poems/ directories can remain for reference
+- New TTSContent/ structure takes precedence
+- Custom stories (UserDefaults-based) completely unchanged and unaffected
+
+### Adding New Stories
+
+To add a new story:
+1. Create subdirectory in TTSContent/ (e.g., `New_Story_Name/`)
+2. Create `Stories/` and `Poems/` subdirectories
+3. Add numbered story files: `01_chapter1.txt`, `02_chapter2.txt`, etc.
+4. Add poem text files (any names)
+5. Add to Xcode project bundle
+6. App automatically discovers on next launch - no code changes needed
+
+### Testing Scenarios
+
+✅ Launch app with TTSContent/ structure - stories discovered
+✅ Toggle Leaf button - title appears and fades over 5 seconds
+✅ Tap title during display - story selector opens
+✅ Story selector shows all available stories with metadata
+✅ Select different story - chapters load from correct subdirectory
+✅ Theater button plays poem from current story's Poems/ directory only
+✅ Skip forward/backward through chapters
+✅ Wrap-around at end/beginning of story
+✅ Switch to different story, skip chapters, switch back - chapter position restored
+✅ Restart app - selected story and chapter positions persist
+✅ Add new story directory - appears in selector without code changes
+✅ Custom stories/poems continue working unchanged
+✅ Empty TTSContent/ - app doesn't crash, buttons show no content
+✅ Story with no poems - poetry mode doesn't crash
+✅ Malformed filename - excluded from collection, doesn't break app
+
+### Impact on Custom Stories
+
+**No changes** - Custom stories and poems remain completely separate:
+- Still stored in UserDefaults
+- Still browseable via Content Browser
+- Still editable, duplicatable, deletable
+- Not affected by TTSContent/ structure
+- Leaf/Theater buttons only use TTSContent/ preset stories
+- Custom content accessible via Quote button → Content Browser
+
+---
+
+# 2026-01-17: Voice Settings Immediate Application Fix ✅
+
+### Summary of Changes
+- **Fixed voice settings not taking effect immediately** when changed from within a room (ExpandingView)
+- Previously, users had to exit the room and re-enter for voice changes to be applied
+- Now voice changes are immediately reflected when returning from Voice Settings
+
+### Issue Fixed
+When a user was in a room (ExpandingView) and changed the selected voice in Voice Settings, the new voice was not used for Story (Leaf button) or Poetry (Theater masks button) modes until the user exited the room and re-entered it. This was confusing and created a poor user experience.
+
+### Root Cause
+The TextToSpeechManager's AVSpeechSynthesizer instance was not being refreshed when voice settings changed. While the new voice preference was saved to UserDefaults, the synthesizer needed to be recreated to clear any cached state and ensure the new voice would be used for the next TTS session.
+
+### Files Modified
+- `zz-time/Views/Components/TextToSpeechManager.swift`:
+  - Lines 165-173: Added new `refreshVoiceSettings()` method that recreates the synthesizer when voice settings change
+  - Method only recreates synthesizer if not currently speaking (avoids interrupting active playback)
+  - If TTS is active, the next story/poem will automatically pick up the new voice
+
+- `zz-time/Views/ExpandingView.swift`:
+  - Lines 602-607: Added `onDismiss` handler to the voice settings sheet
+  - Calls `ttsManager.refreshVoiceSettings()` when Voice Settings is dismissed
+  - Ensures new voice selection is immediately available for next TTS playback
+
+### How It Works
+1. User opens Voice Settings (gear icon) and selects a new voice
+2. Voice selection is saved to UserDefaults via VoiceManager
+3. When Voice Settings sheet is dismissed, the `onDismiss` handler triggers
+4. `ttsManager.refreshVoiceSettings()` is called, which recreates the AVSpeechSynthesizer
+5. Next time user starts Story or Poetry mode, the new voice is immediately used
+
+### Testing Scenarios
+✅ Change voice in settings → return to room → start Story → new voice is used
+✅ Change voice in settings → return to room → start Poetry → new voice is used
+✅ Change voice while TTS is playing → new voice takes effect on next playback
+✅ Change voice from "System Default" to enhanced voice → works immediately
+✅ Change voice from enhanced voice to another enhanced voice → works immediately
+
+### Preset vs Custom Content Separation (Verification)
+
+**Verified** that the Leaf button (Story mode) and Theater button (Poetry mode) correctly play ONLY preset content, never custom content:
+
+**Implementation Details:**
+- `getSequentialStory()` method (TextToSpeechManager.swift:210-217):
+  - Only loads files named `preset_story\(currentChapterIndex).txt`
+  - Iterates through numbered preset stories sequentially (preset_story1.txt, preset_story2.txt, etc.)
+  - Located in `Stories/` folder
+
+- `getRandomPoem()` method (TextToSpeechManager.swift:274-294):
+  - Only loads files named `preset_poem\(i).txt` (where i = 1-100)
+  - Randomly selects one preset poem from the available pool
+  - Located in `Poems/` folder
+
+**Custom Content Storage:**
+- Custom stories and poems are stored in UserDefaults (not as preset_*.txt files)
+- Custom content can ONLY be played via the Content Browser menu (text.quote button)
+- When played from Content Browser, the text is passed directly to `ttsManager.startSpeakingWithPauses()`
+- This ensures complete separation between preset and custom content
+
+**File Naming Convention:**
+- Preset stories: `Stories/preset_story1.txt`, `preset_story2.txt`, etc.
+- Preset poems: `Poems/preset_poem1.txt`, `preset_poem2.txt`, etc.
+- Custom stories: Stored in UserDefaults under "customStories" key
+- Custom poems: Stored in UserDefaults under "customPoems" key
+
+**No code changes were needed** - this separation was already correctly implemented.
+
+---
+
+# 2026-01-16: Landscape Mode Layout Fixes ✅
+
+### Summary of Changes
+- **Fixed landscape mode UI layout issues** to prevent UI elements from going off-screen or overlapping
+- Made closed caption box height responsive to device orientation (150pt landscape, 300pt portrait)
+- Added landscape-specific padding adjustments throughout ExpandingView to keep all controls visible
+- Layout now properly adapts when entering a room in landscape mode or rotating from portrait to landscape
+
+### Issues Fixed
+1. **Closed Caption Box Covering Sliders**: When TTS voice was active in landscape mode, the 300pt tall caption box would cover both duration and ambient volume sliders at the top
+2. **UI Elements Off-Screen on Rotation**: When rotating from portrait to landscape while in a room, sliders would go off the top of screen and the 4 buttons would go off the bottom
+
+### Files Modified
+- `zz-time/Views/Components/ScrollableStoryTextDisplay.swift`:
+  - Lines 12-23: Added orientation detection using `@Environment(\.verticalSizeClass)`
+  - Lines 16-23: Created `isLandscape` computed property and `captionHeight` that returns 150pt in landscape, 300pt in portrait
+  - Line 61: Applied responsive height to ScrollView (`maxHeight: captionHeight`)
+  - Line 127: Applied responsive height to containing ZStack (`height: captionHeight`)
+
+- `zz-time/Views/ExpandingView.swift`:
+  - Lines 143-149: Added orientation detection properties
+  - Line 152: Wrapped body in `GeometryReader` for better layout handling
+  - Line 189: Duration slider top padding (0pt → 10pt in landscape)
+  - Line 199: Balance slider top padding (8pt → 4pt in landscape)
+  - Line 217: Room label bottom padding (20pt → 10pt in landscape)
+  - Line 328: Button HStack bottom padding (0pt → 10pt in landscape)
+  - Line 378: Closed caption box bottom padding (180pt → 80pt in landscape)
+  - Line 414: Skip buttons bottom padding (120pt → 60pt in landscape)
+
+### How It Works
+- Uses SwiftUI's `@Environment(\.verticalSizeClass)` to detect orientation
+- When `verticalSizeClass == .compact`, device is in landscape mode (iPhone)
+- All UI elements automatically adjust padding based on `isLandscape` computed property
+- Works seamlessly for both entering landscape mode and rotating from portrait
+
+### Testing Scenarios
+✅ Enter a room while already in landscape mode → sliders and buttons visible
+✅ Press Leaf button (TTS) in landscape → caption box doesn't cover sliders
+✅ Enter room in portrait, rotate to landscape → all UI elements reposition correctly
+✅ TTS active in portrait, rotate to landscape → caption box resizes, no overlap
+
+---
+
+# 2026-01-15: Intelligent Voice Preference Hierarchy ✅
+
+### Summary of Changes
+- **Implemented smart voice preference hierarchy** to automatically select better quality voices (Lee AU, Daniel GB) for new and existing users
+- Added user selection tracking to distinguish between auto-selected and manually-chosen voices
+- Voice hierarchy prioritizes: Lee (AU) Premium → Enhanced → Default, then Daniel (GB) Premium → Enhanced → Default
+- Users who manually select a voice in settings will have their choice permanently respected
+- Existing users will automatically upgrade to better voices on next app launch (if no manual selection was made)
+
+### Voice Priority Order
+1. Lee (AU) Premium (`com.apple.voice.premium.en-AU.Lee`)
+2. Lee (AU) Enhanced (`com.apple.voice.enhanced.en-AU.Lee`)
+3. Daniel (GB) Premium (`com.apple.voice.premium.en-GB.Daniel`)
+4. Daniel (GB) Enhanced (`com.apple.voice.enhanced.en-GB.Daniel`)
+5. Lee (AU) Default (`com.apple.voice.compact.en-AU.Lee`)
+6. Daniel (GB) Default (`com.apple.voice.compact.en-GB.Daniel`)
+7. Fallback to random story-appropriate voice if none available
+
+### Files Modified
+- `zz-time/Views/Components/VoiceManager.swift`:
+  - Line 11: Added `userExplicitlySelectedVoiceKey` UserDefaults key
+  - Lines 25-33: Added `userExplicitlySelectedVoice` property to track manual selections
+  - Lines 46-65: Added `getVoiceFromHierarchy()` method to check for preferred voices in priority order
+  - Lines 88-124: Updated `getPreferredVoice()` logic with new 5-step hierarchy:
+    1. Honor user's explicit voice selection (if manually chosen)
+    2. Try voice hierarchy (best available voice from priority list)
+    3. Use previously auto-selected voice if still valid
+    4. Fallback to random story-appropriate voice
+    5. Final fallback to system default
+- `zz-time/Views/VoiceSettingsView.swift`:
+  - Line 73: Set `userExplicitlySelectedVoice = true` when user selects a voice
+  - Line 92: Set `userExplicitlySelectedVoice = true` when user selects system default
+
+### How It Works
+**For New Users:**
+- App automatically selects the best voice from the hierarchy
+- Voice is auto-saved on first story playback
+- No explicit selection flag is set, allowing future upgrades
+
+**For Existing Users:**
+- On next app launch, automatically upgraded to best hierarchy voice
+- Old preference preserved as fallback if no hierarchy voices available
+- Seamless migration with no user action required
+
+**When User Manually Changes Voice:**
+- `userExplicitlySelectedVoice` flag is set to true
+- Choice is permanently respected until user changes it again
+- Hierarchy is bypassed for users with explicit selections
+
+### Edge Cases Handled
+- User's selected voice deleted from device → Clears explicit flag, falls back to hierarchy
+- None of hierarchy voices available → Falls back to random story-appropriate voice
+- User downloads better voice later → Auto-upgrades if no explicit selection made
+
+### Result
+- New users get Lee (AU) Premium by default if available on device (better fit for dark sci-fi story)
+- Existing users seamlessly upgrade to better voices
+- User preferences are always respected when manually selected
+- No cheery voices as defaults - Lee and Daniel provide appropriate tone for dark sci-fi content
+
+### User Experience Impact
+- Better default voice quality for first-time users (no more random cheery voices)
+- Existing users benefit from automatic upgrade to premium voices
+- Manual voice selections always honored and preserved
+- Improved narrative immersion with appropriate voice tones for dark sci-fi stories
+
+---
+
+# 2026-01-15: Increased Closed Caption Height and Fixed Button Spacing ✅
+
+### Summary of Changes
+- **Increased closed caption text box height from 100 to 300 points** for better readability
+- The caption box now uses approximately 35-40% of screen height (well within the 45-50% maximum target)
+- **Added spacing between closed caption box and skip buttons** to prevent visual overlap
+- Left/right chevron buttons now have proper clearance from the caption box (60-point gap)
+
+### Files Modified
+- `zz-time/Views/Components/ScrollableStoryTextDisplay.swift`:
+  - Line 61: Changed `maxHeight` from 100 to 300 points
+  - Line 127: Changed `frame(height:)` from 100 to 300 points
+- `zz-time/Views/ExpandingView.swift`:
+  - Line 378: Changed caption bottom padding from 140 to 180 points
+
+### Result
+- Closed caption text box is now significantly taller and more readable
+- Text content is easier to follow without excessive scrolling
+- Skip buttons (left/right chevrons) no longer touch the caption box
+- Proper visual hierarchy maintained with clear spacing between UI elements
+
+### User Experience Impact
+- Users can read more text at once without scrolling
+- Better accessibility for users who rely on closed captions
+- Cleaner, more polished UI appearance with proper spacing
+
+---
+
+# 2026-01-15 (Later): TTS Voice Volume Successfully Reduced ✅
+
+### Summary of Changes
+- **Successfully lowered TTS voice volume from 0.25 to 0.1** - a 60% reduction in voice volume
+- This resolves the issue where the TTS voice was perceived as too loud compared to the ambient audio
+- Previous attempt to change volume to 0.5 (which increased it) failed because it went in the wrong direction
+- This change reduces voice from 25% to 10% of maximum volume
+
+### Files Modified
+- `zz-time/Views/Components/TextToSpeechManager.swift`: Line 106 - Changed `voiceVolume` from 0.25 to 0.1
+
+### Result
+- TTS voice is now significantly quieter relative to ambient audio (10% vs 60% max)
+- Voice narration provides a subtle, calming background rather than overpowering the ambient sounds
+- User tested and confirmed the new volume level sounds great
+
+### Technical Notes
+- iOS `AVSpeechUtterance.volume` property DOES work when set to appropriate values (0.0 to 1.0 range)
+- The previous attempt set volume to 0.5 (50%), which was actually HIGHER than the original 0.25 (25%), explaining why it seemed to have no effect
+- Setting to 0.1 (10%) successfully reduces volume as intended
+
+---
+
+# 2026-01-15 (Earlier): TTS Volume Adjustment Investigation - SUPERSEDED BY ABOVE
+
+### Summary of Changes
+- Attempted to lower TTS (text-to-speech) voice volume from 0.25 to 0.5 for all voices (default, enhanced, premium).
+- Increased default ambient audio volume from 80% (audioBalance = 0.80) to 100% (audioBalance = 1.0).
+- Updated app launch logic to always reset ambient audio and TTS volume defaults for all users (new and existing), overwriting previous settings.
+- After testing, found that lowering TTS volume had no effect on actual playback loudness. iOS AVSpeechSynthesizer appears to ignore or normalize the utterance.volume property, making voice volume control ineffective.
+- Reverted TTS voice volume to previous value (0.25).
+- Documented iOS limitation: TTS voice volume cannot be reliably controlled via code; ambient audio can be adjusted, but TTS remains at system volume.
+
+### Files Modified
+- zz-time/Views/Components/TextToSpeechManager.swift: Changed voiceVolume to 0.5, then reverted to 0.25 after investigation.
+- zz-time/Views/ContentView.swift: Set default ambient audio to 100% and forced reset for all users on launch.
+- CHANGE_LOG.md: Added this summary and rationale.
+
+### Result
+- Ambient audio now defaults to 100% for all users.
+- TTS voice volume remains at 0.25, but actual loudness is unchanged due to iOS system limitations.
+- No further reduction in TTS volume is possible via AVSpeechSynthesizer.
+- User feedback and investigation documented for future reference.
+
+### Post-Mortem Note
+- **This entry was incorrect** - the issue was that 0.5 is HIGHER than 0.25, not lower
+- Volume WAS successfully reduced later by setting to 0.1 (see entry above)
 # Problems and Solutions
+
+## 2026-01-15 16:45: Sentence-by-Sentence Closed Captions with Paragraph Grouping ✅
+
+### **The Problem**
+Closed captions were displaying entire paragraphs at once instead of showing the current sentence being spoken. This made them feel less like true closed captions. Additionally, when scrolling up to view historical text, all previously spoken sentences appeared as separate lines, losing the original paragraph structure.
+
+### **Root Cause**
+- The `addAutomaticPauses()` function treated each paragraph as a single phrase, adding pauses only between paragraphs, not between sentences
+- No sentence boundary detection existed - the system couldn't identify where sentences ended within paragraphs
+- Historical text display showed each phrase separately without grouping sentences back into their original paragraphs
+
+### **The Solution**
+Implemented sentence-level text parsing with paragraph boundary markers, allowing current text to display sentence-by-sentence while historical text maintains paragraph structure.
+
+### **Files Modified**
+- `TextToSpeechManager.swift`:
+  - Lines 312-352: Modified `addAutomaticPauses()` to split paragraphs into sentences using sentence boundary detection
+  - Lines 354-403: Added new `splitIntoSentences()` helper function that:
+    - Detects sentence endings (`.`, `!`, `?`)
+    - Handles common abbreviations (Dr., Mr., Mrs., Ms., vs., etc., e.g., i.e.) to avoid false splits
+    - Returns array of individual sentences
+  - Lines 312-344: Added `<<PARAGRAPH_BREAK>>` marker after last sentence of each paragraph (shortened to `<<PB>>` in storage)
+  - Lines 391-422: Updated phrase cleaning logic to:
+    - Detect and preserve paragraph break markers before cleaning
+    - Strip markers from spoken text (never spoken aloud)
+    - Tag phrases with `<<PB>>` marker in `allPhrases` array for display grouping
+  - Added 0.5s pauses between sentences within paragraphs
+  - Maintained 2s pauses between paragraphs
+
+- `ScrollableStoryTextDisplay.swift`:
+  - Lines 22-52: Modified display logic to group phrases into paragraphs using `<<PB>>` marker
+  - Lines 31-42: For current paragraph (containing current phrase), display each sentence individually with current sentence highlighted
+  - Lines 43-51: For historical paragraphs, combine all sentences into single paragraph display
+  - Lines 112-137: Added `groupIntoParagraphs()` helper function that:
+    - Iterates through phrase history
+    - Detects `<<PB>>` markers to identify paragraph boundaries
+    - Groups sentences between markers into paragraph arrays
+    - Removes markers during display (clean presentation)
+
+### **Technical Implementation Details**
+- Sentence detection uses character-by-character parsing with lookahead to check for spaces after punctuation
+- Abbreviation detection prevents splitting mid-sentence (e.g., "Dr. Smith went..." stays together)
+- Paragraph markers (`<<PARAGRAPH_BREAK>>`) added during text processing, shortened to `<<PB>>` for storage efficiency
+- Markers stripped before speech synthesis (never spoken)
+- Display component intelligently groups historical sentences while keeping current paragraph sentence-by-sentence
+
+### **Result**
+✅ Closed captions now show only the current sentence being spoken (true closed caption behavior)
+✅ Current paragraph displays individual sentences with current one highlighted
+✅ Historical text (when scrolling up) shows complete paragraphs for better readability
+✅ Natural 0.5s pauses between sentences, 2s pauses between paragraphs
+✅ Handles abbreviations correctly without splitting mid-sentence
+✅ Minimal overhead - simple string markers, no complex data structures
+
+---
+
+## 2026-01-14 00:30: Chapter Navigation Wrapping and Portrait Mode Button Positioning ✅
+
+### **The Problem**
+When users reached the last chapter and clicked the right button, nothing happened (couldn't wrap to first chapter). Similarly, clicking left on the first chapter didn't wrap to the last. Additionally, in portrait mode the skip buttons appeared too high on the screen (almost halfway up), while they were correctly positioned in landscape mode.
+
+### **Root Cause**
+- `skipToNextChapter()` function stopped searching when no next chapter was found, without wrapping back to chapter 1
+- `skipToPreviousChapter()` only decremented the index, with no logic to wrap to the last chapter when at the first
+- Skip buttons HStack was positioned absolutely with bottom padding, but not anchored to the bottom of the screen, causing different positioning in portrait vs landscape
+
+### **The Solution**
+Updated chapter navigation to implement circular wrapping behavior, and wrapped skip buttons in a VStack with Spacer() to anchor them to the bottom in all orientations.
+
+### **Files Modified**
+- `TextToSpeechManager.swift` (lines 209-262):
+  - Modified `skipToNextChapter()` to search for next available chapter, and if none found (reached end), wrap back to chapter 1
+  - Modified `skipToPreviousChapter()` to scan all files (1-100) to find the last available chapter when at chapter 1, then jump to it
+- `ExpandingView.swift` (lines 384-416):
+  - Wrapped skip buttons HStack in VStack with Spacer() to push buttons to bottom of screen
+  - Maintains 120pt bottom padding for consistent positioning near closed captions in all orientations
+
+### **Result**
+✅ Right button on last chapter now wraps to first chapter (preset_meditation1.txt)
+✅ Left button on first chapter now wraps to last chapter (preset_meditation8.txt)
+✅ Skip buttons correctly positioned near closed captions in both portrait and landscape modes
+✅ Circular navigation allows seamless browsing through all story chapters
+
+---
+
+## 2026-01-13 23:45: Improved Skip Button Positioning and Size in Story Mode ✅
+
+### **The Problem**
+The skip back/forward buttons (< >) for story chapter navigation were poorly positioned (left button centered, vertically in middle of screen) and too large, looking unprofessional.
+
+### **Root Cause**
+The HStack layout used Spacers with individual button paddings that pushed buttons away from screen edges, and large padding made buttons oversized.
+
+### **The Solution**
+Repositioned buttons immediately below the closed caption box, fixed layout to place them on screen edges, and reduced size for better aesthetics.
+
+### **Files Modified**
+- `ExpandingView.swift` - Changed HStack layout from Spacer/Button/Spacer/Button/Spacer to Button/Spacer/Button with horizontal padding, reduced font size from .title to .title2, reduced padding from 20 to 10, adjusted bottom padding from 200 to 120
+
+### **Result**
+✅ Skip buttons now positioned below closed captions
+✅ Left button on left screen edge, right button on right edge
+✅ Buttons are smaller and less obtrusive
+✅ Improved visual balance and professionalism
+✅ Build verified successful with no errors
+
+---
+
+## 2026-01-13 22:00: Repurposed Leaf Button for Sequential Story Chapters ✅
+
+### **The Problem**
+The Leaf button randomly played preset meditation files, but the app is being repurposed for story mode where chapters should play sequentially starting from chapter 1, with progress tracking and skip controls.
+
+### **Root Cause**
+Original implementation used random selection from all preset meditation files without tracking progress or providing navigation controls.
+
+### **The Solution**
+Modified the Leaf button functionality to play preset meditations (now story chapters) sequentially, added persistent progress tracking, and implemented skip back/forward controls that appear only when Leaf mode is active.
+
+### **Files Modified**
+- `TextToSpeechManager.swift` - Added currentChapterIndex with UserDefaults persistence, replaced getRandomMeditation with getSequentialMeditation, added skipToNextChapter/skipToPreviousChapter methods, updated didFinishSpeaking to auto-advance chapters
+- `ExpandingView.swift` - Updated calls to use getSequentialMeditation, added conditional < > skip buttons on left/right sides when Leaf mode active
+
+### **Result**
+✅ Leaf button now plays story chapters sequentially starting from chapter 1
+✅ Progress persists across sessions
+✅ Skip controls (< >) appear only in Leaf mode for navigation
+✅ Auto-advances to next chapter after completion
+✅ Build verified successful with no errors
+
+---
+
+## 2026-01-13 23:00: Restored Question Mark Pronunciation in TTS for Stories ✅
+
+### **The Problem**
+Question marks were stripped from TTS text, causing questions to be spoken without rising intonation, which sounded unnatural for story content.
+
+### **Root Cause**
+Question marks were intentionally removed to prevent voice inflection changes in meditative content.
+
+### **The Solution**
+Removed the code that replaces question marks with empty strings, preserving them for proper pronunciation.
+
+### **Files Modified**
+- `TextToSpeechManager.swift` - Removed question mark replacement in startSpeakingWithPauses function
+
+### **Result**
+✅ Questions are now pronounced with correct rising intonation
+✅ Closed captions display question marks visually
+✅ TTS sounds more natural for narrative content
+✅ Build verified successful with no errors
+
+---
+
+## 2026-01-13 23:30: Limited Leaf and Poetry Buttons to Preset Content Only ✅
+
+### **The Problem**
+The Leaf (meditation) and Poetry buttons randomly selected from both preset and custom content, but for the app's focus on presets, they should only play presets.
+
+### **Root Cause**
+The random selection functions included custom content when managers were available.
+
+### **The Solution**
+Modified getRandomMeditation and getRandomPoem to only include preset content, removing custom additions.
+
+### **Files Modified**
+- `TextToSpeechManager.swift` - Removed custom content inclusion in getRandomMeditation and getRandomPoem
+- `ExpandingView.swift` - Updated comments to reflect preset-only selection
+
+### **Result**
+✅ Leaf and Poetry buttons now only play from presets
+✅ Custom content remains accessible via dedicated list views
+✅ Ensures consistent experience focused on curated presets
+✅ Build verified successful with no errors
+
+---
+
+## 2026-01-13 12:00: Reverted TTS Sentence Pauses - Too Artificial ✅
+
+### **The Problem**
+The 0.5-second pauses after sentences made TTS speech sound artificial and overly segmented.
+
+### **Root Cause**
+Sentence-level pauses created unnatural breaks that disrupted the natural flow of speech.
+
+### **The Solution**
+Reverted to the previous state with no automatic pauses after sentences, keeping only 2-second pauses between paragraphs.
+
+### **Files Modified**
+- `TextToSpeechManager.swift` - Reverted `addAutomaticPauses` function to remove sentence pauses
+
+### **Result**
+✅ TTS flows more naturally without sentence interruptions
+✅ Maintains 2-second paragraph breaks for structural pauses
+✅ Build verified successful with no errors
+
+---
+
+## 2026-01-13 11:00: Refined TTS Pauses for Better Sentence Flow ✅
+
+### **The Problem**
+After removing sentence pauses, TTS speech felt too rushed with sentences running together, lacking natural breaks after periods.
+
+### **Root Cause**
+The previous change eliminated all automatic pauses after sentences, but brief pauses are necessary for comprehensible speech flow in stories.
+
+### **The Solution**
+Reintroduced sentence splitting with shorter 0.5-second pauses after each sentence, while maintaining 2-second pauses between paragraphs.
+
+### **Files Modified**
+- `TextToSpeechManager.swift` - Updated `addAutomaticPauses` function to add 0.5s pauses after sentences and 2s between paragraphs
+
+### **Result**
+✅ TTS now provides natural sentence breaks without excessive delays
+✅ Paragraph pauses remain at optimal 2 seconds
+✅ Improved comprehension for story-like content
+✅ Build verified successful with no errors
+
+---
+
+## 2026-01-13 10:00: Improved TTS Naturalness by Reducing Automatic Pauses ✅
+
+### **The Problem**
+TTS functionality paused for 1 second after every period when reading preset meditation text files, making listening to stories difficult and unnatural.
+
+### **Root Cause**
+The `addAutomaticPauses` function in `TextToSpeechManager.swift` split text into sentences and added 2-second pauses after each period, exclamation, or question mark, plus 4-second pauses between paragraphs.
+
+### **The Solution**
+Modified `addAutomaticPauses` to remove sentence-level splitting and pauses, keeping only 2-second pauses between paragraphs for better narrative flow.
+
+### **Files Modified**
+- `TextToSpeechManager.swift` - Updated `addAutomaticPauses` function to eliminate sentence pauses and reduce paragraph pauses from 4s to 2s
+
+### **Result**
+✅ TTS now sounds more natural for story reading
+✅ Preserves paragraph breaks for structural pauses
+✅ Custom meditations with explicit pause markers remain unaffected
+✅ Build verified successful with no errors
+
+---
+
+## 2026-01-05 16:45: Fixed Closed Caption Box Not Disappearing After Meditation/Poem Completion ✅
+
+### **The Problem**
+After implementing the scrollable closed caption feature (2026-01-03), a regression bug was introduced: the closed caption box no longer disappeared when meditations or poems finished playing. The box would remain visible on screen even though narration had completed.
+
+### **Root Cause**
+The new `ScrollableMeditationTextDisplay` component checks if `phraseHistory` is empty to determine whether to show the closed caption box:
+
+```swift
+if !phraseHistory.isEmpty || !currentPhrase.isEmpty {
+```
+
+However, when meditation/poem completion occurred in `TextToSpeechManager.swift`, the code cleared `currentPhrase` and `previousPhrase` but forgot to clear `phraseHistory`. This left the history populated, causing the box to remain visible.
+
+The original `MeditationTextDisplay` component only checked `currentPhrase` and `previousPhrase`:
+```swift
+if !currentPhrase.isEmpty || !previousPhrase.isEmpty {
+```
+
+So it worked correctly before the scrollable feature was added.
+
+### **The Solution**
+Added `phraseHistory = []` to the completion handler in `TextToSpeechManager.swift` at line 752, inside the `didFinishSpeaking()` method when `queuedUtteranceCount <= 0`.
+
+This ensures that when a meditation or poem completes naturally, all three caption-related properties are cleared:
+- `currentPhrase = ""`
+- `previousPhrase = ""`
+- `phraseHistory = []`
+
+This matches the existing behavior when starting a new meditation (line 341) or manually stopping (line 627), maintaining consistency throughout the codebase.
+
+### **Files Modified**
+- `TextToSpeechManager.swift` - Added `phraseHistory = []` at line 752 in completion handler
+
+### **Result**
+✅ Closed caption box now properly disappears when meditation/poem finishes
+✅ Scrollable caption history feature continues to work during playback
+✅ Consistent state clearing across start, stop, and completion events
+✅ Build verified successful with no errors
+
+---
 
 ## 2026-01-03 17:30: Added Scrollable Closed Caption History ✅
 

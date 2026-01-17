@@ -9,7 +9,7 @@ struct ContentView: View {
     @State private var currentPlayer: AVAudioPlayer? = nil
     @State private var currentTimer: Timer? = nil
     @State private var currentAudioFile: String? = nil
-    @State private var targetAmbientVolume: Float = 0.48  // Default to 80% balance (0.80 * 0.6 = 0.48)
+    @State private var targetAmbientVolume: Float = 0.6  // Default to 100% balance (1.0 * 0.6 = 0.6)
     
 //    @State private var durationMinutes: Double = UserDefaults.standard.double(forKey: "durationMinutes")
     
@@ -263,12 +263,15 @@ struct ContentView: View {
         )
         .onAppear {
             configureAudioSession()
-            if !UserDefaults.standard.bool(forKey: "hasLaunched") {
-                withAnimation(.easeInOut(duration: 2.0)) {
-                    backgroundOpacity = 1.0
-                }
-                UserDefaults.standard.set(true, forKey: "hasLaunched")
+            // Always reset audio balance and ambient volume to new defaults for all users
+            UserDefaults.standard.set(1.0, forKey: "audioBalance")
+            targetAmbientVolume = 0.6
+            ttsManager.audioBalance = 1.0
+            ttsManager.updateVolumesFromBalance()
+            withAnimation(.easeInOut(duration: 2.0)) {
+                backgroundOpacity = 1.0
             }
+            UserDefaults.standard.set(true, forKey: "hasLaunched")
         }
         .onChange(of: selectedItem) { oldValue, newValue in
             if let old = oldValue, newValue == nil {
@@ -277,6 +280,11 @@ struct ContentView: View {
                 fadeOutAlarm() // Ensure alarm is stopped and cleaned up
                 stopTimer?.invalidate() // Invalidate stopTimer to prevent it from triggering startAlarm
                 stopTimer = nil
+
+                // Reset poetry/story mode when exiting a room
+                ttsManager.currentContentMode = .off
+                UserDefaults.standard.removeObject(forKey: "lastContentMode")
+                UserDefaults.standard.removeObject(forKey: "contentMode")
             } else if let new = newValue {
                 let selectedIndex = new.id
                 fadeOutCurrent {
@@ -489,7 +497,7 @@ struct ContentView: View {
         fadeOutCurrent()
         UserDefaults.standard.removeObject(forKey: "lastWakeTime")
 
-        // Check if content (meditation or poetry) was completed successfully for wake-up greeting
+        // Check if content (story or poetry) was completed successfully for wake-up greeting
         let contentCompleted = UserDefaults.standard.bool(forKey: "contentCompletedSuccessfully")
 
         do {
@@ -520,7 +528,7 @@ struct ContentView: View {
                 self.hapticGenerator?.notificationOccurred(.warning)
             }
 
-            // Trigger wake-up greeting if content (meditation or poetry) was completed successfully
+            // Trigger wake-up greeting if content (story or poetry) was completed successfully
             // Only play if alarm is NOT silence (idx is valid and not nil means a sound is selected)
             if contentCompleted {
                 // Schedule greeting to play 5 seconds after alarm audio starts
