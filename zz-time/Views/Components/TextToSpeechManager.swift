@@ -162,6 +162,16 @@ class TextToSpeechManager: ObservableObject {
         synthesizer.delegate = speechDelegate
     }
 
+    /// Called when voice settings have changed to ensure the new voice will be used
+    /// This recreates the synthesizer to clear any cached voice state
+    func refreshVoiceSettings() {
+        // Only recreate if not currently speaking
+        // If speaking, the next story/poem will pick up the new voice automatically
+        guard !isSpeaking else { return }
+
+        recreateSynthesizer()
+    }
+
     /// Starts speaking the test phrase, repeating 10 times
     func startSpeaking() {
         guard !isSpeaking else { return }

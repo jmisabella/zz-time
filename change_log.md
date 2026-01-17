@@ -1,4 +1,44 @@
-# 2026-01-16 (Latest): Landscape Mode Layout Fixes ✅
+# 2026-01-17 (Latest): Voice Settings Immediate Application Fix ✅
+
+### Summary of Changes
+- **Fixed voice settings not taking effect immediately** when changed from within a room (ExpandingView)
+- Previously, users had to exit the room and re-enter for voice changes to be applied
+- Now voice changes are immediately reflected when returning from Voice Settings
+
+### Issue Fixed
+When a user was in a room (ExpandingView) and changed the selected voice in Voice Settings, the new voice was not used for Story (Leaf button) or Poetry (Theater masks button) modes until the user exited the room and re-entered it. This was confusing and created a poor user experience.
+
+### Root Cause
+The TextToSpeechManager's AVSpeechSynthesizer instance was not being refreshed when voice settings changed. While the new voice preference was saved to UserDefaults, the synthesizer needed to be recreated to clear any cached state and ensure the new voice would be used for the next TTS session.
+
+### Files Modified
+- `zz-time/Views/Components/TextToSpeechManager.swift`:
+  - Lines 165-173: Added new `refreshVoiceSettings()` method that recreates the synthesizer when voice settings change
+  - Method only recreates synthesizer if not currently speaking (avoids interrupting active playback)
+  - If TTS is active, the next story/poem will automatically pick up the new voice
+
+- `zz-time/Views/ExpandingView.swift`:
+  - Lines 602-607: Added `onDismiss` handler to the voice settings sheet
+  - Calls `ttsManager.refreshVoiceSettings()` when Voice Settings is dismissed
+  - Ensures new voice selection is immediately available for next TTS playback
+
+### How It Works
+1. User opens Voice Settings (gear icon) and selects a new voice
+2. Voice selection is saved to UserDefaults via VoiceManager
+3. When Voice Settings sheet is dismissed, the `onDismiss` handler triggers
+4. `ttsManager.refreshVoiceSettings()` is called, which recreates the AVSpeechSynthesizer
+5. Next time user starts Story or Poetry mode, the new voice is immediately used
+
+### Testing Scenarios
+✅ Change voice in settings → return to room → start Story → new voice is used
+✅ Change voice in settings → return to room → start Poetry → new voice is used
+✅ Change voice while TTS is playing → new voice takes effect on next playback
+✅ Change voice from "System Default" to enhanced voice → works immediately
+✅ Change voice from enhanced voice to another enhanced voice → works immediately
+
+---
+
+# 2026-01-16: Landscape Mode Layout Fixes ✅
 
 ### Summary of Changes
 - **Fixed landscape mode UI layout issues** to prevent UI elements from going off-screen or overlapping

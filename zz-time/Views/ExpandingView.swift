@@ -599,7 +599,10 @@ struct ExpandingView: View {
                 }
             )
         }
-        .sheet(isPresented: $showVoiceSettings) {
+        .sheet(isPresented: $showVoiceSettings, onDismiss: {
+            // Refresh voice settings to ensure new voice selection takes effect immediately
+            ttsManager.refreshVoiceSettings()
+        }) {
             VoiceSettingsView(ttsManager: ttsManager)
         }
     }
