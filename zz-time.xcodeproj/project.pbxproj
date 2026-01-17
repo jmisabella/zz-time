@@ -16,41 +16,14 @@
 		000D60612F04C03D00C82A83 /* CustomPoemEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000D605D2F04C03D00C82A83 /* CustomPoemEditorView.swift */; };
 		000D60632F04C14800C82A83 /* CustomPoem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000D60622F04C14800C82A83 /* CustomPoem.swift */; };
 		000D60682F04C5FB00C82A83 /* default_custom_poem.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D60642F04C5FB00C82A83 /* default_custom_poem.txt */; };
-		000D60732F0630C300C82A83 /* preset_poem5.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D60712F0630C300C82A83 /* preset_poem5.txt */; };
-		000D60742F0630C300C82A83 /* preset_poem6.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D60722F0630C300C82A83 /* preset_poem6.txt */; };
-		000D60792F06313D00C82A83 /* preset_poem3.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D60772F06313D00C82A83 /* preset_poem3.txt */; };
-		000D607A2F06313D00C82A83 /* preset_poem4.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D60782F06313D00C82A83 /* preset_poem4.txt */; };
-		000D607B2F06313D00C82A83 /* preset_poem2.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D60762F06313D00C82A83 /* preset_poem2.txt */; };
-		000D607C2F06313D00C82A83 /* preset_poem1.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D60752F06313D00C82A83 /* preset_poem1.txt */; };
-		000D607E2F06478700C82A83 /* preset_poem7.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D607D2F06477000C82A83 /* preset_poem7.txt */; };
-		000D60802F06490E00C82A83 /* preset_poem8.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D607F2F0648FB00C82A83 /* preset_poem8.txt */; };
-		000D60822F065D6900C82A83 /* preset_poem9.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D60812F065D5600C82A83 /* preset_poem9.txt */; };
-		000D60842F065EB700C82A83 /* preset_poem10.txt in Sources */ = {isa = PBXBuildFile; fileRef = 000D60832F065EAB00C82A83 /* preset_poem10.txt */; };
-		000D60882F06F3D800C82A83 /* preset_poem11.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D60872F06F3CD00C82A83 /* preset_poem11.txt */; };
-		000D608A2F06FB2200C82A83 /* preset_poem12.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D60892F06FB1800C82A83 /* preset_poem12.txt */; };
-		000D608C2F06FE4900C82A83 /* preset_poem13.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D608B2F06FE3E00C82A83 /* preset_poem13.txt */; };
-		000D608E2F07012400C82A83 /* preset_poem14.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D608D2F07011900C82A83 /* preset_poem14.txt */; };
-		000D60902F07041500C82A83 /* preset_poem15.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D608F2F07040B00C82A83 /* preset_poem15.txt */; };
-		000D60922F0710D600C82A83 /* preset_poem16.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D60912F0710C900C82A83 /* preset_poem16.txt */; };
-		000D60942F07153B00C82A83 /* preset_poem17.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D60932F07152F00C82A83 /* preset_poem17.txt */; };
-		000D60962F0718BF00C82A83 /* preset_poem18.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D60952F0718B500C82A83 /* preset_poem18.txt */; };
-		000D60982F071D1600C82A83 /* preset_poem31.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D60972F071D0900C82A83 /* preset_poem31.txt */; };
-		000D609A2F071D5A00C82A83 /* preset_poem32.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D60992F071D5200C82A83 /* preset_poem32.txt */; };
-		000D609C2F07212100C82A83 /* preset_poem19.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D609B2F07211600C82A83 /* preset_poem19.txt */; };
-		000D609E2F07246300C82A83 /* preset_poem20.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D609D2F07245500C82A83 /* preset_poem20.txt */; };
-		000D60A02F07281800C82A83 /* preset_poem21.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D609F2F07281000C82A83 /* preset_poem21.txt */; };
-		000D60A22F072BC500C82A83 /* preset_poem22.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D60A12F072BB500C82A83 /* preset_poem22.txt */; };
-		000D60A42F072E8800C82A83 /* preset_poem23.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D60A32F072E7800C82A83 /* preset_poem23.txt */; };
-		000D60A62F0734B600C82A83 /* preset_poem24.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D60A52F0734AD00C82A83 /* preset_poem24.txt */; };
-		000D60A82F0754BC00C82A83 /* preset_poem25.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D60A72F0754AF00C82A83 /* preset_poem25.txt */; };
-		000D60AA2F07569700C82A83 /* preset_poem26.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D60A92F07568F00C82A83 /* preset_poem26.txt */; };
-		000D60AC2F0757EF00C82A83 /* preset_poem27.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D60AB2F0757E600C82A83 /* preset_poem27.txt */; };
-		000D60AE2F075C3B00C82A83 /* preset_poem28.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D60AD2F075C3100C82A83 /* preset_poem28.txt */; };
-		000D60B02F075CF100C82A83 /* preset_poem29.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D60AF2F075CE800C82A83 /* preset_poem29.txt */; };
-		000D60B22F07647E00C82A83 /* preset_poem30.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D60B12F07647300C82A83 /* preset_poem30.txt */; };
-		000D60B42F0764E500C82A83 /* preset_poem33.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D60B32F0764DD00C82A83 /* preset_poem33.txt */; };
-		000D60B62F07674100C82A83 /* preset_poem34.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D60B52F07673700C82A83 /* preset_poem34.txt */; };
-		000D60B82F07674E00C82A83 /* preset_poem35.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D60B72F07674600C82A83 /* preset_poem35.txt */; };
+		000D62112F1B5E3B00C82A83 /* preset_poem5.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D620D2F1B5E3B00C82A83 /* preset_poem5.txt */; };
+		000D62122F1B5E3B00C82A83 /* preset_poem1.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D62092F1B5E3B00C82A83 /* preset_poem1.txt */; };
+		000D62132F1B5E3B00C82A83 /* preset_poem4.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D620C2F1B5E3B00C82A83 /* preset_poem4.txt */; };
+		000D62142F1B5E3B00C82A83 /* preset_poem7.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D620F2F1B5E3B00C82A83 /* preset_poem7.txt */; };
+		000D62152F1B5E3B00C82A83 /* preset_poem3.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D620B2F1B5E3B00C82A83 /* preset_poem3.txt */; };
+		000D62162F1B5E3B00C82A83 /* preset_poem2.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D620A2F1B5E3B00C82A83 /* preset_poem2.txt */; };
+		000D62172F1B5E3B00C82A83 /* preset_poem6.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D620E2F1B5E3B00C82A83 /* preset_poem6.txt */; };
+		000D62182F1B5E3B00C82A83 /* preset_poem8.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D62102F1B5E3B00C82A83 /* preset_poem8.txt */; };
 		0021DBCA2EE4021E002A8B5A /* BalanceSlider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0021DBC92EE4021E002A8B5A /* BalanceSlider.swift */; };
 		0032BABB2ED7F9C700837776 /* ambient_31.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0032BABA2ED7F9C700837776 /* ambient_31.m4a */; };
 		0032BABD2ED7F9D000837776 /* ambient_32.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0032BABC2ED7F9D000837776 /* ambient_32.m4a */; };
@@ -118,41 +91,14 @@
 		000D605E2F04C03D00C82A83 /* CustomPoemListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomPoemListView.swift; sourceTree = "<group>"; };
 		000D60622F04C14800C82A83 /* CustomPoem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomPoem.swift; sourceTree = "<group>"; };
 		000D60642F04C5FB00C82A83 /* default_custom_poem.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = default_custom_poem.txt; sourceTree = "<group>"; };
-		000D60712F0630C300C82A83 /* preset_poem5.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem5.txt; sourceTree = "<group>"; };
-		000D60722F0630C300C82A83 /* preset_poem6.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem6.txt; sourceTree = "<group>"; };
-		000D60752F06313D00C82A83 /* preset_poem1.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem1.txt; sourceTree = "<group>"; };
-		000D60762F06313D00C82A83 /* preset_poem2.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem2.txt; sourceTree = "<group>"; };
-		000D60772F06313D00C82A83 /* preset_poem3.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem3.txt; sourceTree = "<group>"; };
-		000D60782F06313D00C82A83 /* preset_poem4.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem4.txt; sourceTree = "<group>"; };
-		000D607D2F06477000C82A83 /* preset_poem7.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem7.txt; sourceTree = "<group>"; };
-		000D607F2F0648FB00C82A83 /* preset_poem8.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem8.txt; sourceTree = "<group>"; };
-		000D60812F065D5600C82A83 /* preset_poem9.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem9.txt; sourceTree = "<group>"; };
-		000D60832F065EAB00C82A83 /* preset_poem10.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem10.txt; sourceTree = "<group>"; };
-		000D60872F06F3CD00C82A83 /* preset_poem11.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem11.txt; sourceTree = "<group>"; };
-		000D60892F06FB1800C82A83 /* preset_poem12.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem12.txt; sourceTree = "<group>"; };
-		000D608B2F06FE3E00C82A83 /* preset_poem13.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem13.txt; sourceTree = "<group>"; };
-		000D608D2F07011900C82A83 /* preset_poem14.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem14.txt; sourceTree = "<group>"; };
-		000D608F2F07040B00C82A83 /* preset_poem15.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem15.txt; sourceTree = "<group>"; };
-		000D60912F0710C900C82A83 /* preset_poem16.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem16.txt; sourceTree = "<group>"; };
-		000D60932F07152F00C82A83 /* preset_poem17.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem17.txt; sourceTree = "<group>"; };
-		000D60952F0718B500C82A83 /* preset_poem18.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem18.txt; sourceTree = "<group>"; };
-		000D60972F071D0900C82A83 /* preset_poem31.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem31.txt; sourceTree = "<group>"; };
-		000D60992F071D5200C82A83 /* preset_poem32.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem32.txt; sourceTree = "<group>"; };
-		000D609B2F07211600C82A83 /* preset_poem19.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem19.txt; sourceTree = "<group>"; };
-		000D609D2F07245500C82A83 /* preset_poem20.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem20.txt; sourceTree = "<group>"; };
-		000D609F2F07281000C82A83 /* preset_poem21.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem21.txt; sourceTree = "<group>"; };
-		000D60A12F072BB500C82A83 /* preset_poem22.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem22.txt; sourceTree = "<group>"; };
-		000D60A32F072E7800C82A83 /* preset_poem23.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem23.txt; sourceTree = "<group>"; };
-		000D60A52F0734AD00C82A83 /* preset_poem24.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem24.txt; sourceTree = "<group>"; };
-		000D60A72F0754AF00C82A83 /* preset_poem25.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem25.txt; sourceTree = "<group>"; };
-		000D60A92F07568F00C82A83 /* preset_poem26.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem26.txt; sourceTree = "<group>"; };
-		000D60AB2F0757E600C82A83 /* preset_poem27.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem27.txt; sourceTree = "<group>"; };
-		000D60AD2F075C3100C82A83 /* preset_poem28.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem28.txt; sourceTree = "<group>"; };
-		000D60AF2F075CE800C82A83 /* preset_poem29.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem29.txt; sourceTree = "<group>"; };
-		000D60B12F07647300C82A83 /* preset_poem30.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem30.txt; sourceTree = "<group>"; };
-		000D60B32F0764DD00C82A83 /* preset_poem33.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem33.txt; sourceTree = "<group>"; };
-		000D60B52F07673700C82A83 /* preset_poem34.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem34.txt; sourceTree = "<group>"; };
-		000D60B72F07674600C82A83 /* preset_poem35.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem35.txt; sourceTree = "<group>"; };
+		000D62092F1B5E3B00C82A83 /* preset_poem1.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem1.txt; sourceTree = "<group>"; };
+		000D620A2F1B5E3B00C82A83 /* preset_poem2.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem2.txt; sourceTree = "<group>"; };
+		000D620B2F1B5E3B00C82A83 /* preset_poem3.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem3.txt; sourceTree = "<group>"; };
+		000D620C2F1B5E3B00C82A83 /* preset_poem4.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem4.txt; sourceTree = "<group>"; };
+		000D620D2F1B5E3B00C82A83 /* preset_poem5.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem5.txt; sourceTree = "<group>"; };
+		000D620E2F1B5E3B00C82A83 /* preset_poem6.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem6.txt; sourceTree = "<group>"; };
+		000D620F2F1B5E3B00C82A83 /* preset_poem7.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem7.txt; sourceTree = "<group>"; };
+		000D62102F1B5E3B00C82A83 /* preset_poem8.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem8.txt; sourceTree = "<group>"; };
 		0021DBC92EE4021E002A8B5A /* BalanceSlider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BalanceSlider.swift; sourceTree = "<group>"; };
 		0032BABA2ED7F9C700837776 /* ambient_31.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_31.m4a; sourceTree = "<group>"; };
 		0032BABC2ED7F9D000837776 /* ambient_32.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_32.m4a; sourceTree = "<group>"; };
@@ -284,41 +230,14 @@
 			isa = PBXGroup;
 			children = (
 				000D60642F04C5FB00C82A83 /* default_custom_poem.txt */,
-				000D60752F06313D00C82A83 /* preset_poem1.txt */,
-				000D60762F06313D00C82A83 /* preset_poem2.txt */,
-				000D60772F06313D00C82A83 /* preset_poem3.txt */,
-				000D60782F06313D00C82A83 /* preset_poem4.txt */,
-				000D60712F0630C300C82A83 /* preset_poem5.txt */,
-				000D60722F0630C300C82A83 /* preset_poem6.txt */,
-				000D607D2F06477000C82A83 /* preset_poem7.txt */,
-				000D607F2F0648FB00C82A83 /* preset_poem8.txt */,
-				000D60812F065D5600C82A83 /* preset_poem9.txt */,
-				000D60832F065EAB00C82A83 /* preset_poem10.txt */,
-				000D60872F06F3CD00C82A83 /* preset_poem11.txt */,
-				000D60892F06FB1800C82A83 /* preset_poem12.txt */,
-				000D608B2F06FE3E00C82A83 /* preset_poem13.txt */,
-				000D608D2F07011900C82A83 /* preset_poem14.txt */,
-				000D608F2F07040B00C82A83 /* preset_poem15.txt */,
-				000D60912F0710C900C82A83 /* preset_poem16.txt */,
-				000D60932F07152F00C82A83 /* preset_poem17.txt */,
-				000D60952F0718B500C82A83 /* preset_poem18.txt */,
-				000D609B2F07211600C82A83 /* preset_poem19.txt */,
-				000D609D2F07245500C82A83 /* preset_poem20.txt */,
-				000D609F2F07281000C82A83 /* preset_poem21.txt */,
-				000D60A12F072BB500C82A83 /* preset_poem22.txt */,
-				000D60A32F072E7800C82A83 /* preset_poem23.txt */,
-				000D60A52F0734AD00C82A83 /* preset_poem24.txt */,
-				000D60A72F0754AF00C82A83 /* preset_poem25.txt */,
-				000D60A92F07568F00C82A83 /* preset_poem26.txt */,
-				000D60AB2F0757E600C82A83 /* preset_poem27.txt */,
-				000D60AD2F075C3100C82A83 /* preset_poem28.txt */,
-				000D60AF2F075CE800C82A83 /* preset_poem29.txt */,
-				000D60B12F07647300C82A83 /* preset_poem30.txt */,
-				000D60972F071D0900C82A83 /* preset_poem31.txt */,
-				000D60992F071D5200C82A83 /* preset_poem32.txt */,
-				000D60B32F0764DD00C82A83 /* preset_poem33.txt */,
-				000D60B52F07673700C82A83 /* preset_poem34.txt */,
-				000D60B72F07674600C82A83 /* preset_poem35.txt */,
+				000D62092F1B5E3B00C82A83 /* preset_poem1.txt */,
+				000D620A2F1B5E3B00C82A83 /* preset_poem2.txt */,
+				000D620B2F1B5E3B00C82A83 /* preset_poem3.txt */,
+				000D620C2F1B5E3B00C82A83 /* preset_poem4.txt */,
+				000D620D2F1B5E3B00C82A83 /* preset_poem5.txt */,
+				000D620E2F1B5E3B00C82A83 /* preset_poem6.txt */,
+				000D620F2F1B5E3B00C82A83 /* preset_poem7.txt */,
+				000D62102F1B5E3B00C82A83 /* preset_poem8.txt */,
 			);
 			path = Poems;
 			sourceTree = "<group>";
@@ -475,55 +394,31 @@
 			buildActionMask = 2147483647;
 			files = (
 				0032BABB2ED7F9C700837776 /* ambient_31.m4a in Resources */,
-				000D60B02F075CF100C82A83 /* preset_poem29.txt in Resources */,
 				006D44692EDD4BD300264CFE /* ambient_01.m4a in Resources */,
 				00371B012EAD71200037EDCF /* ambient_13.m4a in Resources */,
 				00371B032EAD71200037EDCF /* ambient_20.m4a in Resources */,
-				000D60A82F0754BC00C82A83 /* preset_poem25.txt in Resources */,
-				000D60822F065D6900C82A83 /* preset_poem9.txt in Resources */,
-				000D60A62F0734B600C82A83 /* preset_poem24.txt in Resources */,
-				000D607E2F06478700C82A83 /* preset_poem7.txt in Resources */,
-				000D60882F06F3D800C82A83 /* preset_poem11.txt in Resources */,
-				000D60A42F072E8800C82A83 /* preset_poem23.txt in Resources */,
-				000D60A02F07281800C82A83 /* preset_poem21.txt in Resources */,
-				000D60942F07153B00C82A83 /* preset_poem17.txt in Resources */,
-				000D60802F06490E00C82A83 /* preset_poem8.txt in Resources */,
-				000D60AA2F07569700C82A83 /* preset_poem26.txt in Resources */,
-				000D60AE2F075C3B00C82A83 /* preset_poem28.txt in Resources */,
-				000D609E2F07246300C82A83 /* preset_poem20.txt in Resources */,
-				000D608E2F07012400C82A83 /* preset_poem14.txt in Resources */,
-				000D60B62F07674100C82A83 /* preset_poem34.txt in Resources */,
-				000D60962F0718BF00C82A83 /* preset_poem18.txt in Resources */,
-				000D60B42F0764E500C82A83 /* preset_poem33.txt in Resources */,
-				000D60732F0630C300C82A83 /* preset_poem5.txt in Resources */,
-				000D60742F0630C300C82A83 /* preset_poem6.txt in Resources */,
-				000D60B22F07647E00C82A83 /* preset_poem30.txt in Resources */,
-				000D60B82F07674E00C82A83 /* preset_poem35.txt in Resources */,
 				003AED5D2EF39DA600AF5243 /* ambient_02.m4a in Resources */,
 				00371B062EAD71200037EDCF /* ambient_24.m4a in Resources */,
-				000D60922F0710D600C82A83 /* preset_poem16.txt in Resources */,
 				00371B072EAD71200037EDCF /* ambient_29.m4a in Resources */,
 				0032BACB2EDAA4AB00837776 /* ambient_08.m4a in Resources */,
-				000D60792F06313D00C82A83 /* preset_poem3.txt in Resources */,
-				000D607A2F06313D00C82A83 /* preset_poem4.txt in Resources */,
-				000D607B2F06313D00C82A83 /* preset_poem2.txt in Resources */,
-				000D607C2F06313D00C82A83 /* preset_poem1.txt in Resources */,
 				0032BAC12ED7F9E000837776 /* ambient_34.m4a in Resources */,
 				000D60572EFF7F7100C82A83 /* ambient_26.m4a in Resources */,
 				0094618B2EDFF40000DC9E82 /* ambient_03.m4a in Resources */,
-				000D60982F071D1600C82A83 /* preset_poem31.txt in Resources */,
 				0032BABF2ED7F9D900837776 /* ambient_33.m4a in Resources */,
 				006D44792EDE9F6100264CFE /* ambient_04.m4a in Resources */,
-				000D609C2F07212100C82A83 /* preset_poem19.txt in Resources */,
 				0032BABD2ED7F9D000837776 /* ambient_32.m4a in Resources */,
-				000D60902F07041500C82A83 /* preset_poem15.txt in Resources */,
 				00371B092EAD71200037EDCF /* ambient_16.m4a in Resources */,
-				000D60AC2F0757EF00C82A83 /* preset_poem27.txt in Resources */,
-				000D60A22F072BC500C82A83 /* preset_poem22.txt in Resources */,
-				000D608C2F06FE4900C82A83 /* preset_poem13.txt in Resources */,
 				0033F88E2EDFFD5B006D3319 /* ambient_05.m4a in Resources */,
 				006D44772EDE89EB00264CFE /* ambient_35.m4a in Resources */,
 				0079DC1B2EF7611F006820B9 /* ambient_06.m4a in Resources */,
+				000D62112F1B5E3B00C82A83 /* preset_poem5.txt in Resources */,
+				000D62122F1B5E3B00C82A83 /* preset_poem1.txt in Resources */,
+				000D62132F1B5E3B00C82A83 /* preset_poem4.txt in Resources */,
+				000D62142F1B5E3B00C82A83 /* preset_poem7.txt in Resources */,
+				000D62152F1B5E3B00C82A83 /* preset_poem3.txt in Resources */,
+				000D62162F1B5E3B00C82A83 /* preset_poem2.txt in Resources */,
+				000D62172F1B5E3B00C82A83 /* preset_poem6.txt in Resources */,
+				000D62182F1B5E3B00C82A83 /* preset_poem8.txt in Resources */,
 				00371B0A2EAD71200037EDCF /* ambient_27.m4a in Resources */,
 				0032BAC52ED801D200837776 /* ambient_14.m4a in Resources */,
 				00371B0B2EAD71200037EDCF /* ambient_18.m4a in Resources */,
@@ -533,14 +428,12 @@
 				000D60682F04C5FB00C82A83 /* default_custom_poem.txt in Resources */,
 				0069A9842EDFFB3300FFA508 /* ambient_09.m4a in Resources */,
 				00371B112EAD71200037EDCF /* ambient_12.m4a in Resources */,
-				000D608A2F06FB2200C82A83 /* preset_poem12.txt in Resources */,
 				00371B132EAD71200037EDCF /* ambient_22.m4a in Resources */,
 				0032BAC72ED801DC00837776 /* ambient_19.m4a in Resources */,
 				00371B182EAD71200037EDCF /* ambient_17.m4a in Resources */,
 				00371B1A2EAD71200037EDCF /* ambient_23.m4a in Resources */,
 				0033F8E02EE297CF006D3319 /* Assets.xcassets in Resources */,
 				00371B1B2EAD71200037EDCF /* ambient_28.m4a in Resources */,
-				000D609A2F071D5A00C82A83 /* preset_poem32.txt in Resources */,
 				00371B1C2EAD71200037EDCF /* ambient_15.m4a in Resources */,
 				00371B1D2EAD71200037EDCF /* ambient_30.m4a in Resources */,
 				00371B1E2EAD71200037EDCF /* ambient_11.m4a in Resources */,
@@ -563,7 +456,6 @@
 				0033F8D42EE297CF006D3319 /* ColorExtensions.swift in Sources */,
 				0033F8D52EE297CF006D3319 /* DimMode.swift in Sources */,
 				0033F8D62EE297CF006D3319 /* SelectedItem.swift in Sources */,
-				000D60842F065EB700C82A83 /* preset_poem10.txt in Sources */,
 				0033F8D72EE297CF006D3319 /* CustomSlider.swift in Sources */,
 				0033F8D82EE297CF006D3319 /* AlarmSelectionView.swift in Sources */,
 				0033F8D92EE297CF006D3319 /* BlobView.swift in Sources */,
