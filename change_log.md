@@ -1,4 +1,47 @@
-# 2026-01-15 (Latest): Intelligent Voice Preference Hierarchy ✅
+# 2026-01-16 (Latest): Landscape Mode Layout Fixes ✅
+
+### Summary of Changes
+- **Fixed landscape mode UI layout issues** to prevent UI elements from going off-screen or overlapping
+- Made closed caption box height responsive to device orientation (150pt landscape, 300pt portrait)
+- Added landscape-specific padding adjustments throughout ExpandingView to keep all controls visible
+- Layout now properly adapts when entering a room in landscape mode or rotating from portrait to landscape
+
+### Issues Fixed
+1. **Closed Caption Box Covering Sliders**: When TTS voice was active in landscape mode, the 300pt tall caption box would cover both duration and ambient volume sliders at the top
+2. **UI Elements Off-Screen on Rotation**: When rotating from portrait to landscape while in a room, sliders would go off the top of screen and the 4 buttons would go off the bottom
+
+### Files Modified
+- `zz-time/Views/Components/ScrollableStoryTextDisplay.swift`:
+  - Lines 12-23: Added orientation detection using `@Environment(\.verticalSizeClass)`
+  - Lines 16-23: Created `isLandscape` computed property and `captionHeight` that returns 150pt in landscape, 300pt in portrait
+  - Line 61: Applied responsive height to ScrollView (`maxHeight: captionHeight`)
+  - Line 127: Applied responsive height to containing ZStack (`height: captionHeight`)
+
+- `zz-time/Views/ExpandingView.swift`:
+  - Lines 143-149: Added orientation detection properties
+  - Line 152: Wrapped body in `GeometryReader` for better layout handling
+  - Line 189: Duration slider top padding (0pt → 10pt in landscape)
+  - Line 199: Balance slider top padding (8pt → 4pt in landscape)
+  - Line 217: Room label bottom padding (20pt → 10pt in landscape)
+  - Line 328: Button HStack bottom padding (0pt → 10pt in landscape)
+  - Line 378: Closed caption box bottom padding (180pt → 80pt in landscape)
+  - Line 414: Skip buttons bottom padding (120pt → 60pt in landscape)
+
+### How It Works
+- Uses SwiftUI's `@Environment(\.verticalSizeClass)` to detect orientation
+- When `verticalSizeClass == .compact`, device is in landscape mode (iPhone)
+- All UI elements automatically adjust padding based on `isLandscape` computed property
+- Works seamlessly for both entering landscape mode and rotating from portrait
+
+### Testing Scenarios
+✅ Enter a room while already in landscape mode → sliders and buttons visible
+✅ Press Leaf button (TTS) in landscape → caption box doesn't cover sliders
+✅ Enter room in portrait, rotate to landscape → all UI elements reposition correctly
+✅ TTS active in portrait, rotate to landscape → caption box resizes, no overlap
+
+---
+
+# 2026-01-15: Intelligent Voice Preference Hierarchy ✅
 
 ### Summary of Changes
 - **Implemented smart voice preference hierarchy** to automatically select better quality voices (Lee AU, Daniel GB) for new and existing users
