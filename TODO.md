@@ -1,9 +1,75 @@
-# TODO
+# Multi-Story Architecture Implementation - COMPLETED
 
-Currently, from ExpandingView, when user toggles on the Leaf button from ExpandingView to enable story mode, user can navigate through different chapters from a story, from the preset stories in Stories/ directory. Currently, when user toggles on the Theater button from ExpandingView to enable poetry mode, a random poem is played from the preset poems in Poems/ directory and this poem corresponds with the story (all 8 preset poems currently are all related to the story told in the preset story files). There is also functionality for users to create custom stories and poems and can play them from the customs view, however those are unrelated to the Leaf and Theater buttons on the ExpandingView. The app only has 1 story so far, consisting of a prelude and 7 chapters. This is the current state of the app. 
+## Overview
+Converted Z Rooms from single-story structure to scalable multi-story architecture where each story is a self-contained collection with chapters and thematically related poems.
 
-We want for the app to be scalable to allow many different stories to be offered to users, with each story having a corresponding collection of related poems. When user toggles on Story or Poetry modes (via Leaf or Theater buttons) from ExpandingView, I would like for the title of the currently selected story to briefly appear towards the top of ExpandingView before fading away, to let user be reminded of the currently selected story. This temporary fading label would also be like a button: if user touches it, user can see a drop-down showing the list of all available stories, and can change their currently selected story from this list. User's currently selected story should be remembered and retained between app sessions, similar to how we keep track of user's currently selected chapter. 
+## Design Decisions (Confirmed)
 
-I would like for this to be accomplished by using directory structures inside Stories/ and Poems/ directories. The default_custom_poem.txt and default_custom_story.txt would still remain, and that functionality would remain unchanged, however instead of simply having Leaf and Theater buttons only use the files with "preset_" prefix in their title, we would instead have a folder like TTSContent/ and the code would check for sub-directories, and each sub-directory would be a different story. Code would know to use the sub-directory's title, replacing any dashes and underscores with spaces, and use that for the title of the story which displays to app users. For example, TTSContent/Signal_Decay/ would result in story title "Signal Decay" being displayed to user when they toggle on story mode or theater mode, and from the stories selector list presented to user to change stories. Under these sub-directories are 2 sub-directoes: Stories/ and Poems/, and inside Stories/ are the chapter files in alphabetical order, and inside Poems/ are the poems. So for my first story, there would be TTSContent/Signal_Decay/Stories/ with my 8 files: 01_prelude.txt, 02_chapter1.txt, through 08_chapter7.txt for my story files for this story, and inside TTSContent/Signal_Decay/Poems/ would be my 8 poem text files. Also, inside TTSContent/ would be the defaults: default_custom_story.txt and default_custom_poem.txt. 
+### Directory Structure
+```
+TTSContent/
+├── default_custom_story.txt
+├── default_custom_poem.txt
+├── Signal_Decay/
+│   ├── Stories/
+│   │   ├── 01_prelude.txt
+│   │   ├── 02_chapter1.txt
+│   │   ├── 03_chapter2.txt
+│   │   └── ... (numbered sequentially)
+│   └── Poems/
+│       └── *.txt (any filenames - selected randomly)
+└── [Future_Story_Name]/
+    ├── Stories/
+    └── Poems/
+```
 
-With this type of implementation, I should then be able to add new stories to TTSContent and the app would know to follow this directory structure to have a scalable way for me to add future content without needing to make code changes. Please, let's discuss this significant change to app functionality!
+### Key Features Implemented
+1. **Story Title Display**: Every time Leaf or Theater button is toggled on, story title appears at top of ExpandingView for 4-5 seconds with smooth fade animation
+2. **Story Selection**: Title is tappable during display - opens menu/dropdown overlay showing all available stories with metadata (chapter count, poem count)
+3. **Story Persistence**: Selected story remembered via `@AppStorage` between app sessions
+4. **Per-Story Chapter Memory**: Each story remembers its chapter position separately (Signal Decay at chapter 4, Other Story at chapter 2, etc.)
+5. **Scoped Poems**: Theater button plays random poem ONLY from currently selected story's Poems/ directory (not from all stories)
+6. **Custom Stories Unchanged**: UserDefaults-based custom stories/poems remain completely separate from TTSContent/ system
+
+### File Naming Conventions
+- **Directory names**: Use underscores/dashes (e.g., `Signal_Decay`, `My_New-Story`)
+- **Display names**: Replace with spaces (e.g., "Signal Decay", "My New Story")
+- **Story files**: MUST have numeric prefix for chapter ordering (e.g., `01_`, `02_`, etc.)
+- **Poem files**: Can have any name - they're selected randomly
+
+### Migration Approach
+- **Manual file reorganization** - No auto-migration implemented
+- User copies and renames files into new TTSContent/ structure
+- Old flat Stories/ and Poems/ directories remain for reference but are no longer used
+
+## Architecture Changes
+
+### New Components
+- **StoryCollection.swift**: Data model representing a story collection
+- **StoryCollectionManager.swift**: Manages file discovery, chapter positions, content loading
+- **StorySelectionView.swift**: UI for selecting different stories
+
+### Modified Components
+- **TextToSpeechManager.swift**: Updated to use StoryCollectionManager for loading stories/poems
+- **ExpandingView.swift**: Added title display overlay and story selection sheet
+
+### Chapter Position Tracking
+- Dictionary stored in UserDefaults: `[directoryName: chapterIndex]`
+- Encoded as JSON Data for @AppStorage compatibility
+- Example: `{"Signal_Decay": 4, "Other_Story": 2}`
+
+## Future Story Addition Process
+1. Create new subdirectory in TTSContent/ (e.g., `New_Story_Name/`)
+2. Create `Stories/` and `Poems/` subdirectories
+3. Add numbered story files: `01_chapter1.txt`, `02_chapter2.txt`, etc.
+4. Add poem text files (any names)
+5. Add to Xcode project bundle
+6. App automatically discovers and makes available - no code changes needed
+
+## Testing Checklist
+- [x] Story title displays and fades on Leaf/Theater toggle
+- [x] Story selection UI shows all available stories
+- [x] Chapter positions persist per-story
+- [x] Poems scoped to current story
+- [x] Custom stories/poems unaffected
+- [x] App session persistence (selected story and chapter positions)

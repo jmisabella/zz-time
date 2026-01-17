@@ -1,4 +1,215 @@
-# 2026-01-17 (Latest): Voice Settings Immediate Application Fix ✅
+# 2026-01-17 (Latest): Multi-Story Architecture Implementation ✅
+
+### Summary of Changes
+- **Implemented scalable multi-story architecture** allowing app to support unlimited stories with associated poems
+- **Story title display** - Title appears and fades when toggling Leaf/Theater buttons, tappable to select different stories
+- **Per-story chapter memory** - Each story independently remembers its chapter position across app sessions
+- **Scoped poems** - Theater button plays random poems only from the currently selected story's collection
+- **Directory-based content organization** - Stories discovered automatically from TTSContent/ filesystem structure
+- **Story selection UI** - Clean menu showing all available stories with metadata (chapter/poem counts)
+
+### Architecture Overview
+
+Converted from flat file structure (`preset_story1.txt`, `preset_poem1.txt`) to hierarchical directory structure:
+
+```
+TTSContent/
+├── default_custom_story.txt
+├── default_custom_poem.txt
+├── Signal_Decay/
+│   ├── Stories/
+│   │   ├── 01_prelude.txt
+│   │   ├── 02_chapter1.txt
+│   │   └── ... (numbered sequentially)
+│   └── Poems/
+│       └── *.txt (any filenames)
+└── [Future_Stories]/
+    ├── Stories/
+    └── Poems/
+```
+
+### New Features
+
+#### 1. Story Title Overlay
+- Appears for 4-5 seconds when user toggles Leaf (story) or Theater (poetry) buttons
+- Smooth fade-in/fade-out animation
+- Displays formatted story name (e.g., "Signal_Decay" → "Signal Decay")
+- Positioned at top of ExpandingView with semi-transparent black background
+- Only tappable when fully visible (prevents accidental taps during fade)
+
+#### 2. Story Selection
+- Tapping title opens navigation sheet with list of all available stories
+- Each story shows:
+  - Display name (underscores/dashes replaced with spaces)
+  - Chapter count with book icon
+  - Poem count with theater masks icon
+  - Checkmark for currently selected story
+- Selecting story immediately switches content and dismisses sheet
+- Familiar iOS Settings app-style UI
+
+#### 3. Per-Story Chapter Tracking
+- Chapter positions stored as dictionary in UserDefaults: `[directoryName: chapterIndex]`
+- Example: `{"Signal_Decay": 4, "Another_Story": 2}`
+- Encoded as JSON Data for @AppStorage compatibility
+- When switching stories, previous story's chapter position is remembered
+- Returning to a story resumes at the last-played chapter
+
+#### 4. Scoped Poem Playback
+- Theater button now plays random poems ONLY from currently selected story's Poems/ directory
+- Previously played from ALL preset poems regardless of story
+- Ensures thematic consistency between stories and their poems
+
+#### 5. Automatic Story Discovery
+- App scans TTSContent/ directory on launch
+- Discovers all subdirectories containing Stories/ and Poems/ folders
+- No code changes needed to add new stories - just add directory and rebuild
+- Gracefully handles missing directories, empty collections, malformed filenames
+
+### Files Created
+
+1. **zz-time/Models/StoryCollection.swift** - NEW
+   - Data model representing a story collection
+   - Properties: id (UUID), directoryName, displayName, storyFiles, poemFiles
+   - StoryFile nested struct with filename and sequenceNumber
+   - `formatDisplayName()` - Converts directory names to user-friendly display names
+   - `sortedChapters` computed property for ordered chapter access
+
+2. **zz-time/Views/Components/StoryCollectionManager.swift** - NEW
+   - ObservableObject managing story discovery and chapter positions
+   - `loadCollections()` - Scans TTSContent/ directory and discovers stories
+   - `getChapterIndex()` / `setChapterIndex()` - Per-story chapter position management
+   - `getStoryText()` - Loads story content from filesystem
+   - `getRandomPoem()` - Selects random poem from current story's collection
+   - File discovery with regex pattern matching for sequence numbers (`^\d+_`)
+   - Error handling for missing directories, empty collections, malformed files
+
+3. **zz-time/Views/StorySelectionView.swift** - NEW
+   - SwiftUI view for story selection UI
+   - NavigationView with List of collections
+   - Shows metadata (chapter count, poem count) for each story
+   - Visual checkmark indicates currently selected story
+   - Done button in toolbar to dismiss
+
+### Files Modified
+
+1. **zz-time/Views/Components/TextToSpeechManager.swift**
+   - Line 69: REMOVED `@AppStorage("currentChapterIndex")` (replaced by per-story tracking)
+   - Line 98+: Added `weak var storyCollectionManager: StoryCollectionManager?`
+   - Lines 210-217: Replaced `getSequentialStory()` to use StoryCollectionManager
+   - Lines 219-272: Replaced `skipToNextChapter()` and `skipToPreviousChapter()` with collection-aware logic
+   - Lines 274-294: Replaced `getRandomPoem()` to load from current story's Poems/ directory
+   - Now queries manager for current collection and chapter index
+   - Wraps to first/last chapter within current story's chapter list
+
+2. **zz-time/Views/ExpandingView.swift**
+   - Line 39+: Added `@StateObject private var storyCollectionManager = StoryCollectionManager()`
+   - Line 50+: Added state variables for title display: `showStoryTitle`, `storyTitleOpacity`, `showStorySelector`
+   - Line 377+: Added story title overlay with fade animation
+   - Line 298-313: Modified Leaf/Theater button tap gesture to trigger `showTitleBriefly()`
+   - Line 469+: Injected storyCollectionManager into ttsManager in onAppear
+   - Line 607+: Added .sheet for StorySelectionView
+   - New `showTitleBriefly()` method: Animates title fade-in (0.5s) → display (4.5s) → fade-out (1.0s)
+
+### How It Works
+
+#### Story Discovery Flow
+1. On app launch, StoryCollectionManager.init() calls `loadCollections()`
+2. Scans TTSContent/ for subdirectories
+3. For each subdirectory:
+   - Scans Stories/ folder for .txt files
+   - Extracts sequence number from filename prefix (e.g., "01_prelude.txt" → 1)
+   - Scans Poems/ folder for .txt files
+   - Creates StoryCollection with metadata
+4. Sorts collections alphabetically by directory name
+5. Auto-selects first collection if none previously selected
+
+#### Chapter Position Persistence
+1. User navigates chapters via skip forward/back buttons
+2. StoryCollectionManager.setChapterIndex() updates in-memory dictionary
+3. Dictionary automatically JSON-encoded to UserDefaults via @AppStorage
+4. On app relaunch, dictionary decoded and chapter positions restored
+5. Switching stories preserves both stories' chapter positions
+
+#### Content Loading
+1. User toggles Leaf button → story mode activated
+2. ExpandingView calls `showTitleBriefly()` → title appears and fades
+3. TextToSpeechManager.getSequentialStory() queries collection manager
+4. Manager looks up current collection and chapter index for that collection
+5. Loads story file from TTSContent/{directoryName}/Stories/{filename}.txt
+6. Returns text to TTS manager for playback
+
+#### Poem Scoping
+1. User toggles Theater button → poetry mode activated
+2. TextToSpeechManager.getRandomPoem() queries collection manager
+3. Manager gets current collection's poemFiles array
+4. Randomly selects one poem from that array
+5. Loads poem from TTSContent/{directoryName}/Poems/{filename}.txt
+6. Returns text to TTS manager for playback
+
+### Error Handling & Edge Cases
+
+1. **TTSContent/ Missing** - Returns empty collections array, Leaf/Theater buttons show no content
+2. **Selected Story Deleted** - Falls back to first available collection
+3. **Empty Stories/ or Poems/** - Collection still added if has either stories OR poems
+4. **Malformed Filenames** - Files without sequence prefix excluded from collection
+5. **Chapter Index Out of Bounds** - Resets to first chapter if stored chapter no longer exists
+6. **File Loading Errors** - Returns nil, TTS gracefully handles absence of content
+
+### File Naming Conventions
+
+- **Directory names**: Use underscores or dashes (e.g., `Signal_Decay`, `My-New_Story`)
+- **Display names**: Automatically formatted (e.g., "Signal Decay", "My New Story")
+- **Story files**: MUST have numeric prefix (`01_`, `02_`, etc.) for proper ordering
+- **Poem files**: Can have any filename - selected randomly regardless of name
+
+### Migration Notes
+
+- Manual file reorganization required (no auto-migration)
+- Old flat Stories/ and Poems/ directories can remain for reference
+- New TTSContent/ structure takes precedence
+- Custom stories (UserDefaults-based) completely unchanged and unaffected
+
+### Adding New Stories
+
+To add a new story:
+1. Create subdirectory in TTSContent/ (e.g., `New_Story_Name/`)
+2. Create `Stories/` and `Poems/` subdirectories
+3. Add numbered story files: `01_chapter1.txt`, `02_chapter2.txt`, etc.
+4. Add poem text files (any names)
+5. Add to Xcode project bundle
+6. App automatically discovers on next launch - no code changes needed
+
+### Testing Scenarios
+
+✅ Launch app with TTSContent/ structure - stories discovered
+✅ Toggle Leaf button - title appears and fades over 5 seconds
+✅ Tap title during display - story selector opens
+✅ Story selector shows all available stories with metadata
+✅ Select different story - chapters load from correct subdirectory
+✅ Theater button plays poem from current story's Poems/ directory only
+✅ Skip forward/backward through chapters
+✅ Wrap-around at end/beginning of story
+✅ Switch to different story, skip chapters, switch back - chapter position restored
+✅ Restart app - selected story and chapter positions persist
+✅ Add new story directory - appears in selector without code changes
+✅ Custom stories/poems continue working unchanged
+✅ Empty TTSContent/ - app doesn't crash, buttons show no content
+✅ Story with no poems - poetry mode doesn't crash
+✅ Malformed filename - excluded from collection, doesn't break app
+
+### Impact on Custom Stories
+
+**No changes** - Custom stories and poems remain completely separate:
+- Still stored in UserDefaults
+- Still browseable via Content Browser
+- Still editable, duplicatable, deletable
+- Not affected by TTSContent/ structure
+- Leaf/Theater buttons only use TTSContent/ preset stories
+- Custom content accessible via Quote button → Content Browser
+
+---
+
+# 2026-01-17: Voice Settings Immediate Application Fix ✅
 
 ### Summary of Changes
 - **Fixed voice settings not taking effect immediately** when changed from within a room (ExpandingView)

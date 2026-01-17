@@ -15,15 +15,6 @@
 		000D60602F04C03D00C82A83 /* ContentBrowserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000D605C2F04C03D00C82A83 /* ContentBrowserView.swift */; };
 		000D60612F04C03D00C82A83 /* CustomPoemEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000D605D2F04C03D00C82A83 /* CustomPoemEditorView.swift */; };
 		000D60632F04C14800C82A83 /* CustomPoem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000D60622F04C14800C82A83 /* CustomPoem.swift */; };
-		000D60682F04C5FB00C82A83 /* default_custom_poem.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D60642F04C5FB00C82A83 /* default_custom_poem.txt */; };
-		000D62112F1B5E3B00C82A83 /* preset_poem5.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D620D2F1B5E3B00C82A83 /* preset_poem5.txt */; };
-		000D62122F1B5E3B00C82A83 /* preset_poem1.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D62092F1B5E3B00C82A83 /* preset_poem1.txt */; };
-		000D62132F1B5E3B00C82A83 /* preset_poem4.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D620C2F1B5E3B00C82A83 /* preset_poem4.txt */; };
-		000D62142F1B5E3B00C82A83 /* preset_poem7.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D620F2F1B5E3B00C82A83 /* preset_poem7.txt */; };
-		000D62152F1B5E3B00C82A83 /* preset_poem3.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D620B2F1B5E3B00C82A83 /* preset_poem3.txt */; };
-		000D62162F1B5E3B00C82A83 /* preset_poem2.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D620A2F1B5E3B00C82A83 /* preset_poem2.txt */; };
-		000D62172F1B5E3B00C82A83 /* preset_poem6.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D620E2F1B5E3B00C82A83 /* preset_poem6.txt */; };
-		000D62182F1B5E3B00C82A83 /* preset_poem8.txt in Resources */ = {isa = PBXBuildFile; fileRef = 000D62102F1B5E3B00C82A83 /* preset_poem8.txt */; };
 		0021DBCA2EE4021E002A8B5A /* BalanceSlider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0021DBC92EE4021E002A8B5A /* BalanceSlider.swift */; };
 		0032BABB2ED7F9C700837776 /* ambient_31.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0032BABA2ED7F9C700837776 /* ambient_31.m4a */; };
 		0032BABD2ED7F9D000837776 /* ambient_32.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0032BABC2ED7F9D000837776 /* ambient_32.m4a */; };
@@ -74,6 +65,9 @@
 		0094618B2EDFF40000DC9E82 /* ambient_03.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0094618A2EDFF40000DC9E82 /* ambient_03.m4a */; };
 		00C3BE3B5FABFD46F4B777F4 /* StoryTextDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EF8E543D50C3461BA2D7C4 /* StoryTextDisplay.swift */; };
 		00C3BE3C5FABFD46F4B888G5 /* ScrollableStoryTextDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EF8E553D50C3461BA2D8D5 /* ScrollableStoryTextDisplay.swift */; };
+		00D909F52F1BFE5E0080C609 /* StoryCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00D909F42F1BFE5E0080C609 /* StoryCollection.swift */; };
+		00D909F72F1BFE6B0080C609 /* StoryCollectionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00D909F62F1BFE6B0080C609 /* StoryCollectionManager.swift */; };
+		00D909F92F1BFE770080C609 /* StorySelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00D909F82F1BFE770080C609 /* StorySelectionView.swift */; };
 		00F91E912EE3C357002FD154 /* CustomStory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00F91E902EE3C357002FD154 /* CustomStory.swift */; };
 		00F91E932EE3C3FC002FD154 /* CustomStoryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00F91E922EE3C3FC002FD154 /* CustomStoryManager.swift */; };
 		00F91E952EE3C536002FD154 /* CustomStoryListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00F91E942EE3C536002FD154 /* CustomStoryListView.swift */; };
@@ -90,15 +84,6 @@
 		000D605D2F04C03D00C82A83 /* CustomPoemEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomPoemEditorView.swift; sourceTree = "<group>"; };
 		000D605E2F04C03D00C82A83 /* CustomPoemListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomPoemListView.swift; sourceTree = "<group>"; };
 		000D60622F04C14800C82A83 /* CustomPoem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomPoem.swift; sourceTree = "<group>"; };
-		000D60642F04C5FB00C82A83 /* default_custom_poem.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = default_custom_poem.txt; sourceTree = "<group>"; };
-		000D62092F1B5E3B00C82A83 /* preset_poem1.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem1.txt; sourceTree = "<group>"; };
-		000D620A2F1B5E3B00C82A83 /* preset_poem2.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem2.txt; sourceTree = "<group>"; };
-		000D620B2F1B5E3B00C82A83 /* preset_poem3.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem3.txt; sourceTree = "<group>"; };
-		000D620C2F1B5E3B00C82A83 /* preset_poem4.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem4.txt; sourceTree = "<group>"; };
-		000D620D2F1B5E3B00C82A83 /* preset_poem5.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem5.txt; sourceTree = "<group>"; };
-		000D620E2F1B5E3B00C82A83 /* preset_poem6.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem6.txt; sourceTree = "<group>"; };
-		000D620F2F1B5E3B00C82A83 /* preset_poem7.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem7.txt; sourceTree = "<group>"; };
-		000D62102F1B5E3B00C82A83 /* preset_poem8.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = preset_poem8.txt; sourceTree = "<group>"; };
 		0021DBC92EE4021E002A8B5A /* BalanceSlider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BalanceSlider.swift; sourceTree = "<group>"; };
 		0032BABA2ED7F9C700837776 /* ambient_31.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_31.m4a; sourceTree = "<group>"; };
 		0032BABC2ED7F9D000837776 /* ambient_32.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_32.m4a; sourceTree = "<group>"; };
@@ -149,6 +134,9 @@
 		0079DC1A2EF7611F006820B9 /* ambient_06.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_06.m4a; sourceTree = "<group>"; };
 		0079DC742EF8B2CE006820B9 /* ambient_07.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_07.m4a; sourceTree = "<group>"; };
 		0094618A2EDFF40000DC9E82 /* ambient_03.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_03.m4a; sourceTree = "<group>"; };
+		00D909F42F1BFE5E0080C609 /* StoryCollection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryCollection.swift; sourceTree = "<group>"; };
+		00D909F62F1BFE6B0080C609 /* StoryCollectionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryCollectionManager.swift; sourceTree = "<group>"; };
+		00D909F82F1BFE770080C609 /* StorySelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorySelectionView.swift; sourceTree = "<group>"; };
 		00EF8E543D50C3461BA2D7C4 /* StoryTextDisplay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryTextDisplay.swift; sourceTree = "<group>"; };
 		00EF8E553D50C3461BA2D8D5 /* ScrollableStoryTextDisplay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollableStoryTextDisplay.swift; sourceTree = "<group>"; };
 		00F91E902EE3C357002FD154 /* CustomStory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomStory.swift; sourceTree = "<group>"; };
@@ -157,10 +145,40 @@
 		00F91E962EE3C562002FD154 /* CustomStoryEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomStoryEditorView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		00D90B132F1C04BE0080C609 /* Exceptions for "TTSContent" folder in "zz-time" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				default_custom_poem.txt,
+				default_custom_story.txt,
+				Signal_Decay/Poems/preset_poem1.txt,
+				Signal_Decay/Poems/preset_poem2.txt,
+				Signal_Decay/Poems/preset_poem3.txt,
+				Signal_Decay/Poems/preset_poem4.txt,
+				Signal_Decay/Poems/preset_poem5.txt,
+				Signal_Decay/Poems/preset_poem6.txt,
+				Signal_Decay/Poems/preset_poem7.txt,
+				Signal_Decay/Poems/preset_poem8.txt,
+				Signal_Decay/Stories/01_prelude.txt,
+				Signal_Decay/Stories/02_chapter1.txt,
+				Signal_Decay/Stories/03_chapter2.txt,
+				Signal_Decay/Stories/04_chapter3.txt,
+				Signal_Decay/Stories/05_chapter4.txt,
+				Signal_Decay/Stories/06_chapter5.txt,
+				Signal_Decay/Stories/07_chapter6.txt,
+				Signal_Decay/Stories/08_chapter7.txt,
+			);
+			target = 004058102E5D245100E6C52E /* zz-time */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		0033F8EC2EE299D9006D3319 /* Stories */ = {
+		00D90B002F1C02D20080C609 /* TTSContent */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Stories;
+			exceptions = (
+				00D90B132F1C04BE0080C609 /* Exceptions for "TTSContent" folder in "zz-time" target */,
+			);
+			path = TTSContent;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -226,22 +244,6 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		000D60662F04C5FB00C82A83 /* Poems */ = {
-			isa = PBXGroup;
-			children = (
-				000D60642F04C5FB00C82A83 /* default_custom_poem.txt */,
-				000D62092F1B5E3B00C82A83 /* preset_poem1.txt */,
-				000D620A2F1B5E3B00C82A83 /* preset_poem2.txt */,
-				000D620B2F1B5E3B00C82A83 /* preset_poem3.txt */,
-				000D620C2F1B5E3B00C82A83 /* preset_poem4.txt */,
-				000D620D2F1B5E3B00C82A83 /* preset_poem5.txt */,
-				000D620E2F1B5E3B00C82A83 /* preset_poem6.txt */,
-				000D620F2F1B5E3B00C82A83 /* preset_poem7.txt */,
-				000D62102F1B5E3B00C82A83 /* preset_poem8.txt */,
-			);
-			path = Poems;
-			sourceTree = "<group>";
-		};
 		0033F8C22EE297CF006D3319 /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
@@ -253,6 +255,7 @@
 		0033F8C52EE297CF006D3319 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				00D909F42F1BFE5E0080C609 /* StoryCollection.swift */,
 				000D60622F04C14800C82A83 /* CustomPoem.swift */,
 				00F91E902EE3C357002FD154 /* CustomStory.swift */,
 				0033F8C32EE297CF006D3319 /* DimMode.swift */,
@@ -264,6 +267,7 @@
 		0033F8C72EE297CF006D3319 /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				00D909F62F1BFE6B0080C609 /* StoryCollectionManager.swift */,
 				000D605A2F04C03000C82A83 /* CustomPoemManager.swift */,
 				000D5F7A2EFDC29000C82A83 /* VoiceManager.swift */,
 				0021DBC92EE4021E002A8B5A /* BalanceSlider.swift */,
@@ -279,6 +283,7 @@
 		0033F8CE2EE297CF006D3319 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				00D909F82F1BFE770080C609 /* StorySelectionView.swift */,
 				000D605C2F04C03D00C82A83 /* ContentBrowserView.swift */,
 				000D605D2F04C03D00C82A83 /* CustomPoemEditorView.swift */,
 				000D605E2F04C03D00C82A83 /* CustomPoemListView.swift */,
@@ -299,14 +304,13 @@
 		0033F8D32EE297CF006D3319 /* zz-time */ = {
 			isa = PBXGroup;
 			children = (
+				00D90B002F1C02D20080C609 /* TTSContent */,
 				0033F8C22EE297CF006D3319 /* Extensions */,
 				0033F8C52EE297CF006D3319 /* Models */,
 				0033F8CE2EE297CF006D3319 /* Views */,
 				0033F8CF2EE297CF006D3319 /* Assets.xcassets */,
-				000D60662F04C5FB00C82A83 /* Poems */,
 				0033F8D02EE297CF006D3319 /* Info.plist */,
 				0033F8D22EE297CF006D3319 /* zz_timeApp.swift */,
-				0033F8EC2EE299D9006D3319 /* Stories */,
 			);
 			path = "zz-time";
 			sourceTree = "<group>";
@@ -338,6 +342,7 @@
 			buildPhases = (
 				0040580D2E5D245100E6C52E /* Sources */,
 				0040580E2E5D245100E6C52E /* Frameworks */,
+				00D90B142F1C04DF0080C609 /* ShellScript */,
 				0040580F2E5D245100E6C52E /* Resources */,
 			);
 			buildRules = (
@@ -345,7 +350,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				0033F8EC2EE299D9006D3319 /* Stories */,
+				00D90B002F1C02D20080C609 /* TTSContent */,
 			);
 			name = "zz-time";
 			packageProductDependencies = (
@@ -411,21 +416,12 @@
 				0033F88E2EDFFD5B006D3319 /* ambient_05.m4a in Resources */,
 				006D44772EDE89EB00264CFE /* ambient_35.m4a in Resources */,
 				0079DC1B2EF7611F006820B9 /* ambient_06.m4a in Resources */,
-				000D62112F1B5E3B00C82A83 /* preset_poem5.txt in Resources */,
-				000D62122F1B5E3B00C82A83 /* preset_poem1.txt in Resources */,
-				000D62132F1B5E3B00C82A83 /* preset_poem4.txt in Resources */,
-				000D62142F1B5E3B00C82A83 /* preset_poem7.txt in Resources */,
-				000D62152F1B5E3B00C82A83 /* preset_poem3.txt in Resources */,
-				000D62162F1B5E3B00C82A83 /* preset_poem2.txt in Resources */,
-				000D62172F1B5E3B00C82A83 /* preset_poem6.txt in Resources */,
-				000D62182F1B5E3B00C82A83 /* preset_poem8.txt in Resources */,
 				00371B0A2EAD71200037EDCF /* ambient_27.m4a in Resources */,
 				0032BAC52ED801D200837776 /* ambient_14.m4a in Resources */,
 				00371B0B2EAD71200037EDCF /* ambient_18.m4a in Resources */,
 				00371B0D2EAD71200037EDCF /* ambient_25.m4a in Resources */,
 				0069A9832EDFFB3300FFA508 /* ambient_10.m4a in Resources */,
 				0079DC752EF8B2CE006820B9 /* ambient_07.m4a in Resources */,
-				000D60682F04C5FB00C82A83 /* default_custom_poem.txt in Resources */,
 				0069A9842EDFFB3300FFA508 /* ambient_09.m4a in Resources */,
 				00371B112EAD71200037EDCF /* ambient_12.m4a in Resources */,
 				00371B132EAD71200037EDCF /* ambient_22.m4a in Resources */,
@@ -442,6 +438,28 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		00D90B142F1C04DF0080C609 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/zz-time/TTSContent",
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/TTSContent",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -e\n\necho \"🔵 Starting TTSContent copy script...\"\n\nSOURCE_DIR=\"${SRCROOT}/zz-time/TTSContent\"\nDEST_DIR=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/TTSContent\"\n\necho \"📂 Source: ${SOURCE_DIR}\"\necho \"📂 Destination: ${DEST_DIR}\"\n\n# Remove old TTSContent if it exists\nif [ -d \"${DEST_DIR}\" ]; then\n    echo \"🗑️  Removing old TTSContent...\"\n    rm -rf \"${DEST_DIR}\"\nfi\n\n# Copy the entire TTSContent directory with structure preserved using ditto\nif [ -d \"${SOURCE_DIR}\" ]; then\n    echo \"📋 Copying TTSContent directory...\"\n    ditto \"${SOURCE_DIR}\" \"${DEST_DIR}\"\n    echo \"✅ TTSContent copied successfully\"\n\n    # List what was copied for verification\n    echo \"📁 Contents:\"\n    find \"${DEST_DIR}\" -type f -name \"*.txt\" 2>/dev/null | while read file; do\n        echo \"   - ${file#${DEST_DIR}/}\"\n    done\nelse\n    echo \"❌ ERROR: Source directory not found at ${SOURCE_DIR}\"\n    exit 1\nfi\n\necho \"🎉 TTSContent copy complete!\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		0040580D2E5D245100E6C52E /* Sources */ = {
@@ -465,7 +483,10 @@
 				000D605B2F04C03000C82A83 /* CustomPoemManager.swift in Sources */,
 				0033F8DB2EE297CF006D3319 /* ContentView.swift in Sources */,
 				00F91E952EE3C536002FD154 /* CustomStoryListView.swift in Sources */,
+				00D909F92F1BFE770080C609 /* StorySelectionView.swift in Sources */,
 				0033F8DC2EE297CF006D3319 /* ExpandingView.swift in Sources */,
+				00D909F52F1BFE5E0080C609 /* StoryCollection.swift in Sources */,
+				00D909F72F1BFE6B0080C609 /* StoryCollectionManager.swift in Sources */,
 				000D5F792EFDC26500C82A83 /* VoiceSettingsView.swift in Sources */,
 				00F91E972EE3C562002FD154 /* CustomStoryEditorView.swift in Sources */,
 				0033F8DD2EE297CF006D3319 /* PlasmaBackgroundView.swift in Sources */,
@@ -518,7 +539,7 @@
 				DEVELOPMENT_TEAM = 6T2JFKS3GA;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -582,7 +603,7 @@
 				DEVELOPMENT_TEAM = 6T2JFKS3GA;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -613,7 +634,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "zz-time/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Z Rooms";
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -644,7 +665,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "zz-time/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Z Rooms";
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

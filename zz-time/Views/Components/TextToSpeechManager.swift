@@ -65,10 +65,6 @@ class TextToSpeechManager: ObservableObject {
     @Published var phraseHistory: [String] = []  // Full history of all spoken phrases
     @Published var hasNewCaptionContent: Bool = false  // Indicates new content while user is scrolled up
 
-    // Current chapter index for sequential story playback
-    @AppStorage("currentChapterIndex") private var currentChapterIndex: Int = 1
-
-
     var synthesizer = AVSpeechSynthesizer()  // Internal access for pause/resume from VoiceSettingsView
     private var speechDelegate: SpeechDelegate
     private var repeatCount = 0
@@ -96,6 +92,9 @@ class TextToSpeechManager: ObservableObject {
 
     // Reference to custom poem manager for random selection
     weak var customPoemManager: CustomPoemManager?
+
+    // Reference to story collection manager for multi-story support
+    weak var storyCollectionManager: StoryCollectionManager?
 
     // Current content mode
     @Published var currentContentMode: ContentMode = .off
@@ -208,31 +207,29 @@ class TextToSpeechManager: ObservableObject {
     }
     
     func getSequentialStory() -> String? {
-        // Load the current chapter
-        if let url = Bundle.main.url(forResource: "preset_story\(currentChapterIndex)", withExtension: "txt"),
-           let text = try? String(contentsOf: url, encoding: .utf8) {
-            return text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let manager = storyCollectionManager,
+              let collection = manager.selectedCollection else {
+            return nil
         }
-        return nil
+
+        let chapterIndex = manager.getChapterIndex(for: collection.directoryName)
+        return manager.getStoryText(for: collection, chapterIndex: chapterIndex)
     }
 
     func skipToNextChapter(startIfPlaying: Bool = true) {
-        // Find the next available chapter file
-        var nextIndex = currentChapterIndex + 1
-        var found = false
+        guard let manager = storyCollectionManager,
+              let collection = manager.selectedCollection else { return }
 
-        while nextIndex <= 100 {
-            if Bundle.main.url(forResource: "preset_story\(nextIndex)", withExtension: "txt") != nil {
-                currentChapterIndex = nextIndex
-                found = true
-                break
-            }
-            nextIndex += 1
-        }
+        let currentIndex = manager.getChapterIndex(for: collection.directoryName)
+        let sortedChapters = collection.sortedChapters
 
-        // If we reached the end, wrap back to chapter 1
-        if !found {
-            currentChapterIndex = 1
+        // Find next chapter or wrap to first
+        if let currentIdx = sortedChapters.firstIndex(where: { $0.sequenceNumber == currentIndex }),
+           currentIdx + 1 < sortedChapters.count {
+            let nextChapter = sortedChapters[currentIdx + 1]
+            manager.setChapterIndex(nextChapter.sequenceNumber, for: collection.directoryName)
+        } else if let first = sortedChapters.first {
+            manager.setChapterIndex(first.sequenceNumber, for: collection.directoryName)
         }
 
         // If playing and requested, start the new chapter
@@ -247,17 +244,19 @@ class TextToSpeechManager: ObservableObject {
     }
 
     func skipToPreviousChapter(startIfPlaying: Bool = true) {
-        if currentChapterIndex > 1 {
-            currentChapterIndex -= 1
-        } else {
-            // If at first chapter, wrap to the last available chapter
-            var lastIndex = 1
-            for i in 1...100 {
-                if Bundle.main.url(forResource: "preset_story\(i)", withExtension: "txt") != nil {
-                    lastIndex = i
-                }
-            }
-            currentChapterIndex = lastIndex
+        guard let manager = storyCollectionManager,
+              let collection = manager.selectedCollection else { return }
+
+        let currentIndex = manager.getChapterIndex(for: collection.directoryName)
+        let sortedChapters = collection.sortedChapters
+
+        // Find previous chapter or wrap to last
+        if let currentIdx = sortedChapters.firstIndex(where: { $0.sequenceNumber == currentIndex }),
+           currentIdx > 0 {
+            let prevChapter = sortedChapters[currentIdx - 1]
+            manager.setChapterIndex(prevChapter.sequenceNumber, for: collection.directoryName)
+        } else if let last = sortedChapters.last {
+            manager.setChapterIndex(last.sequenceNumber, for: collection.directoryName)
         }
 
         // If playing and requested, start the new chapter
@@ -272,25 +271,12 @@ class TextToSpeechManager: ObservableObject {
     }
 
     func getRandomPoem() -> String? {
-        // Build pool of all available preset poems
-        var allPoems: [(text: String, source: String)] = []
-
-        // Add all preset poem files (check up to 100 to future-proof)
-        for i in 1...100 {
-            if let url = Bundle.main.url(forResource: "preset_poem\(i)", withExtension: "txt"),
-               let text = try? String(contentsOf: url, encoding: .utf8) {
-                let trimmedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
-                allPoems.append((trimmedText, "preset \(i)"))
-            }
-        }
-
-        guard !allPoems.isEmpty else {
+        guard let manager = storyCollectionManager,
+              let collection = manager.selectedCollection else {
             return nil
         }
 
-        // Randomly select one poem from the pool (repeats allowed)
-        let selected = allPoems.randomElement()!
-        return selected.text
+        return manager.getRandomPoem(for: collection)
     }
 
     /// Starts speaking a random story from text files

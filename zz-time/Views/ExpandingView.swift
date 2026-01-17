@@ -38,6 +38,9 @@ struct ExpandingView: View {
     // Custom poem manager
     @StateObject private var poemManager = CustomPoemManager()
 
+    // Story collection manager for multi-story support
+    @StateObject private var storyCollectionManager = StoryCollectionManager()
+
     @State private var showContentBrowser: Bool = false
 
     // Voice settings
@@ -48,6 +51,11 @@ struct ExpandingView: View {
 
     // Crossfade loading state
     @State private var isCrossfading: Bool = false
+
+    // Story title display state
+    @State private var showStoryTitle: Bool = false
+    @State private var storyTitleOpacity: Double = 0.0
+    @State private var showStorySelector: Bool = false
 
     // MARK: - Helper Functions for Content Mode
 
@@ -301,6 +309,11 @@ struct ExpandingView: View {
                                 // Cycle to next mode and start content
                                 ttsManager.cycleContentMode()
 
+                                // Show title when activating story or poetry mode
+                                if ttsManager.currentContentMode != .off {
+                                    showTitleBriefly()
+                                }
+
                                 switch ttsManager.currentContentMode {
                                 case .story:
                                     guard let text = ttsManager.getSequentialStory() else { return }
@@ -375,6 +388,28 @@ struct ExpandingView: View {
                         Spacer()
                     }
                 }
+            }
+
+            // Story title overlay - appears for 4-5 seconds when toggling Leaf/Theater
+            if showStoryTitle, let collection = storyCollectionManager.selectedCollection {
+                VStack {
+                    Button {
+                        showStorySelector = true
+                    } label: {
+                        Text(collection.displayName)
+                            .font(.title2)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 12)
+                            .background(Color.black.opacity(0.7))
+                            .cornerRadius(10)
+                    }
+                    .opacity(storyTitleOpacity)
+                    .padding(.top, 100)
+
+                    Spacer()
+                }
+                .allowsHitTesting(storyTitleOpacity > 0.5)
             }
 
             // Story text display in modal window above room label and buttons
@@ -467,6 +502,9 @@ struct ExpandingView: View {
             // Connect the custom poem manager to the TTS manager
             // This allows the theater masks button to randomly select from preset poems
             ttsManager.customPoemManager = poemManager
+
+            // Connect the story collection manager for multi-story support
+            ttsManager.storyCollectionManager = storyCollectionManager
 
             // Do NOT auto-restore poetry/story mode when entering a room
             // User must explicitly activate it via the buttons
@@ -605,6 +643,13 @@ struct ExpandingView: View {
         }) {
             VoiceSettingsView(ttsManager: ttsManager)
         }
+        .sheet(isPresented: $showStorySelector) {
+            StorySelectionView(
+                collections: storyCollectionManager.collections,
+                selectedCollectionID: $storyCollectionManager.selectedCollectionID,
+                isPresented: $showStorySelector
+            )
+        }
     }
     
     private func updateDurationToRemaining() {
@@ -626,6 +671,23 @@ struct ExpandingView: View {
             // NO WAKE TIME: Ensure infinite
             durationMinutes = 0
             UserDefaults.standard.set(0.0, forKey: "durationMinutes")
+        }
+    }
+
+    private func showTitleBriefly() {
+        showStoryTitle = true
+        withAnimation(.easeIn(duration: 0.5)) {
+            storyTitleOpacity = 1.0
+        }
+
+        // Fade out after 4.5 seconds
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4.5) {
+            withAnimation(.easeOut(duration: 1.0)) {
+                storyTitleOpacity = 0.0
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                showStoryTitle = false
+            }
         }
     }
 }
