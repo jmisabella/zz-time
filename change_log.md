@@ -36,6 +36,35 @@ The TextToSpeechManager's AVSpeechSynthesizer instance was not being refreshed w
 ✅ Change voice from "System Default" to enhanced voice → works immediately
 ✅ Change voice from enhanced voice to another enhanced voice → works immediately
 
+### Preset vs Custom Content Separation (Verification)
+
+**Verified** that the Leaf button (Story mode) and Theater button (Poetry mode) correctly play ONLY preset content, never custom content:
+
+**Implementation Details:**
+- `getSequentialStory()` method (TextToSpeechManager.swift:210-217):
+  - Only loads files named `preset_story\(currentChapterIndex).txt`
+  - Iterates through numbered preset stories sequentially (preset_story1.txt, preset_story2.txt, etc.)
+  - Located in `Stories/` folder
+
+- `getRandomPoem()` method (TextToSpeechManager.swift:274-294):
+  - Only loads files named `preset_poem\(i).txt` (where i = 1-100)
+  - Randomly selects one preset poem from the available pool
+  - Located in `Poems/` folder
+
+**Custom Content Storage:**
+- Custom stories and poems are stored in UserDefaults (not as preset_*.txt files)
+- Custom content can ONLY be played via the Content Browser menu (text.quote button)
+- When played from Content Browser, the text is passed directly to `ttsManager.startSpeakingWithPauses()`
+- This ensures complete separation between preset and custom content
+
+**File Naming Convention:**
+- Preset stories: `Stories/preset_story1.txt`, `preset_story2.txt`, etc.
+- Preset poems: `Poems/preset_poem1.txt`, `preset_poem2.txt`, etc.
+- Custom stories: Stored in UserDefaults under "customStories" key
+- Custom poems: Stored in UserDefaults under "customPoems" key
+
+**No code changes were needed** - this separation was already correctly implemented.
+
 ---
 
 # 2026-01-16: Landscape Mode Layout Fixes ✅
