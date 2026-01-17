@@ -4,15 +4,33 @@ import SwiftUI
 @MainActor
 class StoryCollectionManager: ObservableObject {
     @Published var collections: [StoryCollection] = []
-    @Published var selectedCollectionID: UUID?
 
     // Per-story chapter tracking: [directoryName: chapterIndex]
     @AppStorage("storyChapterPositions") private var chapterPositionsData: Data = Data()
     private var chapterPositions: [String: Int] = [:]
 
+    // Persist selected collection ID
+    @AppStorage("selectedCollectionID") private var selectedCollectionIDString: String = ""
+
+    @Published var selectedCollectionID: UUID? {
+        didSet {
+            // Save to AppStorage whenever it changes
+            if let id = selectedCollectionID {
+                selectedCollectionIDString = id.uuidString
+            } else {
+                selectedCollectionIDString = ""
+            }
+        }
+    }
+
     init() {
-        loadCollections()
         loadChapterPositions()
+        // Restore saved selection before loading collections
+        if !selectedCollectionIDString.isEmpty, let uuid = UUID(uuidString: selectedCollectionIDString) {
+            selectedCollectionID = uuid
+            print("📖 StoryCollectionManager: Restored selected collection ID: \(selectedCollectionIDString)")
+        }
+        loadCollections()
     }
 
     // MARK: - Discovery
@@ -90,10 +108,14 @@ class StoryCollectionManager: ObservableObject {
             print("   - \(collection.displayName): \(collection.storyFiles.count) chapters, \(collection.poemFiles.count) poems")
         }
 
-        // Auto-select first collection if none selected
-        if selectedCollectionID == nil, let first = collections.first {
-            selectedCollectionID = first.id
-            print("✨ StoryCollectionManager: Auto-selected '\(first.displayName)'")
+        // Auto-select collection if none selected
+        if selectedCollectionID == nil {
+            // Prefer Signal Decay for new users, otherwise use first available
+            let defaultCollection = collections.first(where: { $0.directoryName == "Signal_Decay" }) ?? collections.first
+            if let collection = defaultCollection {
+                selectedCollectionID = collection.id
+                print("✨ StoryCollectionManager: Auto-selected '\(collection.displayName)'")
+            }
         }
     }
 
@@ -135,17 +157,9 @@ class StoryCollectionManager: ObservableObject {
     // MARK: - Accessors
 
     var selectedCollection: StoryCollection? {
-        if let id = selectedCollectionID,
-           let collection = collections.first(where: { $0.id == id }) {
-            return collection
+        if let id = selectedCollectionID {
+            return collections.first(where: { $0.id == id })
         }
-
-        // Fallback to first available
-        if let first = collections.first {
-            selectedCollectionID = first.id
-            return first
-        }
-
         return nil
     }
 

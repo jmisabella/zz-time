@@ -1,4 +1,91 @@
-# 2026-01-17 (Latest): Multi-Story Architecture Implementation ✅
+# 2026-01-17 (Latest): Multi-Story Architecture Bug Fixes & UI Improvements ✅
+
+### Summary of Changes
+- **Fixed story persistence** - Selected story now correctly persists when navigating between views
+- **Fixed stable UUIDs** - Story collections maintain consistent IDs across app launches
+- **Fixed auto-playback** - Switching stories while playing now automatically starts the new story
+- **Added visual indicator** - Chevron icon added to story title to indicate it's tappable
+- **Enhanced discovery** - Story title now displays in both Story mode AND Poetry mode
+- **Default story selection** - New users now start with Signal Decay (if available) instead of first alphabetical story
+
+### Bug Fixes
+
+#### 1. Story Persistence Issue
+**Problem**: When selecting Signal Decay, exiting to ContentView, then re-entering ExpandingView, the selection incorrectly reverted to Hello_World (first story alphabetically).
+
+**Root Cause**: Initialization order in StoryCollectionManager:
+- `loadCollections()` ran first and auto-selected the first collection alphabetically
+- This triggered `didSet` observer which saved "Hello_World" to AppStorage
+- Then `loadSelectedCollection()` tried to restore "Signal_Decay" but it was already overwritten
+
+**Solution**: Changed initialization order to restore saved selection BEFORE loading collections:
+```swift
+init() {
+    loadChapterPositions()
+    // Restore saved selection before loading collections
+    if !selectedCollectionIDString.isEmpty, let uuid = UUID(uuidString: selectedCollectionIDString) {
+        selectedCollectionID = uuid
+    }
+    loadCollections()  // Auto-select only runs if selectedCollectionID == nil
+}
+```
+
+#### 2. UUID Stability Issue
+**Problem**: UUIDs were regenerated on each app launch, causing saved selection IDs to become invalid.
+
+**Solution**: Generate stable UUIDs from directory names using consistent hashing:
+```swift
+private static func stableUUID(from string: String) -> String {
+    let hash = string.utf8.reduce(0) { ($0 &+ UInt64($1)) &* 31 }
+    return String(format: "%08X-%04X-%04X-%04X-%012X", ...)
+}
+```
+
+Now "Signal_Decay" always generates the same UUID across app launches.
+
+#### 3. Story Switch Playback Issue
+**Problem**: When switching from Hello_World to Signal_Decay while in Story mode, the new story didn't automatically start playing.
+
+**Solution**: Added `onSelectionChanged` callback to StorySelectionView:
+- ExpandingView monitors for selection changes
+- When story changes while playing, stops current playback and starts new story
+- Provides seamless transition between stories
+
+### Enhancements
+
+#### 1. Default Story Selection for New Users
+New users now have Signal Decay automatically selected as their first story:
+- If Signal Decay exists in TTSContent/, it's selected by default for first-time users
+- If Signal Decay doesn't exist, falls back to first available story alphabetically
+- Existing users with saved preferences are completely unaffected
+- Implementation: Modified auto-selection logic in `loadCollections()` to prefer Signal Decay
+
+**File**: `StoryCollectionManager.swift:112-119`
+
+### UI Improvements
+
+#### 1. Visual Indicator for Story Selector
+Added subtle chevron-down icon after story title to indicate it's tappable:
+- SF Symbol: `chevron.compact.down`
+- Small, subtle design maintains minimal aesthetic
+- Increases discoverability without cluttering UI
+
+#### 2. Story Title Display in Poetry Mode
+Story title now appears when activating EITHER:
+- Leaf button (Story mode) - was already working
+- Theater button (Poetry mode) - NEW
+
+This allows users to change story collections from poetry mode without switching to story mode first.
+
+### Files Modified
+- **StoryCollectionManager.swift**: Fixed initialization order, added stable UUID generation
+- **StoryCollection.swift**: Implemented stable UUID generation from directory name
+- **StorySelectionView.swift**: Added onSelectionChanged callback
+- **ExpandingView.swift**: Added chevron indicator, enabled title display in poetry mode
+
+---
+
+# 2026-01-17: Multi-Story Architecture Implementation ✅
 
 ### Summary of Changes
 - **Implemented scalable multi-story architecture** allowing app to support unlimited stories with associated poems

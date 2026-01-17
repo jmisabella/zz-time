@@ -13,11 +13,25 @@ struct StoryCollection: Identifiable, Codable, Equatable {
     }
 
     init(directoryName: String) {
-        self.id = UUID()
+        // Generate stable UUID from directory name so it's consistent across app launches
+        self.id = UUID(uuidString: Self.stableUUID(from: directoryName)) ?? UUID()
         self.directoryName = directoryName
         self.displayName = Self.formatDisplayName(directoryName)
         self.storyFiles = []
         self.poemFiles = []
+    }
+
+    // Generate stable UUID from string
+    private static func stableUUID(from string: String) -> String {
+        // Use MD5-like approach to generate consistent UUID from directory name
+        let hash = string.utf8.reduce(0) { ($0 &+ UInt64($1)) &* 31 }
+        let uuidString = String(format: "%08X-%04X-%04X-%04X-%012X",
+                               UInt32(hash >> 32),
+                               UInt16((hash >> 16) & 0xFFFF),
+                               UInt16(hash & 0xFFFF),
+                               UInt16((hash >> 48) & 0xFFFF),
+                               hash & 0xFFFFFFFFFFFF)
+        return uuidString
     }
 
     static func formatDisplayName(_ dirName: String) -> String {

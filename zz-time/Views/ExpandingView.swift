@@ -337,6 +337,8 @@ struct ExpandingView: View {
                                         UserDefaults.standard.set("off", forKey: "contentMode")
                                     }
                                 } else {
+                                    // Show title when switching between modes
+                                    showTitleBriefly()
                                     // Crossfade to next content type
                                     crossfadeToNextContent()
                                 }
@@ -396,13 +398,18 @@ struct ExpandingView: View {
                     Button {
                         showStorySelector = true
                     } label: {
-                        Text(collection.displayName)
-                            .font(.title2)
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 12)
-                            .background(Color.black.opacity(0.7))
-                            .cornerRadius(10)
+                        HStack(spacing: 8) {
+                            Text(collection.displayName)
+                                .font(.title2)
+                            Image(systemName: "chevron.compact.down")
+                                .font(.caption)
+                                .foregroundColor(.white.opacity(0.8))
+                        }
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 12)
+                        .background(Color.black.opacity(0.7))
+                        .cornerRadius(10)
                     }
                     .opacity(storyTitleOpacity)
                     .padding(.top, 100)
@@ -647,7 +654,18 @@ struct ExpandingView: View {
             StorySelectionView(
                 collections: storyCollectionManager.collections,
                 selectedCollectionID: $storyCollectionManager.selectedCollectionID,
-                isPresented: $showStorySelector
+                isPresented: $showStorySelector,
+                onSelectionChanged: {
+                    // When story changes, restart playback if currently playing
+                    if ttsManager.isPlayingStory {
+                        Task {
+                            await ttsManager.stopSpeaking()
+                            if let text = ttsManager.getSequentialStory() {
+                                ttsManager.startSpeakingWithPauses(text)
+                            }
+                        }
+                    }
+                }
             )
         }
     }

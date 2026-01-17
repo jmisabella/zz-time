@@ -4,13 +4,20 @@ struct StorySelectionView: View {
     let collections: [StoryCollection]
     @Binding var selectedCollectionID: UUID?
     @Binding var isPresented: Bool
+    var onSelectionChanged: (() -> Void)?
 
     var body: some View {
         NavigationView {
             List(collections) { collection in
                 Button {
+                    let previousID = selectedCollectionID
                     selectedCollectionID = collection.id
                     isPresented = false
+
+                    // Notify if selection actually changed
+                    if previousID != collection.id {
+                        onSelectionChanged?()
+                    }
                 } label: {
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {
