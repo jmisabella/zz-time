@@ -15,7 +15,7 @@ struct VoiceSettingsView: View {
 
     // Special identifier for system default voice
     private let systemDefaultIdentifier = "SYSTEM_DEFAULT"
-    private let previewText = "Welcome to your story practice. Find a comfortable position and take a deep breath."
+    private let previewText = "Close your eyes and listen as words become worlds, stories unfold."
 
     var body: some View {
         NavigationView {
