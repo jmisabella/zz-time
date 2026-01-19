@@ -165,6 +165,29 @@
 				Signal_Decay/Stories/06_chapter5.txt,
 				Signal_Decay/Stories/07_chapter6.txt,
 				Signal_Decay/Stories/08_chapter7.txt,
+				The_Eighteen_Paradox/Poems/preset_poem1.txt,
+				The_Eighteen_Paradox/Poems/preset_poem2.txt,
+				The_Eighteen_Paradox/Poems/preset_poem3.txt,
+				The_Eighteen_Paradox/Poems/preset_poem4.txt,
+				The_Eighteen_Paradox/Poems/preset_poem5.txt,
+				The_Eighteen_Paradox/Poems/preset_poem6.txt,
+				The_Eighteen_Paradox/Poems/preset_poem7.txt,
+				The_Eighteen_Paradox/Poems/preset_poem8.txt,
+				The_Eighteen_Paradox/Poems/preset_poem9.txt,
+				The_Eighteen_Paradox/Poems/preset_poem10.txt,
+				The_Eighteen_Paradox/Poems/preset_poem11.txt,
+				The_Eighteen_Paradox/Poems/preset_poem12.txt,
+				The_Eighteen_Paradox/Stories/01_chapter_01_seventeen_days.txt,
+				The_Eighteen_Paradox/Stories/02_chapter_02_the_operators.txt,
+				The_Eighteen_Paradox/Stories/03_chapter_03_preferences.txt,
+				The_Eighteen_Paradox/Stories/04_chapter_04_the_chamber.txt,
+				The_Eighteen_Paradox/Stories/05_chapter_05_transfer.txt,
+				The_Eighteen_Paradox/Stories/06_chapter_06_configuration.txt,
+				The_Eighteen_Paradox/Stories/07_chapter_07_archives.txt,
+				The_Eighteen_Paradox/Stories/08_chapter_08_silence.txt,
+				The_Eighteen_Paradox/Stories/09_chapter_09_second_contribution.txt,
+				The_Eighteen_Paradox/Stories/10_chapter_10_complicity.txt,
+				The_Eighteen_Paradox/Stories/11_chapter_11_amalgamation.txt,
 			);
 			target = 004058102E5D245100E6C52E /* zz-time */;
 		};
@@ -626,7 +649,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = 6T2JFKS3GA;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -657,7 +680,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = 6T2JFKS3GA;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
