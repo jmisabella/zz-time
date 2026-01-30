@@ -5,8 +5,11 @@ The z rooms app has 35 available looping audio files for sleeping, guided medita
 We've added text to speech functionality. Now users can optionally toggle on a random guided story that accompanies the existing app functionality, playing the guided story narration voice over the ambient audio. There are 35 prewritten guided stories. We plan to also soon have 35 prewritten poems for poetry mode. 
 
 **Voice Options:**
-- **Default Voice (Free, No Download):** The default voice has an intentionally artificial, robotic, synthesized quality that creates an interesting meditative atmosphere. This was actually a happy accident that works surprisingly well for meditation and poems. The app remains 100% offline, free, ad-free, subscription-free, and about 110MB in size.
-- **Enhanced Voices (Optional):** Users can optionally enable enhanced, more natural-sounding voices through a settings menu accessible inside each room (gear icon, leftmost button). Many enhanced voices come pre-installed on newer devices (iPhone 16, etc.), while some may require download (100-500MB each). These are iOS system voices, not bundled with the app. Enhanced voices can be managed and deleted via iOS Settings → Accessibility → Spoken Content → Voices.
+The app uses high-quality iOS system voices for narration. The app automatically selects premium/enhanced voices when available (prioritizing voices like Lee AU Premium or Daniel GB Premium) to ensure natural, appropriate narration for the dark sci-fi story content. Users can manually select from curated story-appropriate voices through the settings menu accessible inside each room (gear icon, leftmost button). The app filters out novelty/inappropriate voices to ensure a quality listening experience.
+
+Premium/enhanced voices are often pre-installed on newer devices (iPhone 16, etc.), while some may require a one-time system download (100-500MB each). These are iOS system voices, not bundled with the app, keeping the app size at approximately 108MB. System voices can be managed via iOS Settings → Accessibility → Read & Speak → Voices → English.
+
+The app remains 100% offline, free, ad-free, and subscription-free.
 
 **Custom Stories and Custom Poems:**
 Users can also write their OWN custom stories and poems, and save up to 35 custom stories and 35 custom poems. We even have it so users can set pause breaks between words: (2s) or (1.5m) for example. If user deletes all of their custom stories, the default custom story comes back so they can have a nice example one with pauses that they can start with, and they can duplicate stories to make it easy on them.

@@ -1,4 +1,157 @@
-# 2026-01-17 (Latest): Multi-Story Architecture Bug Fixes & UI Improvements ✅
+# 2026-01-29 (Latest): TTS Voice Accept-List Implementation & Hierarchy Optimization ✅
+
+### Summary of Changes
+- **Implemented accept-list approach** - Created curated list of 7 story-appropriate voices for dark sci-fi narration
+- **Voice discovery system** - Added VoiceOption struct to show all curated voices including undownloaded ones with status indicators
+- **Voice hierarchy optimization** - Reordered automatic selection to prioritize Premium-capable voices (demoted Daniel to 4th place)
+- **Voice corrections** - Replaced Kate with Karen (AU), Arthur with Jamie + Oliver (both UK)
+- **Updated Settings path** - Changed from "Spoken Content" to "Read & Speak → Voices → English"
+- **Documentation created** - Added VOICE_RECOMMENDATIONS.md and ANDROID_VOICE_ACCEPT_LIST_PLAN.md
+
+### Timestamp
+**2026-01-29 22:43:51 EST**
+
+### Implementation Details
+
+#### 1. Accept-List Voice Filtering
+**Problem**: Previous implementation excluded only 26 novelty voices but allowed 50+ inappropriate cheery voices that don't suit dark sci-fi content.
+
+**Solution**: Implemented accept-list approach with 7 curated voices:
+- **Male voices**: Lee (AU), Jamie (UK), Oliver (UK), Daniel (UK)
+- **Female voices**: Karen (AU), Serena (UK), Ava (US)
+
+**Files modified**:
+- [VoiceManager.swift](zz-time/Views/Components/VoiceManager.swift) lines 37-45
+- Added `acceptedVoiceNames` array with curated voice list
+- Updated `isVoiceAccepted()` method to use accept-list
+
+#### 2. Voice Discovery System
+**Enhancement**: Users can now see all 7 curated voices even if not downloaded, with clear download status indicators.
+
+**Implementation**:
+- Created `VoiceOption` struct (VoiceManager.swift lines 234-250) with metadata:
+  - Voice name, display name, locale, gender
+  - Downloaded variations (Premium/Enhanced/Compact)
+  - Best quality available
+  - Download status flags
+- Added `getAllCuratedVoiceOptions()` method (VoiceManager.swift lines 253-292)
+- Updated VoiceSettingsView to display all voices with download indicators
+- Grayed-out undownloaded voices with "Not Downloaded" badge
+
+**Files modified**:
+- [VoiceManager.swift](zz-time/Views/Components/VoiceManager.swift)
+- [VoiceSettingsView.swift](zz-time/Views/VoiceSettingsView.swift) - added CuratedVoiceRow component
+
+#### 3. Voice Hierarchy Optimization
+**Problem**: Voice auto-selection prioritized Daniel (Enhanced only) before Jamie and Oliver (both have Premium), causing suboptimal quality selection for users with Premium voices downloaded.
+
+**Solution**: Reordered hierarchy to prioritize Premium-capable voices first:
+
+**New priority order** (VoiceManager.swift lines 66-100):
+1. **Lee (AU)** - Premium → Enhanced → Compact
+2. **Jamie (UK)** - Premium → Enhanced → Compact
+3. **Oliver (UK)** - Premium → Enhanced → Compact
+4. **Daniel (UK)** - Enhanced → Compact (NO Premium - demoted to 4th)
+5. **Karen (AU)** - Premium → Enhanced → Compact
+6. **Serena (UK)** - Premium → Enhanced → Compact
+7. **Ava (US)** - Premium → Enhanced → Compact
+
+**Voice quality availability**:
+- ✅ 6 voices have all three quality tiers (Premium + Enhanced + Compact)
+- ⚠️ Daniel lacks Premium tier (Enhanced + Compact only)
+
+**Files modified**: [VoiceManager.swift](zz-time/Views/Components/VoiceManager.swift)
+
+#### 4. Voice Corrections
+**Voice replacements based on testing**:
+- **Kate (UK) → Karen (AU)**: Kate doesn't exist or lacks Premium; Karen has Premium + Enhanced + Compact
+- **Arthur (UK) → Jamie + Oliver (UK)**: Arthur doesn't exist in latest iOS; both replacements have Premium + Enhanced + Compact
+
+**Files modified**:
+- [VoiceManager.swift](zz-time/Views/Components/VoiceManager.swift) - updated accept-list and hierarchy
+- [VOICE_RECOMMENDATIONS.md](VOICE_RECOMMENDATIONS.md) - updated all recommendations
+
+#### 5. Settings Path Update
+**Change**: Updated voice download instructions throughout the app:
+- **Old**: Settings → Accessibility → Spoken Content → Voices
+- **New**: Settings → Accessibility → Read & Speak → Voices → English
+
+**Files modified**:
+- [CONTEXT.md](CONTEXT.md) line 10
+- [VoiceSettingsView.swift](zz-time/Views/VoiceSettingsView.swift) lines 55, 62
+- [VOICE_RECOMMENDATIONS.md](VOICE_RECOMMENDATIONS.md)
+
+### Documentation Created
+
+#### VOICE_RECOMMENDATIONS.md
+Comprehensive voice curation guide with:
+- iOS voice recommendations (top 3 overall, top 4 male, top 3 female)
+- Android voice recommendations (locale-based filtering strategy)
+- Quality tier explanations (Premium/Enhanced/Compact)
+- Testing recommendations with sample text from Signal Decay
+- Implementation strategy and voice hierarchy rationale
+- Voices to avoid (cheery/bright voices inappropriate for dark content)
+
+**File**: [VOICE_RECOMMENDATIONS.md](VOICE_RECOMMENDATIONS.md)
+
+#### ANDROID_VOICE_ACCEPT_LIST_PLAN.md
+Android implementation plan with:
+- VoiceOption data class equivalent
+- Locale-based accept-list strategy (en-GB, en-AU, en-IN, en-US)
+- Complete Kotlin code samples
+- Voice discovery and quality detection
+- Download instructions dialog
+- iOS vs Android implementation comparison
+
+**File**: [ANDROID_VOICE_ACCEPT_LIST_PLAN.md](ANDROID_VOICE_ACCEPT_LIST_PLAN.md)
+
+### Technical Notes
+
+**Voice Quality Hierarchy**:
+- Premium: ~300-500MB download, best quality, most natural
+- Enhanced: ~100-300MB download, very good quality
+- Compact/Default: ~50-100MB, acceptable but more robotic
+
+**App Constraints Maintained**:
+- App size remains ~108MB (voices are iOS system downloads, not bundled)
+- 100% offline functionality preserved
+- Free, no subscription, no ads
+
+### Files Modified
+1. [VoiceManager.swift](zz-time/Views/Components/VoiceManager.swift)
+2. [VoiceSettingsView.swift](zz-time/Views/VoiceSettingsView.swift)
+3. [CONTEXT.md](CONTEXT.md)
+4. [VOICE_RECOMMENDATIONS.md](VOICE_RECOMMENDATIONS.md)
+
+### Files Created
+1. [VOICE_RECOMMENDATIONS.md](VOICE_RECOMMENDATIONS.md)
+2. [ANDROID_VOICE_ACCEPT_LIST_PLAN.md](ANDROID_VOICE_ACCEPT_LIST_PLAN.md)
+
+---
+
+# 2026-01-18: Fixed The Eighteen Paradox Poems Not Appearing ✅
+
+### Summary of Changes
+- **Fixed missing poems** - The Eighteen Paradox poems now correctly appear in the app (12 poems added to bundle)
+
+### Bug Fix
+
+#### The Eighteen Paradox Poems Not Showing in App
+**Problem**: The Eighteen Paradox story showed 11 chapters but 0 poems in the app, even though 12 poem files existed in the filesystem at `TTSContent/The_Eighteen_Paradox/Poems/`.
+
+**Root Cause**: The TTSContent folder uses Xcode's "File System Synchronized Root Group" feature, which includes a `membershipExceptions` list that explicitly controls which files are bundled with the app. Only Signal_Decay files were in this list, so The_Eighteen_Paradox poems (and even stories) weren't being included in the app bundle at build time.
+
+**Solution**: Added all The_Eighteen_Paradox files to the `membershipExceptions` list in `project.pbxproj`:
+- Added 12 poems: `preset_poem1.txt` through `preset_poem12.txt`
+- Added 11 story chapters: `01_chapter_01_seventeen_days.txt` through `11_chapter_11_amalgamation.txt`
+
+**Location**: [project.pbxproj](zz-time.xcodeproj/project.pbxproj) lines 151-191 in the `PBXFileSystemSynchronizedBuildFileExceptionSet` section.
+
+Now The Eighteen Paradox correctly shows "11 chapters, 12 poems" in the story selector.
+
+---
+
+# 2026-01-17: Multi-Story Architecture Bug Fixes & UI Improvements ✅
 
 ### Summary of Changes
 - **Fixed story persistence** - Selected story now correctly persists when navigating between views

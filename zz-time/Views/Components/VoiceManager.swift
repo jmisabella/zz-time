@@ -32,21 +32,24 @@ class VoiceManager {
         }
     }
 
-    /// List of voice names to exclude from all voice offerings
-    /// These are novelty/robotic voices unsuitable for stories
-    private let excludedVoiceNames: [String] = [
-        "albert", "bad news", "bahh", "bells", "boing", "bubbles", "cellos",
-        "eddy", "flo", "fred", "good news", "grandma", "grandpa", "jester",
-        "junior", "kathy", "organ", "ralph", "reed", "rocko", "sandy",
-        "superstar", "trinoids", "whisper", "wobble", "zarvox"
+    /// Accept-list of voice names suitable for dark sci-fi story narration
+    /// Only these curated voices will be available to users
+    private let acceptedVoiceNames: [String] = [
+        "lee",      // Male - Australian (current default priority)
+        "daniel",   // Male - British (current default priority)
+        "jamie",    // Male - British
+        "oliver",   // Male - British
+        "karen",    // Female - Australian
+        "serena",   // Female - British
+        "ava"       // Female - American
     ]
 
-    /// Checks if a voice should be excluded based on the exclusion list
-    private func isVoiceExcluded(_ voice: AVSpeechSynthesisVoice) -> Bool {
+    /// Checks if a voice is on the accept-list
+    private func isVoiceAccepted(_ voice: AVSpeechSynthesisVoice) -> Bool {
         let nameLower = voice.name.lowercased()
 
-        for excludedName in excludedVoiceNames {
-            if nameLower.contains(excludedName) {
+        for acceptedName in acceptedVoiceNames {
+            if nameLower.contains(acceptedName) {
                 return true
             }
         }
@@ -55,15 +58,45 @@ class VoiceManager {
     }
 
     /// Returns the best available voice from the preferred hierarchy
-    /// Priority: Lee (AU) Premium/Enhanced/Default, then Daniel (GB) Premium/Enhanced/Default
+    /// Priority order: Premium > Enhanced > Compact for each voice
+    /// Voice order prioritizes Premium-capable voices first:
+    /// Male: Lee (AU), Jamie (GB), Oliver (GB), Daniel (GB - Enhanced only, demoted)
+    /// Female: Karen (AU), Serena (GB), Ava (US)
     private func getVoiceFromHierarchy() -> AVSpeechSynthesisVoice? {
         let preferredVoiceIdentifiers = [
+            // Lee (AU) - Male, Australian - HAS PREMIUM
             "com.apple.voice.premium.en-AU.Lee",
             "com.apple.voice.enhanced.en-AU.Lee",
-            "com.apple.voice.premium.en-GB.Daniel",
-            "com.apple.voice.enhanced.en-GB.Daniel",
             "com.apple.voice.compact.en-AU.Lee",
-            "com.apple.voice.compact.en-GB.Daniel"
+
+            // Jamie (GB) - Male, British - HAS PREMIUM
+            "com.apple.voice.premium.en-GB.Jamie",
+            "com.apple.voice.enhanced.en-GB.Jamie",
+            "com.apple.voice.compact.en-GB.Jamie",
+
+            // Oliver (GB) - Male, British - HAS PREMIUM
+            "com.apple.voice.premium.en-GB.Oliver",
+            "com.apple.voice.enhanced.en-GB.Oliver",
+            "com.apple.voice.compact.en-GB.Oliver",
+
+            // Daniel (GB) - Male, British - NO PREMIUM (demoted)
+            "com.apple.voice.enhanced.en-GB.Daniel",
+            "com.apple.voice.compact.en-GB.Daniel",
+
+            // Karen (AU) - Female, Australian - HAS PREMIUM
+            "com.apple.voice.premium.en-AU.Karen",
+            "com.apple.voice.enhanced.en-AU.Karen",
+            "com.apple.voice.compact.en-AU.Karen",
+
+            // Serena (GB) - Female, British - HAS PREMIUM
+            "com.apple.voice.premium.en-GB.Serena",
+            "com.apple.voice.enhanced.en-GB.Serena",
+            "com.apple.voice.compact.en-GB.Serena",
+
+            // Ava (US) - Female, American - HAS PREMIUM
+            "com.apple.voice.premium.en-US.Ava",
+            "com.apple.voice.enhanced.en-US.Ava",
+            "com.apple.voice.compact.en-US.Ava"
         ]
 
         for identifier in preferredVoiceIdentifiers {
@@ -76,15 +109,15 @@ class VoiceManager {
     }
 
     /// Returns story-appropriate voices (all quality levels)
-    /// Filters out novelty/robotic voices to ensure a calming experience
+    /// Uses accept-list to only include curated voices suitable for dark sci-fi narration
     /// For first-time users, a random voice from this list will be selected
     func getStoryAppropriateVoices() -> [AVSpeechSynthesisVoice] {
         // Get ALL English voices (includes compact/default, enhanced, and premium)
         let allEnglishVoices = AVSpeechSynthesisVoice.speechVoices()
             .filter { $0.language.hasPrefix("en") }
 
-        // Filter out excluded novelty voices
-        let storyVoices = allEnglishVoices.filter { !isVoiceExcluded($0) }
+        // Filter using accept-list - only curated voices
+        let storyVoices = allEnglishVoices.filter { isVoiceAccepted($0) }
 
         return storyVoices
     }
@@ -134,10 +167,10 @@ class VoiceManager {
         return AVSpeechSynthesisVoice(language: "en-US")
     }
 
-    /// Returns all available English voices on the device (excluding novelty voices)
+    /// Returns all available English voices on the device (only accept-listed voices)
     func getAvailableEnglishVoices() -> [AVSpeechSynthesisVoice] {
         return AVSpeechSynthesisVoice.speechVoices()
-            .filter { $0.language.hasPrefix("en") && !isVoiceExcluded($0) }
+            .filter { $0.language.hasPrefix("en") && isVoiceAccepted($0) }
             .sorted { voice1, voice2 in
                 // Sort by quality (premium > enhanced > default), then by name
                 if voice1.quality.rawValue != voice2.quality.rawValue {
@@ -147,12 +180,12 @@ class VoiceManager {
             }
     }
 
-    /// Returns enhanced/premium English voices only (excluding novelty voices)
+    /// Returns enhanced/premium English voices only (only accept-listed voices)
     func getEnhancedEnglishVoices() -> [AVSpeechSynthesisVoice] {
         return AVSpeechSynthesisVoice.speechVoices()
             .filter { $0.language.hasPrefix("en") &&
                       ($0.quality == .enhanced || $0.quality == .premium) &&
-                      !isVoiceExcluded($0) }
+                      isVoiceAccepted($0) }
             .sorted { $0.name < $1.name }
     }
 
@@ -195,6 +228,67 @@ class VoiceManager {
         @unknown default:
             return "Unknown"
         }
+    }
+
+    /// Represents a curated voice option with metadata
+    struct VoiceOption {
+        let name: String                          // e.g., "Lee", "Daniel"
+        let displayName: String                   // e.g., "Lee (AU)", "Daniel (UK)"
+        let locale: String                        // e.g., "en-AU", "en-GB"
+        let gender: String                        // "Male" or "Female"
+        let downloadedVoices: [AVSpeechSynthesisVoice]  // Voices that are currently downloaded
+        let bestQuality: AVSpeechSynthesisVoiceQuality?  // Best quality available (nil if none downloaded)
+
+        var isFullyDownloaded: Bool {
+            // Check if at least Enhanced or Premium is downloaded
+            return downloadedVoices.contains(where: { $0.quality == .enhanced || $0.quality == .premium })
+        }
+
+        var hasAnyDownloaded: Bool {
+            return !downloadedVoices.isEmpty
+        }
+    }
+
+    /// Returns all curated voice options (both downloaded and not downloaded)
+    func getAllCuratedVoiceOptions() -> [VoiceOption] {
+        let curatedVoiceDefinitions: [(name: String, locale: String, displayName: String, gender: String)] = [
+            ("Lee", "en-AU", "Lee (AU)", "Male"),
+            ("Daniel", "en-GB", "Daniel (UK)", "Male"),
+            ("Jamie", "en-GB", "Jamie (UK)", "Male"),
+            ("Oliver", "en-GB", "Oliver (UK)", "Male"),
+            ("Karen", "en-AU", "Karen (AU)", "Female"),
+            ("Serena", "en-GB", "Serena (UK)", "Female"),
+            ("Ava", "en-US", "Ava (US)", "Female")
+        ]
+
+        // Get all currently downloaded voices
+        let downloadedVoices = AVSpeechSynthesisVoice.speechVoices()
+
+        var voiceOptions: [VoiceOption] = []
+
+        for definition in curatedVoiceDefinitions {
+            // Find all downloaded variations of this voice (premium, enhanced, compact)
+            let matchingVoices = downloadedVoices.filter { voice in
+                voice.name.lowercased().contains(definition.name.lowercased()) &&
+                voice.language.hasPrefix(definition.locale)
+            }
+
+            // Determine best quality available
+            let bestQuality = matchingVoices.max(by: { $0.quality.rawValue < $1.quality.rawValue })?.quality
+
+            let option = VoiceOption(
+                name: definition.name,
+                displayName: definition.displayName,
+                locale: definition.locale,
+                gender: definition.gender,
+                downloadedVoices: matchingVoices,
+                bestQuality: bestQuality
+            )
+
+            voiceOptions.append(option)
+        }
+
+        return voiceOptions
     }
 
     /// Checks if a voice appears to be downloaded and ready to use
