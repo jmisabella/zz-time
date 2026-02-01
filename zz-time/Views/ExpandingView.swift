@@ -247,17 +247,6 @@ struct ExpandingView: View {
                     .contentShape(Circle())
 
                     Button {
-                        showContentBrowser = true
-                    } label: {
-                        Image(systemName: "text.quote")
-                            .font(.title)
-                            .foregroundColor(Color(white: 0.7))
-                            .padding(10)
-                            .background(Circle().fill(Color.black.opacity(0.5)))
-                    }
-                    .contentShape(Circle())
-
-                    Button {
                         let now = Date()
                         let calendar = Calendar.current
                         if let hour = UserDefaults.standard.object(
