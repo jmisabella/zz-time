@@ -1,4 +1,31 @@
-# 2026-01-29 (Latest): TTS Voice Accept-List Implementation & Hierarchy Optimization ✅
+# 2026-01-31 (Latest): Removed Customs Button from ExpandingView
+
+### Summary of Changes
+- **Removed customs/content browser button** - Removed the second button (text.quote icon) from the bottom button row in ExpandingView
+- **Button count reduced** - ExpandingView now displays 3 buttons instead of 4: voice settings (gear), alarm time (clock), and mode toggle (leaf/theater masks)
+- **Feature under consideration** - Customs feature temporarily hidden while team evaluates whether to keep it in the app
+
+### Timestamp
+**2026-01-31 19:35:02 EST**
+
+### Implementation Details
+
+#### Removed Content Browser Button
+**Change**: Removed the content browser button that allowed access to custom stories and poems editor.
+
+**Rationale**: Team is actively contemplating whether the customs feature is necessary. Button removed to simplify UI while decision is pending.
+
+**Files modified**:
+- [ExpandingView.swift:249-258](zz-time/Views/ExpandingView.swift#L249-L258) - Removed button with "text.quote" icon and showContentBrowser action
+
+**Remaining buttons** (left to right):
+1. Voice settings (gearshape icon) - Opens voice selection and configuration
+2. Alarm time (clock icon) - Sets wake-up time for sleep timer
+3. Content mode toggle (leaf/theater masks) - Cycles between ambient, story, and poetry modes
+
+---
+
+# 2026-01-29: TTS Voice Accept-List Implementation & Hierarchy Optimization ✅
 
 ### Summary of Changes
 - **Implemented accept-list approach** - Created curated list of 7 story-appropriate voices for dark sci-fi narration
