@@ -1,4 +1,64 @@
-# 2026-02-09 (Latest): Configurable Volume Boost for Car Audio
+# 2026-02-09 (Latest): Volume Boost Adjustment to Prevent Clipping
+
+### Summary of Changes
+- **Reduced volume boost from 12 dB to 9 dB** - Prevents popping/distortion on white noise tracks at full iOS volume
+- **Maintains car audio performance** - 9 dB boost (2.82x multiplier) still provides substantial volume increase for car listening
+- **Based on user testing** - User found that reducing iOS volume by 4 clicks (to 75%) eliminated clipping, indicating boost was too aggressive
+- **Single line change** - Only modified `volumeBoostDB` constant in AudioConstants.swift
+
+### Timestamp
+**2026-02-09 (afternoon)**
+
+### Implementation Details
+
+#### Volume Clipping Issue
+**Problem**: The initial 12 dB boost (3.98x multiplier) caused digital clipping on white noise tracks when played at maximum iOS volume (16/16). Users heard popping and crackling distortion.
+
+**User discovery**: Reducing iOS volume by 4 clicks down from max (to 12/16 = 75% volume) completely eliminated the popping, indicating the boost was exceeding headroom on high-peak content.
+
+**Technical cause**: Base ambient volume of 0.6 × 3.98 multiplier = 2.388, capped at iOS maximum 1.0. The hard ceiling acts as a brick-wall limiter causing distortion on tracks with high peak levels (white noise).
+
+#### Solution: 9 dB Boost
+**Calculation rationale**:
+- iOS volume: 16 steps (each click = 6.25%)
+- 4 clicks down = 75% volume (0.75)
+- 9 dB = 2.82x multiplier vs. 12 dB = 3.98x multiplier
+- Reduces gain by 3 dB (29% reduction) while maintaining strong boost for car audio
+
+**Impact on volume levels**:
+
+| Audio Source | 12 dB (Before) | 9 dB (After) | Change |
+|--------------|----------------|--------------|--------|
+| Ambient (max) | 1.0 (clipped) | 1.0 (headroom) | No clipping |
+| TTS Narration | 0.398 | 0.282 | Still 2.8x original |
+| Alarm | 1.0 | 1.0 | No change |
+
+#### File Modified
+
+**AudioConstants.swift**
+- Line 17: Changed `volumeBoostDB` from `12.0` to `9.0`
+- Lines 14-16: Updated comment to reflect 9 dB = ~2.82x multiplier
+- [AudioConstants.swift:17](zz-time/Models/AudioConstants.swift#L17)
+
+**No other files changed** - All audio volume calculations automatically update via AudioConstants computed properties
+
+#### Future Adjustments
+
+To further tune the boost, edit one line in AudioConstants.swift:
+
+```swift
+static let volumeBoostDB: Float = 9.0  // Adjust this value
+```
+
+**Reference values:**
+- 6 dB = 2.0x (very conservative)
+- 8 dB = 2.51x (safe)
+- 9 dB = 2.82x (current)
+- 10 dB = 3.16x (more aggressive)
+
+---
+
+# 2026-02-09: Configurable Volume Boost for Car Audio
 
 ### Summary of Changes
 - **Added 12 dB volume boost** - Implemented configurable volume boost to address low volume levels when listening from car audio systems

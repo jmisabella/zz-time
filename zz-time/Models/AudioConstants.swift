@@ -11,10 +11,10 @@ struct AudioConstants {
     // MARK: - Volume Boost Configuration
 
     /// Master volume boost in decibels (dB)
-    /// 12 dB boost = ~4x volume multiplier (10^(12/20) = 3.98)
+    /// 9 dB boost = ~2.82x volume multiplier (10^(9/20) = 2.82)
     /// Adjust this value to change the global volume boost for all audio
-    /// Common values: 0 (no boost), 6 (2x), 12 (4x), 18 (8x)
-    static let volumeBoostDB: Float = 12.0
+    /// Common values: 0 (no boost), 6 (2x), 9 (2.82x), 12 (4x)
+    static let volumeBoostDB: Float = 9.0
 
     /// Computed volume multiplier from dB boost
     /// Formula: multiplier = 10^(dB/20)
