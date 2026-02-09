@@ -1,4 +1,81 @@
-# 2026-01-31 (Latest): Removed Customs Button from ExpandingView
+# 2026-02-09 (Latest): Configurable Volume Boost for Car Audio
+
+### Summary of Changes
+- **Added 12 dB volume boost** - Implemented configurable volume boost to address low volume levels when listening from car audio systems
+- **Centralized audio configuration** - Created new AudioConstants.swift file for easy adjustment of volume settings
+- **All audio sources boosted** - Applied boost to ambient audio, TTS narration, alarms, and alarm previews
+- **Easy adjustment** - Single constant (`volumeBoostDB`) can be modified to change boost level (0 dB = no boost, 6 dB = 2x, 12 dB = 4x, 18 dB = 8x)
+
+### Timestamp
+**2026-02-09**
+
+### Implementation Details
+
+#### New AudioConstants Configuration File
+**Purpose**: Centralized location for all audio-related constants and volume boost settings.
+
+**Features**:
+- Stores boost as decibels (dB) value following audio engineering standards
+- Automatically converts dB to multiplier using formula: 10^(dB/20)
+- Defines base volumes for all audio types (ambient, TTS, alarm, preview)
+- Provides computed properties for boosted volumes (automatically capped at iOS maximum 1.0)
+
+**File created**:
+- [AudioConstants.swift](zz-time/AudioConstants.swift) - New configuration file with `volumeBoostDB = 12.0` constant
+
+#### Volume Changes with 12 dB Boost
+
+| Audio Source | Original Volume | Boosted Volume | Final (Capped) |
+|--------------|-----------------|----------------|----------------|
+| Ambient (max balance) | 0.6 | 2.39 | 1.0 |
+| TTS Narration | 0.1 | 0.398 | 0.398 |
+| Alarm Preview | 0.5 | 1.99 | 1.0 |
+| Alarm | 1.0 | 3.98 | 1.0 |
+
+#### Files Modified
+
+**1. TextToSpeechManager.swift**
+- Changed `voiceVolume` from hardcoded constant (0.1) to computed property using `AudioConstants.ttsVolume`
+- Updated `ambientVolume` calculation to use `AudioConstants.ambientMaxVolume` instead of hardcoded 0.6
+- [TextToSpeechManager.swift:105-113](zz-time/Views/Components/TextToSpeechManager.swift#L105-L113)
+
+**2. ContentView.swift**
+- Updated `targetAmbientVolume` default to use `AudioConstants.ambientMaxVolume`
+- Changed ambient volume initialization on app launch
+- Modified alarm fade-in to use `AudioConstants.alarmVolume`
+- [ContentView.swift:12](zz-time/Views/ContentView.swift#L12)
+- [ContentView.swift:268](zz-time/Views/ContentView.swift#L268)
+- [ContentView.swift:513-517](zz-time/Views/ContentView.swift#L513-L517)
+
+**3. AlarmSelectionView.swift**
+- Updated alarm preview fade-in to use `AudioConstants.previewVolume`
+- [AlarmSelectionView.swift:199-203](zz-time/Views/AlarmSelectionView.swift#L199-L203)
+
+#### Adjustment Instructions
+
+To modify the volume boost, edit one line in AudioConstants.swift:
+
+```swift
+static let volumeBoostDB: Float = 12.0  // Change this value
+```
+
+**Common boost values:**
+- `0.0` = No boost (original volumes)
+- `6.0` = 6 dB boost (~2x volume)
+- `12.0` = 12 dB boost (~4x volume) ← Current setting
+- `18.0` = 18 dB boost (~8x volume)
+
+#### Technical Details
+
+**Rationale**: User reported that volume was adequate on Bluetooth speakers and earbuds but too low when listening from car audio. The 12 dB boost increases all audio sources proportionally while maintaining the existing balance relationships between ambient audio and TTS narration.
+
+**Implementation approach**: Created centralized configuration rather than scattered magic numbers throughout codebase. This makes future adjustments trivial (single line change) and ensures consistency across all audio sources.
+
+**Safety**: All boosted volumes are automatically capped at 1.0 (iOS maximum) to prevent audio clipping or distortion.
+
+---
+
+# 2026-01-31: Removed Customs Button from ExpandingView
 
 ### Summary of Changes
 - **Removed customs/content browser button** - Removed the second button (text.quote icon) from the bottom button row in ExpandingView

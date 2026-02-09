@@ -68,6 +68,7 @@
 		00D909F72F1BFE6B0080C609 /* StoryCollectionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00D909F62F1BFE6B0080C609 /* StoryCollectionManager.swift */; };
 		00D909F92F1BFE770080C609 /* StorySelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00D909F82F1BFE770080C609 /* StorySelectionView.swift */; };
 		00D90B6B2F1C32530080C609 /* ambient_20.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 00D90B6A2F1C32530080C609 /* ambient_20.m4a */; };
+		00D90CE82F3A9AAC0080C609 /* AudioConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00D90CE72F3A9AAC0080C609 /* AudioConstants.swift */; };
 		00F91E912EE3C357002FD154 /* CustomStory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00F91E902EE3C357002FD154 /* CustomStory.swift */; };
 		00F91E932EE3C3FC002FD154 /* CustomStoryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00F91E922EE3C3FC002FD154 /* CustomStoryManager.swift */; };
 		00F91E952EE3C536002FD154 /* CustomStoryListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00F91E942EE3C536002FD154 /* CustomStoryListView.swift */; };
@@ -137,6 +138,7 @@
 		00D909F62F1BFE6B0080C609 /* StoryCollectionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryCollectionManager.swift; sourceTree = "<group>"; };
 		00D909F82F1BFE770080C609 /* StorySelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorySelectionView.swift; sourceTree = "<group>"; };
 		00D90B6A2F1C32530080C609 /* ambient_20.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_20.m4a; sourceTree = "<group>"; };
+		00D90CE72F3A9AAC0080C609 /* AudioConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioConstants.swift; sourceTree = "<group>"; };
 		00EF8E543D50C3461BA2D7C4 /* StoryTextDisplay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryTextDisplay.swift; sourceTree = "<group>"; };
 		00EF8E553D50C3461BA2D8D5 /* ScrollableStoryTextDisplay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollableStoryTextDisplay.swift; sourceTree = "<group>"; };
 		00F91E902EE3C357002FD154 /* CustomStory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomStory.swift; sourceTree = "<group>"; };
@@ -311,6 +313,7 @@
 				00F91E902EE3C357002FD154 /* CustomStory.swift */,
 				0033F8C32EE297CF006D3319 /* DimMode.swift */,
 				0033F8C42EE297CF006D3319 /* SelectedItem.swift */,
+				00D90CE72F3A9AAC0080C609 /* AudioConstants.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -525,6 +528,7 @@
 				0033F8D42EE297CF006D3319 /* ColorExtensions.swift in Sources */,
 				0033F8D52EE297CF006D3319 /* DimMode.swift in Sources */,
 				0033F8D62EE297CF006D3319 /* SelectedItem.swift in Sources */,
+				00D90CE82F3A9AAC0080C609 /* AudioConstants.swift in Sources */,
 				0033F8D72EE297CF006D3319 /* CustomSlider.swift in Sources */,
 				0033F8D82EE297CF006D3319 /* AlarmSelectionView.swift in Sources */,
 				0033F8D92EE297CF006D3319 /* BlobView.swift in Sources */,

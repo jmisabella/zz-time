@@ -9,7 +9,7 @@ struct ContentView: View {
     @State private var currentPlayer: AVAudioPlayer? = nil
     @State private var currentTimer: Timer? = nil
     @State private var currentAudioFile: String? = nil
-    @State private var targetAmbientVolume: Float = 0.6  // Default to 100% balance (1.0 * 0.6 = 0.6)
+    @State private var targetAmbientVolume: Float = AudioConstants.ambientMaxVolume  // Default to 100% balance
     
 //    @State private var durationMinutes: Double = UserDefaults.standard.double(forKey: "durationMinutes")
     
@@ -265,7 +265,7 @@ struct ContentView: View {
             configureAudioSession()
             // Always reset audio balance and ambient volume to new defaults for all users
             UserDefaults.standard.set(1.0, forKey: "audioBalance")
-            targetAmbientVolume = 0.6
+            targetAmbientVolume = AudioConstants.ambientMaxVolume
             ttsManager.audioBalance = 1.0
             ttsManager.updateVolumesFromBalance()
             withAnimation(.easeInOut(duration: 2.0)) {
@@ -510,11 +510,11 @@ struct ContentView: View {
             let fadeDuration: Double = 0.5
             let fadeSteps: Int = 10
             let stepDuration = fadeDuration / Double(fadeSteps)
-            let stepIncrement = 1.0 / Float(fadeSteps)
+            let stepIncrement = AudioConstants.alarmVolume / Float(fadeSteps)
             let fadeTimer = Timer.scheduledTimer(withTimeInterval: stepDuration, repeats: true) { timer in
                 let currentVolume = newPlayer.volume
-                if currentVolume < 1.0 {
-                    newPlayer.volume = min(1.0, currentVolume + stepIncrement)
+                if currentVolume < AudioConstants.alarmVolume {
+                    newPlayer.volume = min(AudioConstants.alarmVolume, currentVolume + stepIncrement)
                 } else {
                     timer.invalidate()
                 }
