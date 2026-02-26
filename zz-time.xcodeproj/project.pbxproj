@@ -60,7 +60,6 @@
 		006D44772EDE89EB00264CFE /* ambient_35.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 006D44762EDE89EB00264CFE /* ambient_35.m4a */; };
 		006D44792EDE9F6100264CFE /* ambient_04.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 006D44782EDE9F6100264CFE /* ambient_04.m4a */; };
 		0079DC1B2EF7611F006820B9 /* ambient_06.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0079DC1A2EF7611F006820B9 /* ambient_06.m4a */; };
-		0079DC752EF8B2CE006820B9 /* ambient_07.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0079DC742EF8B2CE006820B9 /* ambient_07.m4a */; };
 		0094618B2EDFF40000DC9E82 /* ambient_03.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0094618A2EDFF40000DC9E82 /* ambient_03.m4a */; };
 		00C3BE3B5FABFD46F4B777F4 /* StoryTextDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EF8E543D50C3461BA2D7C4 /* StoryTextDisplay.swift */; };
 		00C3BE3C5FABFD46F4B888G5 /* ScrollableStoryTextDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EF8E553D50C3461BA2D8D5 /* ScrollableStoryTextDisplay.swift */; };
@@ -69,6 +68,7 @@
 		00D909F92F1BFE770080C609 /* StorySelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00D909F82F1BFE770080C609 /* StorySelectionView.swift */; };
 		00D90B6B2F1C32530080C609 /* ambient_20.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 00D90B6A2F1C32530080C609 /* ambient_20.m4a */; };
 		00D90CE82F3A9AAC0080C609 /* AudioConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00D90CE72F3A9AAC0080C609 /* AudioConstants.swift */; };
+		00D90CF02F40364D0080C609 /* ambient_07.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 00D90CEF2F40364D0080C609 /* ambient_07.m4a */; };
 		00F91E912EE3C357002FD154 /* CustomStory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00F91E902EE3C357002FD154 /* CustomStory.swift */; };
 		00F91E932EE3C3FC002FD154 /* CustomStoryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00F91E922EE3C3FC002FD154 /* CustomStoryManager.swift */; };
 		00F91E952EE3C536002FD154 /* CustomStoryListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00F91E942EE3C536002FD154 /* CustomStoryListView.swift */; };
@@ -132,13 +132,13 @@
 		006D44762EDE89EB00264CFE /* ambient_35.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_35.m4a; sourceTree = "<group>"; };
 		006D44782EDE9F6100264CFE /* ambient_04.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_04.m4a; sourceTree = "<group>"; };
 		0079DC1A2EF7611F006820B9 /* ambient_06.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_06.m4a; sourceTree = "<group>"; };
-		0079DC742EF8B2CE006820B9 /* ambient_07.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_07.m4a; sourceTree = "<group>"; };
 		0094618A2EDFF40000DC9E82 /* ambient_03.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_03.m4a; sourceTree = "<group>"; };
 		00D909F42F1BFE5E0080C609 /* StoryCollection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryCollection.swift; sourceTree = "<group>"; };
 		00D909F62F1BFE6B0080C609 /* StoryCollectionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryCollectionManager.swift; sourceTree = "<group>"; };
 		00D909F82F1BFE770080C609 /* StorySelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorySelectionView.swift; sourceTree = "<group>"; };
 		00D90B6A2F1C32530080C609 /* ambient_20.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_20.m4a; sourceTree = "<group>"; };
 		00D90CE72F3A9AAC0080C609 /* AudioConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioConstants.swift; sourceTree = "<group>"; };
+		00D90CEF2F40364D0080C609 /* ambient_07.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_07.m4a; sourceTree = "<group>"; };
 		00EF8E543D50C3461BA2D7C4 /* StoryTextDisplay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryTextDisplay.swift; sourceTree = "<group>"; };
 		00EF8E553D50C3461BA2D8D5 /* ScrollableStoryTextDisplay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollableStoryTextDisplay.swift; sourceTree = "<group>"; };
 		00F91E902EE3C357002FD154 /* CustomStory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomStory.swift; sourceTree = "<group>"; };
@@ -256,7 +256,7 @@
 				006D44782EDE9F6100264CFE /* ambient_04.m4a */,
 				0033F88D2EDFFD5B006D3319 /* ambient_05.m4a */,
 				0079DC1A2EF7611F006820B9 /* ambient_06.m4a */,
-				0079DC742EF8B2CE006820B9 /* ambient_07.m4a */,
+				00D90CEF2F40364D0080C609 /* ambient_07.m4a */,
 				0032BAC82EDAA4AB00837776 /* ambient_08.m4a */,
 				0069A9812EDFFB3300FFA508 /* ambient_09.m4a */,
 				0069A9822EDFFB3300FFA508 /* ambient_10.m4a */,
@@ -452,6 +452,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				00D90CF02F40364D0080C609 /* ambient_07.m4a in Resources */,
 				0032BABB2ED7F9C700837776 /* ambient_31.m4a in Resources */,
 				006D44692EDD4BD300264CFE /* ambient_01.m4a in Resources */,
 				00371B012EAD71200037EDCF /* ambient_13.m4a in Resources */,
@@ -475,7 +476,6 @@
 				00371B0B2EAD71200037EDCF /* ambient_18.m4a in Resources */,
 				00371B0D2EAD71200037EDCF /* ambient_25.m4a in Resources */,
 				0069A9832EDFFB3300FFA508 /* ambient_10.m4a in Resources */,
-				0079DC752EF8B2CE006820B9 /* ambient_07.m4a in Resources */,
 				0069A9842EDFFB3300FFA508 /* ambient_09.m4a in Resources */,
 				00371B112EAD71200037EDCF /* ambient_12.m4a in Resources */,
 				00371B132EAD71200037EDCF /* ambient_22.m4a in Resources */,
@@ -699,7 +699,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 3.2;
+				MARKETING_VERSION = 3.4;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.jmisabella.z-rooms";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -730,7 +730,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 3.2;
+				MARKETING_VERSION = 3.4;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.jmisabella.z-rooms";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
