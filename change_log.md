@@ -1,4 +1,20 @@
-# 2026-02-09 (Latest): Volume Boost Adjustment to Prevent Clipping
+# 2026-02-26 (Latest): Aphelion Story Addition
+
+### Summary of Changes
+- Added new story collection **Aphelion** with 8 chapters and 12 poems
+- Renamed story files from `chapter_0N.txt` to `0N_chapter.txt` to comply with `StoryCollectionManager`'s required `^(\d+)_` filename pattern
+- Added all 20 files (12 poems + 8 stories) to `membershipExceptions` in `project.pbxproj`
+
+### Files Added
+- `TTSContent/Aphelion/Stories/01_chapter.txt` through `08_chapter.txt`
+- `TTSContent/Aphelion/Poems/aphelion_poem_01.txt` through `aphelion_poem_12.txt`
+
+### project.pbxproj Changes
+Added 20 entries to `membershipExceptions` (alphabetically before Signal_Decay).
+
+---
+
+# 2026-02-09: Volume Boost Adjustment to Prevent Clipping
 
 ### Summary of Changes
 - **Reduced volume boost from 12 dB to 9 dB** - Prevents popping/distortion on white noise tracks at full iOS volume
