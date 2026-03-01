@@ -110,8 +110,7 @@ class StoryCollectionManager: ObservableObject {
 
         // Auto-select collection if none selected
         if selectedCollectionID == nil {
-            // Prefer Signal Decay for new users, otherwise use first available
-            let defaultCollection = collections.first(where: { $0.directoryName == "Signal_Decay" }) ?? collections.first
+            let defaultCollection = collections.first
             if let collection = defaultCollection {
                 selectedCollectionID = collection.id
                 print("✨ StoryCollectionManager: Auto-selected '\(collection.displayName)'")

@@ -20,7 +20,6 @@
 		0032BABD2ED7F9D000837776 /* ambient_32.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0032BABC2ED7F9D000837776 /* ambient_32.m4a */; };
 		0032BABF2ED7F9D900837776 /* ambient_33.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0032BABE2ED7F9D900837776 /* ambient_33.m4a */; };
 		0032BAC12ED7F9E000837776 /* ambient_34.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0032BAC02ED7F9E000837776 /* ambient_34.m4a */; };
-		0032BAC52ED801D200837776 /* ambient_14.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0032BAC42ED801D200837776 /* ambient_14.m4a */; };
 		0032BAC72ED801DC00837776 /* ambient_19.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0032BAC62ED801DC00837776 /* ambient_19.m4a */; };
 		0032BACB2EDAA4AB00837776 /* ambient_08.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0032BAC82EDAA4AB00837776 /* ambient_08.m4a */; };
 		0033F88E2EDFFD5B006D3319 /* ambient_05.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0033F88D2EDFFD5B006D3319 /* ambient_05.m4a */; };
@@ -61,6 +60,7 @@
 		006D44792EDE9F6100264CFE /* ambient_04.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 006D44782EDE9F6100264CFE /* ambient_04.m4a */; };
 		0079DC1B2EF7611F006820B9 /* ambient_06.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0079DC1A2EF7611F006820B9 /* ambient_06.m4a */; };
 		0094618B2EDFF40000DC9E82 /* ambient_03.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0094618A2EDFF40000DC9E82 /* ambient_03.m4a */; };
+		00B65C822F5109E400720B80 /* ambient_14.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 00B65C812F5109E400720B80 /* ambient_14.m4a */; };
 		00C3BE3B5FABFD46F4B777F4 /* StoryTextDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EF8E543D50C3461BA2D7C4 /* StoryTextDisplay.swift */; };
 		00C3BE3C5FABFD46F4B888G5 /* ScrollableStoryTextDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EF8E553D50C3461BA2D8D5 /* ScrollableStoryTextDisplay.swift */; };
 		00D909F52F1BFE5E0080C609 /* StoryCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00D909F42F1BFE5E0080C609 /* StoryCollection.swift */; };
@@ -90,7 +90,6 @@
 		0032BABC2ED7F9D000837776 /* ambient_32.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_32.m4a; sourceTree = "<group>"; };
 		0032BABE2ED7F9D900837776 /* ambient_33.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_33.m4a; sourceTree = "<group>"; };
 		0032BAC02ED7F9E000837776 /* ambient_34.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_34.m4a; sourceTree = "<group>"; };
-		0032BAC42ED801D200837776 /* ambient_14.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_14.m4a; sourceTree = "<group>"; };
 		0032BAC62ED801DC00837776 /* ambient_19.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_19.m4a; sourceTree = "<group>"; };
 		0032BAC82EDAA4AB00837776 /* ambient_08.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_08.m4a; sourceTree = "<group>"; };
 		0033F88D2EDFFD5B006D3319 /* ambient_05.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_05.m4a; sourceTree = "<group>"; };
@@ -133,6 +132,7 @@
 		006D44782EDE9F6100264CFE /* ambient_04.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_04.m4a; sourceTree = "<group>"; };
 		0079DC1A2EF7611F006820B9 /* ambient_06.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_06.m4a; sourceTree = "<group>"; };
 		0094618A2EDFF40000DC9E82 /* ambient_03.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_03.m4a; sourceTree = "<group>"; };
+		00B65C812F5109E400720B80 /* ambient_14.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_14.m4a; sourceTree = "<group>"; };
 		00D909F42F1BFE5E0080C609 /* StoryCollection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryCollection.swift; sourceTree = "<group>"; };
 		00D909F62F1BFE6B0080C609 /* StoryCollectionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryCollectionManager.swift; sourceTree = "<group>"; };
 		00D909F82F1BFE770080C609 /* StorySelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorySelectionView.swift; sourceTree = "<group>"; };
@@ -171,22 +171,6 @@
 				Aphelion/Stories/06_chapter.txt,
 				Aphelion/Stories/07_chapter.txt,
 				Aphelion/Stories/08_chapter.txt,
-				Signal_Decay/Poems/preset_poem1.txt,
-				Signal_Decay/Poems/preset_poem2.txt,
-				Signal_Decay/Poems/preset_poem3.txt,
-				Signal_Decay/Poems/preset_poem4.txt,
-				Signal_Decay/Poems/preset_poem5.txt,
-				Signal_Decay/Poems/preset_poem6.txt,
-				Signal_Decay/Poems/preset_poem7.txt,
-				Signal_Decay/Poems/preset_poem8.txt,
-				Signal_Decay/Stories/01_prelude.txt,
-				Signal_Decay/Stories/02_chapter1.txt,
-				Signal_Decay/Stories/03_chapter2.txt,
-				Signal_Decay/Stories/04_chapter3.txt,
-				Signal_Decay/Stories/05_chapter4.txt,
-				Signal_Decay/Stories/06_chapter5.txt,
-				Signal_Decay/Stories/07_chapter6.txt,
-				Signal_Decay/Stories/08_chapter7.txt,
 				Soil/Poems/01_seventeen_thousand_years.txt,
 				Soil/Poems/02_the_touching.txt,
 				Soil/Poems/03_sweet_rotten.txt,
@@ -283,8 +267,8 @@
 				00371AE62EAD71200037EDCF /* ambient_11.m4a */,
 				00371AE72EAD71200037EDCF /* ambient_12.m4a */,
 				00371AE82EAD71200037EDCF /* ambient_13.m4a */,
-				0032BAC42ED801D200837776 /* ambient_14.m4a */,
 				00371AEA2EAD71200037EDCF /* ambient_15.m4a */,
+				00B65C812F5109E400720B80 /* ambient_14.m4a */,
 				00371AEB2EAD71200037EDCF /* ambient_16.m4a */,
 				00371AEC2EAD71200037EDCF /* ambient_17.m4a */,
 				00371AED2EAD71200037EDCF /* ambient_18.m4a */,
@@ -492,13 +476,13 @@
 				006D44772EDE89EB00264CFE /* ambient_35.m4a in Resources */,
 				0079DC1B2EF7611F006820B9 /* ambient_06.m4a in Resources */,
 				00371B0A2EAD71200037EDCF /* ambient_27.m4a in Resources */,
-				0032BAC52ED801D200837776 /* ambient_14.m4a in Resources */,
 				00371B0B2EAD71200037EDCF /* ambient_18.m4a in Resources */,
 				00371B0D2EAD71200037EDCF /* ambient_25.m4a in Resources */,
 				0069A9832EDFFB3300FFA508 /* ambient_10.m4a in Resources */,
 				0069A9842EDFFB3300FFA508 /* ambient_09.m4a in Resources */,
 				00371B112EAD71200037EDCF /* ambient_12.m4a in Resources */,
 				00371B132EAD71200037EDCF /* ambient_22.m4a in Resources */,
+				00B65C822F5109E400720B80 /* ambient_14.m4a in Resources */,
 				0032BAC72ED801DC00837776 /* ambient_19.m4a in Resources */,
 				00371B182EAD71200037EDCF /* ambient_17.m4a in Resources */,
 				00371B1A2EAD71200037EDCF /* ambient_23.m4a in Resources */,
