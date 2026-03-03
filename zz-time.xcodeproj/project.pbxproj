@@ -20,8 +20,6 @@
 		0032BABD2ED7F9D000837776 /* ambient_32.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0032BABC2ED7F9D000837776 /* ambient_32.m4a */; };
 		0032BABF2ED7F9D900837776 /* ambient_33.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0032BABE2ED7F9D900837776 /* ambient_33.m4a */; };
 		0032BAC12ED7F9E000837776 /* ambient_34.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0032BAC02ED7F9E000837776 /* ambient_34.m4a */; };
-		0032BAC52ED801D200837776 /* ambient_14.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0032BAC42ED801D200837776 /* ambient_14.m4a */; };
-		0032BAC72ED801DC00837776 /* ambient_19.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0032BAC62ED801DC00837776 /* ambient_19.m4a */; };
 		0032BACB2EDAA4AB00837776 /* ambient_08.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0032BAC82EDAA4AB00837776 /* ambient_08.m4a */; };
 		0033F88E2EDFFD5B006D3319 /* ambient_05.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0033F88D2EDFFD5B006D3319 /* ambient_05.m4a */; };
 		0033F8D42EE297CF006D3319 /* ColorExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0033F8C12EE297CF006D3319 /* ColorExtensions.swift */; };
@@ -37,21 +35,14 @@
 		0033F8DE2EE297CF006D3319 /* TextToSpeechManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0033F8D12EE297CF006D3319 /* TextToSpeechManager.swift */; };
 		0033F8DF2EE297CF006D3319 /* zz_timeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0033F8D22EE297CF006D3319 /* zz_timeApp.swift */; };
 		0033F8E02EE297CF006D3319 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0033F8CF2EE297CF006D3319 /* Assets.xcassets */; };
-		00371B012EAD71200037EDCF /* ambient_13.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 00371AE82EAD71200037EDCF /* ambient_13.m4a */; };
 		00371B062EAD71200037EDCF /* ambient_24.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 00371AF32EAD71200037EDCF /* ambient_24.m4a */; };
 		00371B072EAD71200037EDCF /* ambient_29.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 00371AF82EAD71200037EDCF /* ambient_29.m4a */; };
-		00371B092EAD71200037EDCF /* ambient_16.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 00371AEB2EAD71200037EDCF /* ambient_16.m4a */; };
 		00371B0A2EAD71200037EDCF /* ambient_27.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 00371AF62EAD71200037EDCF /* ambient_27.m4a */; };
-		00371B0B2EAD71200037EDCF /* ambient_18.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 00371AED2EAD71200037EDCF /* ambient_18.m4a */; };
 		00371B0D2EAD71200037EDCF /* ambient_25.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 00371AF42EAD71200037EDCF /* ambient_25.m4a */; };
 		00371B112EAD71200037EDCF /* ambient_12.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 00371AE72EAD71200037EDCF /* ambient_12.m4a */; };
 		00371B132EAD71200037EDCF /* ambient_22.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 00371AF12EAD71200037EDCF /* ambient_22.m4a */; };
-		00371B182EAD71200037EDCF /* ambient_17.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 00371AEC2EAD71200037EDCF /* ambient_17.m4a */; };
 		00371B1A2EAD71200037EDCF /* ambient_23.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 00371AF22EAD71200037EDCF /* ambient_23.m4a */; };
 		00371B1B2EAD71200037EDCF /* ambient_28.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 00371AF72EAD71200037EDCF /* ambient_28.m4a */; };
-		00371B1C2EAD71200037EDCF /* ambient_15.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 00371AEA2EAD71200037EDCF /* ambient_15.m4a */; };
-		00371B1D2EAD71200037EDCF /* ambient_30.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 00371AF92EAD71200037EDCF /* ambient_30.m4a */; };
-		00371B1E2EAD71200037EDCF /* ambient_11.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 00371AE62EAD71200037EDCF /* ambient_11.m4a */; };
 		00371B1F2EAD71200037EDCF /* ambient_21.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 00371AF02EAD71200037EDCF /* ambient_21.m4a */; };
 		003AED5D2EF39DA600AF5243 /* ambient_02.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 003AED5C2EF39DA600AF5243 /* ambient_02.m4a */; };
 		0069A9832EDFFB3300FFA508 /* ambient_10.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0069A9822EDFFB3300FFA508 /* ambient_10.m4a */; };
@@ -60,14 +51,18 @@
 		006D44772EDE89EB00264CFE /* ambient_35.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 006D44762EDE89EB00264CFE /* ambient_35.m4a */; };
 		006D44792EDE9F6100264CFE /* ambient_04.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 006D44782EDE9F6100264CFE /* ambient_04.m4a */; };
 		0079DC1B2EF7611F006820B9 /* ambient_06.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0079DC1A2EF7611F006820B9 /* ambient_06.m4a */; };
-		0079DC752EF8B2CE006820B9 /* ambient_07.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0079DC742EF8B2CE006820B9 /* ambient_07.m4a */; };
 		0094618B2EDFF40000DC9E82 /* ambient_03.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0094618A2EDFF40000DC9E82 /* ambient_03.m4a */; };
+		009F8D882F54DF9300658F94 /* ambient_11.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 009F8D872F54DF9300658F94 /* ambient_11.m4a */; };
+		009F8D8A2F54DF9B00658F94 /* ambient_13.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 009F8D892F54DF9B00658F94 /* ambient_13.m4a */; };
+		009F8D8C2F54DFA200658F94 /* ambient_15.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 009F8D8B2F54DFA200658F94 /* ambient_15.m4a */; };
+		009F8D922F54DFBE00658F94 /* ambient_30.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 009F8D912F54DFBE00658F94 /* ambient_30.m4a */; };
 		00C3BE3B5FABFD46F4B777F4 /* StoryTextDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EF8E543D50C3461BA2D7C4 /* StoryTextDisplay.swift */; };
 		00C3BE3C5FABFD46F4B888G5 /* ScrollableStoryTextDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EF8E553D50C3461BA2D8D5 /* ScrollableStoryTextDisplay.swift */; };
 		00D909F52F1BFE5E0080C609 /* StoryCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00D909F42F1BFE5E0080C609 /* StoryCollection.swift */; };
 		00D909F72F1BFE6B0080C609 /* StoryCollectionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00D909F62F1BFE6B0080C609 /* StoryCollectionManager.swift */; };
 		00D909F92F1BFE770080C609 /* StorySelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00D909F82F1BFE770080C609 /* StorySelectionView.swift */; };
-		00D90B6B2F1C32530080C609 /* ambient_20.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 00D90B6A2F1C32530080C609 /* ambient_20.m4a */; };
+		00D90CE82F3A9AAC0080C609 /* AudioConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00D90CE72F3A9AAC0080C609 /* AudioConstants.swift */; };
+		00D90CF02F40364D0080C609 /* ambient_07.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 00D90CEF2F40364D0080C609 /* ambient_07.m4a */; };
 		00F91E912EE3C357002FD154 /* CustomStory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00F91E902EE3C357002FD154 /* CustomStory.swift */; };
 		00F91E932EE3C3FC002FD154 /* CustomStoryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00F91E922EE3C3FC002FD154 /* CustomStoryManager.swift */; };
 		00F91E952EE3C536002FD154 /* CustomStoryListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00F91E942EE3C536002FD154 /* CustomStoryListView.swift */; };
@@ -89,8 +84,6 @@
 		0032BABC2ED7F9D000837776 /* ambient_32.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_32.m4a; sourceTree = "<group>"; };
 		0032BABE2ED7F9D900837776 /* ambient_33.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_33.m4a; sourceTree = "<group>"; };
 		0032BAC02ED7F9E000837776 /* ambient_34.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_34.m4a; sourceTree = "<group>"; };
-		0032BAC42ED801D200837776 /* ambient_14.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_14.m4a; sourceTree = "<group>"; };
-		0032BAC62ED801DC00837776 /* ambient_19.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_19.m4a; sourceTree = "<group>"; };
 		0032BAC82EDAA4AB00837776 /* ambient_08.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_08.m4a; sourceTree = "<group>"; };
 		0033F88D2EDFFD5B006D3319 /* ambient_05.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_05.m4a; sourceTree = "<group>"; };
 		0033F8C12EE297CF006D3319 /* ColorExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorExtensions.swift; sourceTree = "<group>"; };
@@ -107,13 +100,7 @@
 		0033F8D02EE297CF006D3319 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		0033F8D12EE297CF006D3319 /* TextToSpeechManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextToSpeechManager.swift; sourceTree = "<group>"; };
 		0033F8D22EE297CF006D3319 /* zz_timeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = zz_timeApp.swift; sourceTree = "<group>"; };
-		00371AE62EAD71200037EDCF /* ambient_11.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_11.m4a; sourceTree = "<group>"; };
 		00371AE72EAD71200037EDCF /* ambient_12.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_12.m4a; sourceTree = "<group>"; };
-		00371AE82EAD71200037EDCF /* ambient_13.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_13.m4a; sourceTree = "<group>"; };
-		00371AEA2EAD71200037EDCF /* ambient_15.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_15.m4a; sourceTree = "<group>"; };
-		00371AEB2EAD71200037EDCF /* ambient_16.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_16.m4a; sourceTree = "<group>"; };
-		00371AEC2EAD71200037EDCF /* ambient_17.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_17.m4a; sourceTree = "<group>"; };
-		00371AED2EAD71200037EDCF /* ambient_18.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_18.m4a; sourceTree = "<group>"; };
 		00371AF02EAD71200037EDCF /* ambient_21.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_21.m4a; sourceTree = "<group>"; };
 		00371AF12EAD71200037EDCF /* ambient_22.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_22.m4a; sourceTree = "<group>"; };
 		00371AF22EAD71200037EDCF /* ambient_23.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_23.m4a; sourceTree = "<group>"; };
@@ -122,7 +109,6 @@
 		00371AF62EAD71200037EDCF /* ambient_27.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_27.m4a; sourceTree = "<group>"; };
 		00371AF72EAD71200037EDCF /* ambient_28.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_28.m4a; sourceTree = "<group>"; };
 		00371AF82EAD71200037EDCF /* ambient_29.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_29.m4a; sourceTree = "<group>"; };
-		00371AF92EAD71200037EDCF /* ambient_30.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_30.m4a; sourceTree = "<group>"; };
 		003AED5C2EF39DA600AF5243 /* ambient_02.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_02.m4a; sourceTree = "<group>"; };
 		004058112E5D245100E6C52E /* zz-time.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "zz-time.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0069A9812EDFFB3300FFA508 /* ambient_09.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_09.m4a; sourceTree = "<group>"; };
@@ -131,12 +117,16 @@
 		006D44762EDE89EB00264CFE /* ambient_35.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_35.m4a; sourceTree = "<group>"; };
 		006D44782EDE9F6100264CFE /* ambient_04.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_04.m4a; sourceTree = "<group>"; };
 		0079DC1A2EF7611F006820B9 /* ambient_06.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_06.m4a; sourceTree = "<group>"; };
-		0079DC742EF8B2CE006820B9 /* ambient_07.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_07.m4a; sourceTree = "<group>"; };
 		0094618A2EDFF40000DC9E82 /* ambient_03.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_03.m4a; sourceTree = "<group>"; };
+		009F8D872F54DF9300658F94 /* ambient_11.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_11.m4a; sourceTree = "<group>"; };
+		009F8D892F54DF9B00658F94 /* ambient_13.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_13.m4a; sourceTree = "<group>"; };
+		009F8D8B2F54DFA200658F94 /* ambient_15.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_15.m4a; sourceTree = "<group>"; };
+		009F8D912F54DFBE00658F94 /* ambient_30.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_30.m4a; sourceTree = "<group>"; };
 		00D909F42F1BFE5E0080C609 /* StoryCollection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryCollection.swift; sourceTree = "<group>"; };
 		00D909F62F1BFE6B0080C609 /* StoryCollectionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryCollectionManager.swift; sourceTree = "<group>"; };
 		00D909F82F1BFE770080C609 /* StorySelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorySelectionView.swift; sourceTree = "<group>"; };
-		00D90B6A2F1C32530080C609 /* ambient_20.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_20.m4a; sourceTree = "<group>"; };
+		00D90CE72F3A9AAC0080C609 /* AudioConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioConstants.swift; sourceTree = "<group>"; };
+		00D90CEF2F40364D0080C609 /* ambient_07.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_07.m4a; sourceTree = "<group>"; };
 		00EF8E543D50C3461BA2D7C4 /* StoryTextDisplay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryTextDisplay.swift; sourceTree = "<group>"; };
 		00EF8E553D50C3461BA2D8D5 /* ScrollableStoryTextDisplay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollableStoryTextDisplay.swift; sourceTree = "<group>"; };
 		00F91E902EE3C357002FD154 /* CustomStory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomStory.swift; sourceTree = "<group>"; };
@@ -149,22 +139,26 @@
 		00D90B132F1C04BE0080C609 /* Exceptions for "TTSContent" folder in "zz-time" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Signal_Decay/Poems/preset_poem1.txt,
-				Signal_Decay/Poems/preset_poem2.txt,
-				Signal_Decay/Poems/preset_poem3.txt,
-				Signal_Decay/Poems/preset_poem4.txt,
-				Signal_Decay/Poems/preset_poem5.txt,
-				Signal_Decay/Poems/preset_poem6.txt,
-				Signal_Decay/Poems/preset_poem7.txt,
-				Signal_Decay/Poems/preset_poem8.txt,
-				Signal_Decay/Stories/01_prelude.txt,
-				Signal_Decay/Stories/02_chapter1.txt,
-				Signal_Decay/Stories/03_chapter2.txt,
-				Signal_Decay/Stories/04_chapter3.txt,
-				Signal_Decay/Stories/05_chapter4.txt,
-				Signal_Decay/Stories/06_chapter5.txt,
-				Signal_Decay/Stories/07_chapter6.txt,
-				Signal_Decay/Stories/08_chapter7.txt,
+				Aphelion/Poems/aphelion_poem_01.txt,
+				Aphelion/Poems/aphelion_poem_02.txt,
+				Aphelion/Poems/aphelion_poem_03.txt,
+				Aphelion/Poems/aphelion_poem_04.txt,
+				Aphelion/Poems/aphelion_poem_05.txt,
+				Aphelion/Poems/aphelion_poem_06.txt,
+				Aphelion/Poems/aphelion_poem_07.txt,
+				Aphelion/Poems/aphelion_poem_08.txt,
+				Aphelion/Poems/aphelion_poem_09.txt,
+				Aphelion/Poems/aphelion_poem_10.txt,
+				Aphelion/Poems/aphelion_poem_11.txt,
+				Aphelion/Poems/aphelion_poem_12.txt,
+				Aphelion/Stories/01_chapter.txt,
+				Aphelion/Stories/02_chapter.txt,
+				Aphelion/Stories/03_chapter.txt,
+				Aphelion/Stories/04_chapter.txt,
+				Aphelion/Stories/05_chapter.txt,
+				Aphelion/Stories/06_chapter.txt,
+				Aphelion/Stories/07_chapter.txt,
+				Aphelion/Stories/08_chapter.txt,
 				Soil/Poems/01_seventeen_thousand_years.txt,
 				Soil/Poems/02_the_touching.txt,
 				Soil/Poems/03_sweet_rotten.txt,
@@ -254,20 +248,14 @@
 				006D44782EDE9F6100264CFE /* ambient_04.m4a */,
 				0033F88D2EDFFD5B006D3319 /* ambient_05.m4a */,
 				0079DC1A2EF7611F006820B9 /* ambient_06.m4a */,
-				0079DC742EF8B2CE006820B9 /* ambient_07.m4a */,
+				00D90CEF2F40364D0080C609 /* ambient_07.m4a */,
 				0032BAC82EDAA4AB00837776 /* ambient_08.m4a */,
 				0069A9812EDFFB3300FFA508 /* ambient_09.m4a */,
 				0069A9822EDFFB3300FFA508 /* ambient_10.m4a */,
-				00371AE62EAD71200037EDCF /* ambient_11.m4a */,
+				009F8D872F54DF9300658F94 /* ambient_11.m4a */,
 				00371AE72EAD71200037EDCF /* ambient_12.m4a */,
-				00371AE82EAD71200037EDCF /* ambient_13.m4a */,
-				0032BAC42ED801D200837776 /* ambient_14.m4a */,
-				00371AEA2EAD71200037EDCF /* ambient_15.m4a */,
-				00371AEB2EAD71200037EDCF /* ambient_16.m4a */,
-				00371AEC2EAD71200037EDCF /* ambient_17.m4a */,
-				00371AED2EAD71200037EDCF /* ambient_18.m4a */,
-				0032BAC62ED801DC00837776 /* ambient_19.m4a */,
-				00D90B6A2F1C32530080C609 /* ambient_20.m4a */,
+				009F8D892F54DF9B00658F94 /* ambient_13.m4a */,
+				009F8D8B2F54DFA200658F94 /* ambient_15.m4a */,
 				00371AF02EAD71200037EDCF /* ambient_21.m4a */,
 				00371AF12EAD71200037EDCF /* ambient_22.m4a */,
 				00371AF22EAD71200037EDCF /* ambient_23.m4a */,
@@ -277,7 +265,7 @@
 				00371AF62EAD71200037EDCF /* ambient_27.m4a */,
 				00371AF72EAD71200037EDCF /* ambient_28.m4a */,
 				00371AF82EAD71200037EDCF /* ambient_29.m4a */,
-				00371AF92EAD71200037EDCF /* ambient_30.m4a */,
+				009F8D912F54DFBE00658F94 /* ambient_30.m4a */,
 				0032BABA2ED7F9C700837776 /* ambient_31.m4a */,
 				0032BABC2ED7F9D000837776 /* ambient_32.m4a */,
 				0032BABE2ED7F9D900837776 /* ambient_33.m4a */,
@@ -311,6 +299,7 @@
 				00F91E902EE3C357002FD154 /* CustomStory.swift */,
 				0033F8C32EE297CF006D3319 /* DimMode.swift */,
 				0033F8C42EE297CF006D3319 /* SelectedItem.swift */,
+				00D90CE72F3A9AAC0080C609 /* AudioConstants.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -449,9 +438,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				00D90CF02F40364D0080C609 /* ambient_07.m4a in Resources */,
 				0032BABB2ED7F9C700837776 /* ambient_31.m4a in Resources */,
 				006D44692EDD4BD300264CFE /* ambient_01.m4a in Resources */,
-				00371B012EAD71200037EDCF /* ambient_13.m4a in Resources */,
 				003AED5D2EF39DA600AF5243 /* ambient_02.m4a in Resources */,
 				00371B062EAD71200037EDCF /* ambient_24.m4a in Resources */,
 				00371B072EAD71200037EDCF /* ambient_29.m4a in Resources */,
@@ -462,29 +451,23 @@
 				0032BABF2ED7F9D900837776 /* ambient_33.m4a in Resources */,
 				006D44792EDE9F6100264CFE /* ambient_04.m4a in Resources */,
 				0032BABD2ED7F9D000837776 /* ambient_32.m4a in Resources */,
-				00371B092EAD71200037EDCF /* ambient_16.m4a in Resources */,
+				009F8D922F54DFBE00658F94 /* ambient_30.m4a in Resources */,
 				0033F88E2EDFFD5B006D3319 /* ambient_05.m4a in Resources */,
-				00D90B6B2F1C32530080C609 /* ambient_20.m4a in Resources */,
 				006D44772EDE89EB00264CFE /* ambient_35.m4a in Resources */,
 				0079DC1B2EF7611F006820B9 /* ambient_06.m4a in Resources */,
 				00371B0A2EAD71200037EDCF /* ambient_27.m4a in Resources */,
-				0032BAC52ED801D200837776 /* ambient_14.m4a in Resources */,
-				00371B0B2EAD71200037EDCF /* ambient_18.m4a in Resources */,
 				00371B0D2EAD71200037EDCF /* ambient_25.m4a in Resources */,
 				0069A9832EDFFB3300FFA508 /* ambient_10.m4a in Resources */,
-				0079DC752EF8B2CE006820B9 /* ambient_07.m4a in Resources */,
 				0069A9842EDFFB3300FFA508 /* ambient_09.m4a in Resources */,
 				00371B112EAD71200037EDCF /* ambient_12.m4a in Resources */,
+				009F8D882F54DF9300658F94 /* ambient_11.m4a in Resources */,
+				009F8D8C2F54DFA200658F94 /* ambient_15.m4a in Resources */,
 				00371B132EAD71200037EDCF /* ambient_22.m4a in Resources */,
-				0032BAC72ED801DC00837776 /* ambient_19.m4a in Resources */,
-				00371B182EAD71200037EDCF /* ambient_17.m4a in Resources */,
 				00371B1A2EAD71200037EDCF /* ambient_23.m4a in Resources */,
 				0033F8E02EE297CF006D3319 /* Assets.xcassets in Resources */,
 				00371B1B2EAD71200037EDCF /* ambient_28.m4a in Resources */,
-				00371B1C2EAD71200037EDCF /* ambient_15.m4a in Resources */,
-				00371B1D2EAD71200037EDCF /* ambient_30.m4a in Resources */,
-				00371B1E2EAD71200037EDCF /* ambient_11.m4a in Resources */,
 				00371B1F2EAD71200037EDCF /* ambient_21.m4a in Resources */,
+				009F8D8A2F54DF9B00658F94 /* ambient_13.m4a in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -525,6 +508,7 @@
 				0033F8D42EE297CF006D3319 /* ColorExtensions.swift in Sources */,
 				0033F8D52EE297CF006D3319 /* DimMode.swift in Sources */,
 				0033F8D62EE297CF006D3319 /* SelectedItem.swift in Sources */,
+				00D90CE82F3A9AAC0080C609 /* AudioConstants.swift in Sources */,
 				0033F8D72EE297CF006D3319 /* CustomSlider.swift in Sources */,
 				0033F8D82EE297CF006D3319 /* AlarmSelectionView.swift in Sources */,
 				0033F8D92EE297CF006D3319 /* BlobView.swift in Sources */,
@@ -695,7 +679,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 3.2;
+				MARKETING_VERSION = 3.5;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.jmisabella.z-rooms";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -726,7 +710,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 3.2;
+				MARKETING_VERSION = 3.5;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.jmisabella.z-rooms";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;

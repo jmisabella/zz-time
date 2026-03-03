@@ -102,13 +102,15 @@ class TextToSpeechManager: ObservableObject {
     // Callback to notify when ambient volume changes
     var onAmbientVolumeChanged: ((Float) -> Void)? = nil
 
-    let voiceVolume: Float = 0.1
+    var voiceVolume: Float {
+        AudioConstants.ttsVolume
+    }
 
     var ambientVolume: Float {
         // Balance ranges from 0.0 (0% ambient) to 1.0 (100% ambient)
         // At 0.0: ambient = 0.0
-        // At 1.0: ambient = 0.6 (max ambient volume)
-        return Float(audioBalance * 0.6)
+        // At 1.0: ambient = AudioConstants.ambientMaxVolume (boosted max)
+        return Float(audioBalance * Double(AudioConstants.ambientMaxVolume))
     }
     
     init() {

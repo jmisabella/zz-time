@@ -1,3 +1,13 @@
+
+### NEW: March 1, 2026
+Read CONTEXT.md to understand this project from a high-level. Now, we have the TTS Story/Poetry mode text content in the zz-time/TTSContent folder: Each story has a subdirectory in TTSContent with the story's name, and the story's prose is inside the Stories/ subdirectory as chapters, and its corresponding poems are inside the Poems/ subdirectory. Also check ADDING_NEW_STORIES.md document to understand what we need to do for these stories/poems to be added and available to the XCode project. 
+
+Now, we currently have 4 stories: Aphelion, Signal Decay, Soil, and The Eighteen Paradox. Well, we've proofread all stories and found that 3/4 are primetime-ready. However we feel that Signal Decay is not good enough and needs reworked. For the time being, we need to remove Signal Decay story altogether, leaving only Aphelion, Soil, and The Eighteen Paradox. 
+
+Please remove Signal_Decay from this project and also do what is necessary to do so. We don't want it anymore. I have a backup of the files elsewhere so this is safe for us to do. 
+
+
+### OLD: January 2026
 # Multi-Story Architecture Implementation - COMPLETED
 
 ## Overview

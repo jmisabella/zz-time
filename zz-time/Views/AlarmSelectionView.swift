@@ -196,11 +196,11 @@ struct AlarmSelectionView: View {
                 let fadeDuration: Double = 1.0 // Shorter fade for preview
                 let fadeSteps: Int = 10
                 let stepDuration = fadeDuration / Double(fadeSteps)
-                let stepIncrement = 0.5 / Float(fadeSteps) // Fade to 0.5 volume for preview
-                
+                let stepIncrement = AudioConstants.previewVolume / Float(fadeSteps) // Fade to boosted preview volume
+
                 previewTimer = Timer.scheduledTimer(withTimeInterval: stepDuration, repeats: true) { _ in
-                    if let currentVolume = self.previewPlayer?.volume, currentVolume < 0.5 {
-                        self.previewPlayer?.volume = min(0.5, currentVolume + stepIncrement)
+                    if let currentVolume = self.previewPlayer?.volume, currentVolume < AudioConstants.previewVolume {
+                        self.previewPlayer?.volume = min(AudioConstants.previewVolume, currentVolume + stepIncrement)
                     } else {
                         self.previewTimer?.invalidate()
                         self.previewTimer = nil
