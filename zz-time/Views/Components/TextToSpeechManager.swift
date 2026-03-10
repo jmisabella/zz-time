@@ -307,6 +307,21 @@ class TextToSpeechManager: ObservableObject {
         synthesizer.speak(utterance)
     }
     
+    /// Removes lines that consist entirely of visual separators (asterisks, dashes, underscores)
+    /// so TTS does not literally speak "asterisk", "dash", or "underscore" for section breaks.
+    private func preprocessTextForSpeech(_ text: String) -> String {
+        let lines = text.components(separatedBy: .newlines)
+        let processedLines = lines.map { line -> String in
+            let stripped = line.trimmingCharacters(in: .whitespaces)
+            guard !stripped.isEmpty else { return line }
+            let onlyAsterisks   = stripped.allSatisfy { $0 == "*" || $0 == " " }
+            let onlyDashes      = stripped.allSatisfy { $0 == "-" || $0 == " " }
+            let onlyUnderscores = stripped.allSatisfy { $0 == "_" || $0 == " " }
+            return (onlyAsterisks || onlyDashes || onlyUnderscores) ? "" : line
+        }
+        return processedLines.joined(separator: "\n")
+    }
+
     /// Automatically adds pauses to text: splits into sentences and adds 0.5s between sentences, 2s between paragraphs
     /// Uses special marker "<<PARAGRAPH_BREAK>>" to indicate paragraph boundaries for caption display
     private func addAutomaticPauses(to text: String) -> String {
@@ -429,11 +444,15 @@ class TextToSpeechManager: ObservableObject {
         // Clear any previous story completion flag
         UserDefaults.standard.removeObject(forKey: "contentCompletedSuccessfully")
 
+        // Pre-process: strip lines that are purely decorative separators (asterisks, dashes, underscores)
+        // so TTS doesn't literally speak "asterisk", "dash", or "underscore"
+        let preprocessedText = preprocessTextForSpeech(text)
+
         // Check if text has any pause markers
-        let hasPauseMarkers = text.range(of: #"\(\d+(?:\.\d+)?[sm]\)"#, options: .regularExpression) != nil
+        let hasPauseMarkers = preprocessedText.range(of: #"\(\d+(?:\.\d+)?[sm]\)"#, options: .regularExpression) != nil
 
         // If no pause markers found, add automatic ones
-        let processedText = hasPauseMarkers ? text : addAutomaticPauses(to: text)
+        let processedText = hasPauseMarkers ? preprocessedText : addAutomaticPauses(to: preprocessedText)
 
         // Split by both newlines and pause markers
         let phrases = extractPhrasesWithPauses(from: processedText)
