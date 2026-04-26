@@ -550,7 +550,9 @@ class TextToSpeechManager: ObservableObject {
 
         // Queue ALL utterances FIRST before transitioning to playing
         for (ultraCleanPhrase, delay, _) in ultraCleanedPhrases {
-            let utterance = AVSpeechUtterance(string: ultraCleanPhrase)
+            // Strip italic markers so the voice doesn't say "asterisk"
+            let ttsPhrase = ultraCleanPhrase.replacingOccurrences(of: "*", with: "")
+            let utterance = AVSpeechUtterance(string: ttsPhrase)
             utterance.rate = AVSpeechUtteranceDefaultSpeechRate * speechRateMultiplier
             utterance.pitchMultiplier = Self.storyPitchMultiplier
             utterance.volume = voiceVolume
