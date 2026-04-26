@@ -315,7 +315,7 @@ class TextToSpeechManager: ObservableObject {
             let stripped = line.trimmingCharacters(in: .whitespaces)
             guard !stripped.isEmpty else { return line }
             let onlyAsterisks   = stripped.allSatisfy { $0 == "*" || $0 == " " }
-            let onlyDashes      = stripped.allSatisfy { $0 == "-" || $0 == " " }
+            let onlyDashes      = stripped.allSatisfy { $0 == "-" || $0 == "—" || $0 == " " }
             let onlyUnderscores = stripped.allSatisfy { $0 == "_" || $0 == " " }
             return (onlyAsterisks || onlyDashes || onlyUnderscores) ? "" : line
         }
