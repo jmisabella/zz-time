@@ -31,12 +31,6 @@ struct StorySelectionView: View {
                                     .font(.caption)
                                     .foregroundColor(.secondary)
 
-                                if !collection.poemFiles.isEmpty {
-                                    Label("\(collection.poemFiles.count) poems",
-                                          systemImage: "theatermasks")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                }
                             }
                         }
 

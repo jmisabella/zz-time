@@ -5,6 +5,14 @@ struct ScrollableStoryTextDisplay: View {
     let currentPhrase: String
     @Binding var hasNewContent: Bool
 
+    private func styledText(_ text: String) -> Text {
+        let clean = text.replacingOccurrences(of: "<<PB>>", with: "")
+        if let attributed = try? AttributedString(markdown: clean, options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace)) {
+            return Text(attributed)
+        }
+        return Text(clean)
+    }
+
     @State private var scrollViewProxy: ScrollViewProxy?
     @State private var isUserScrolling = false
     @State private var isAtBottom = true
@@ -46,7 +54,7 @@ struct ScrollableStoryTextDisplay: View {
                                     ForEach(Array(paragraphPhrases.enumerated()), id: \.offset) { sentenceIndex, phrase in
                                         let isCurrentSentence = phrase == currentPhrase
 
-                                        Text(phrase)
+                                        styledText(phrase)
                                             .font(.system(size: isCurrentSentence ? 18 : 16, weight: isCurrentSentence ? .medium : .regular))
                                             .foregroundColor(isCurrentSentence ? .white : .white.opacity(0.7))
                                             .multilineTextAlignment(.leading)
@@ -55,7 +63,7 @@ struct ScrollableStoryTextDisplay: View {
                                     }
                                 } else {
                                     // For historical paragraphs, combine sentences into one paragraph
-                                    Text(paragraphPhrases.joined(separator: " "))
+                                    styledText(paragraphPhrases.joined(separator: " "))
                                         .font(.system(size: 16, weight: .regular))
                                         .foregroundColor(.white.opacity(0.7))
                                         .multilineTextAlignment(.leading)

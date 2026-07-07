@@ -83,29 +83,23 @@ class StoryCollectionManager: ObservableObject {
                     }
             }
 
-            // Scan Poems/ subdirectory
-            let poemsURL = dir.appendingPathComponent("Poems")
-            if let poemFiles = try? fileManager.contentsOfDirectory(
-                at: poemsURL,
-                includingPropertiesForKeys: nil
-            ) {
-                collection.poemFiles = poemFiles
-                    .filter { $0.pathExtension == "txt" }
-                    .map { $0.lastPathComponent }
-            }
-
             // Only add if has content
             if !collection.storyFiles.isEmpty || !collection.poemFiles.isEmpty {
                 collections.append(collection)
             }
         }
 
-        // Sort alphabetically by directory name
-        collections.sort { $0.directoryName < $1.directoryName }
+        let displayOrder = ["Sensorium", "Aphelion", "Calibration"]
+        collections.sort { a, b in
+            let ai = displayOrder.firstIndex(of: a.directoryName) ?? Int.max
+            let bi = displayOrder.firstIndex(of: b.directoryName) ?? Int.max
+            if ai != bi { return ai < bi }
+            return a.directoryName < b.directoryName
+        }
 
         print("📚 StoryCollectionManager: Loaded \(collections.count) story collections")
         for collection in collections {
-            print("   - \(collection.displayName): \(collection.storyFiles.count) chapters, \(collection.poemFiles.count) poems")
+            print("   - \(collection.displayName): \(collection.storyFiles.count) chapters")
         }
 
         // Auto-select collection if none selected
@@ -183,18 +177,13 @@ class StoryCollectionManager: ObservableObject {
         return text.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    func getRandomPoem(for collection: StoryCollection) -> String? {
-        guard !collection.poemFiles.isEmpty else { return nil }
-
-        let randomFile = collection.poemFiles.randomElement()!
-        let filename = randomFile.replacingOccurrences(of: ".txt", with: "")
-        guard let url = Bundle.main.url(
-            forResource: "TTSContent/\(collection.directoryName)/Poems/\(filename)",
-            withExtension: "txt"
-        ),
-              let text = try? String(contentsOf: url, encoding: .utf8) else {
-            return nil
-        }
+    func getRandomPoem() -> String? {
+        guard let ttsContentURL = Bundle.main.url(forResource: "TTSContent", withExtension: nil) else { return nil }
+        let poemsURL = ttsContentURL.appendingPathComponent("Poems")
+        guard let files = try? FileManager.default.contentsOfDirectory(at: poemsURL, includingPropertiesForKeys: nil) else { return nil }
+        let txts = files.filter { $0.pathExtension == "txt" }
+        guard let randomURL = txts.randomElement(),
+              let text = try? String(contentsOf: randomURL, encoding: .utf8) else { return nil }
         return text.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }

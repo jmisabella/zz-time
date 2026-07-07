@@ -4,6 +4,14 @@ struct StoryTextDisplay: View {
     let currentPhrase: String
     let previousPhrase: String
 
+    private func styledText(_ text: String) -> Text {
+        let clean = text.replacingOccurrences(of: "<<PB>>", with: "")
+        if let attributed = try? AttributedString(markdown: clean, options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace)) {
+            return Text(attributed)
+        }
+        return Text(clean)
+    }
+
     var body: some View {
         // Only show the caption box if there's text to display
         if !currentPhrase.isEmpty || !previousPhrase.isEmpty {
@@ -15,7 +23,7 @@ struct StoryTextDisplay: View {
                 VStack(spacing: 8) {
                     // Previous phrase (centered, faded)
                     if !previousPhrase.isEmpty {
-                        Text(previousPhrase)
+                        styledText(previousPhrase)
                             .font(.system(size: 16, weight: .regular))
                             .foregroundColor(.white.opacity(0.4))
                             .multilineTextAlignment(.center)
@@ -25,7 +33,7 @@ struct StoryTextDisplay: View {
 
                     // Current phrase (centered, full brightness)
                     if !currentPhrase.isEmpty {
-                        Text(currentPhrase)
+                        styledText(currentPhrase)
                             .font(.system(size: 18, weight: .medium))
                             .foregroundColor(.white)
                             .multilineTextAlignment(.center)
