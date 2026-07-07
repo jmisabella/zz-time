@@ -46,6 +46,7 @@
 		003AED5D2EF39DA600AF5243 /* ambient_02.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 003AED5C2EF39DA600AF5243 /* ambient_02.m4a */; };
 		0069A9832EDFFB3300FFA508 /* ambient_10.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0069A9822EDFFB3300FFA508 /* ambient_10.m4a */; };
 		0069A9842EDFFB3300FFA508 /* ambient_09.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 0069A9812EDFFB3300FFA508 /* ambient_09.m4a */; };
+		006BB5A82FA05228001F431F /* ambient_18.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 006BB5A72FA05228001F431F /* ambient_18.m4a */; };
 		006D44692EDD4BD300264CFE /* ambient_01.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 006D44622EDD4BD300264CFE /* ambient_01.m4a */; };
 		006D44772EDE89EB00264CFE /* ambient_35.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 006D44762EDE89EB00264CFE /* ambient_35.m4a */; };
 		006D44792EDE9F6100264CFE /* ambient_04.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 006D44782EDE9F6100264CFE /* ambient_04.m4a */; };
@@ -60,7 +61,6 @@
 		009F8ED62F5691B200658F94 /* ambient_17.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 009F8ED52F5691B200658F94 /* ambient_17.m4a */; };
 		009F8EDA2F5691C200658F94 /* ambient_19.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 009F8ED92F5691C200658F94 /* ambient_19.m4a */; };
 		009F8EDC2F5691C800658F94 /* ambient_20.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 009F8EDB2F5691C800658F94 /* ambient_20.m4a */; };
-		00C25ECC2F5F9F5B00B0C4FF /* ambient_18.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 00C25ECB2F5F9F5B00B0C4FF /* ambient_18.m4a */; };
 		00C25ECE2F5F9F6200B0C4FF /* ambient_25.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 00C25ECD2F5F9F6200B0C4FF /* ambient_25.m4a */; };
 		00C3BE3B5FABFD46F4B777F4 /* StoryTextDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EF8E543D50C3461BA2D7C4 /* StoryTextDisplay.swift */; };
 		00C3BE3C5FABFD46F4B888G5 /* ScrollableStoryTextDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EF8E553D50C3461BA2D8D5 /* ScrollableStoryTextDisplay.swift */; };
@@ -118,6 +118,7 @@
 		004058112E5D245100E6C52E /* zz-time.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "zz-time.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0069A9812EDFFB3300FFA508 /* ambient_09.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_09.m4a; sourceTree = "<group>"; };
 		0069A9822EDFFB3300FFA508 /* ambient_10.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_10.m4a; sourceTree = "<group>"; };
+		006BB5A72FA05228001F431F /* ambient_18.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_18.m4a; sourceTree = "<group>"; };
 		006D44622EDD4BD300264CFE /* ambient_01.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_01.m4a; sourceTree = "<group>"; };
 		006D44762EDE89EB00264CFE /* ambient_35.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_35.m4a; sourceTree = "<group>"; };
 		006D44782EDE9F6100264CFE /* ambient_04.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_04.m4a; sourceTree = "<group>"; };
@@ -132,7 +133,6 @@
 		009F8ED52F5691B200658F94 /* ambient_17.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_17.m4a; sourceTree = "<group>"; };
 		009F8ED92F5691C200658F94 /* ambient_19.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_19.m4a; sourceTree = "<group>"; };
 		009F8EDB2F5691C800658F94 /* ambient_20.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_20.m4a; sourceTree = "<group>"; };
-		00C25ECB2F5F9F5B00B0C4FF /* ambient_18.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_18.m4a; sourceTree = "<group>"; };
 		00C25ECD2F5F9F6200B0C4FF /* ambient_25.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = ambient_25.m4a; sourceTree = "<group>"; };
 		00D909F42F1BFE5E0080C609 /* StoryCollection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryCollection.swift; sourceTree = "<group>"; };
 		00D909F62F1BFE6B0080C609 /* StoryCollectionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryCollectionManager.swift; sourceTree = "<group>"; };
@@ -151,15 +151,6 @@
 		00D90B132F1C04BE0080C609 /* Exceptions for "TTSContent" folder in "zz-time" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Aphelion/Poems/aphelion_poem_01.txt,
-				Aphelion/Poems/aphelion_poem_02.txt,
-				Aphelion/Poems/aphelion_poem_03.txt,
-				Aphelion/Poems/aphelion_poem_04.txt,
-				Aphelion/Poems/aphelion_poem_05.txt,
-				Aphelion/Poems/aphelion_poem_06.txt,
-				Aphelion/Poems/aphelion_poem_07.txt,
-				Aphelion/Poems/aphelion_poem_08.txt,
-				Aphelion/Poems/aphelion_poem_09.txt,
 				Aphelion/Stories/01_chapter.txt,
 				Aphelion/Stories/02_chapter.txt,
 				Aphelion/Stories/03_chapter.txt,
@@ -168,21 +159,76 @@
 				Aphelion/Stories/06_chapter.txt,
 				Aphelion/Stories/07_chapter.txt,
 				Aphelion/Stories/08_chapter.txt,
-				The_Eighteen_Paradox/Poems/preset_poem2.txt,
-				The_Eighteen_Paradox/Poems/preset_poem5.txt,
-				The_Eighteen_Paradox/Poems/preset_poem7.txt,
-				The_Eighteen_Paradox/Poems/preset_poem9.txt,
-				The_Eighteen_Paradox/Poems/preset_poem10.txt,
-				The_Eighteen_Paradox/Stories/01_chapter_01_seventeen_days.txt,
-				The_Eighteen_Paradox/Stories/02_chapter_02_the_operators.txt,
-				The_Eighteen_Paradox/Stories/03_chapter_03_the_chamber.txt,
-				The_Eighteen_Paradox/Stories/04_chapter_04_transfer.txt,
-				The_Eighteen_Paradox/Stories/05_chapter_05_configuration.txt,
-				The_Eighteen_Paradox/Stories/06_chapter_06_archives.txt,
-				The_Eighteen_Paradox/Stories/07_chapter_07_silence.txt,
-				The_Eighteen_Paradox/Stories/08_chapter_08_second_contribution.txt,
-				The_Eighteen_Paradox/Stories/09_chapter_09_complicity.txt,
-				The_Eighteen_Paradox/Stories/10_chapter_10_amalgamation.txt,
+				Calibration/Stories/01_chapter.txt,
+				Calibration/Stories/02_chapter.txt,
+				Calibration/Stories/03_chapter.txt,
+				Calibration/Stories/04_chapter.txt,
+				Calibration/Stories/05_chapter.txt,
+				Calibration/Stories/06_chapter.txt,
+				Calibration/Stories/07_chapter.txt,
+				Calibration/Stories/08_chapter.txt,
+				Calibration/Stories/09_chapter.txt,
+				Calibration/Stories/10_chapter_epilogue.txt,
+				Poems/aisle_four.txt,
+				Poems/all_hours_captured.txt,
+				Poems/altered_gravity.txt,
+				Poems/brightest_day.txt,
+				Poems/holding.txt,
+				Poems/i_used_to_say_hello.txt,
+				Poems/kettle.txt,
+				Poems/near.txt,
+				Poems/offerings.txt,
+				Poems/tell.txt,
+				Poems/the_borrowing.txt,
+				Poems/the_known_shape.txt,
+				Poems/the_line_that_held.txt,
+				Poems/vacancy.txt,
+				Sensorium/Stories/01_chapter.txt,
+				Sensorium/Stories/02_chapter.txt,
+				Sensorium/Stories/03_chapter.txt,
+				Sensorium/Stories/04_chapter.txt,
+				Sensorium/Stories/05_chapter.txt,
+				Sensorium/Stories/06_chapter.txt,
+				Sensorium/Stories/07_chapter.txt,
+				Sensorium/Stories/08_chapter.txt,
+				Sensorium/Stories/09_chapter.txt,
+				Sensorium/Stories/10_chapter.txt,
+				Sensorium/Stories/11_chapter.txt,
+				Sensorium/Stories/12_chapter.txt,
+				Sensorium/Stories/13_chapter.txt,
+				Sensorium/Stories/14_chapter.txt,
+				Sensorium/Stories/15_chapter.txt,
+				Sensorium/Stories/16_chapter.txt,
+				Sensorium/Stories/17_chapter.txt,
+				Sensorium/Stories/18_chapter.txt,
+				Sensorium/Stories/19_chapter.txt,
+				Sensorium/Stories/20_chapter.txt,
+				Sensorium/Stories/21_chapter_epilogue.txt,
+				Thinning/Stories/01_chapter.txt,
+				Thinning/Stories/02_chapter.txt,
+				Thinning/Stories/03_chapter.txt,
+				Thinning/Stories/04_chapter.txt,
+				Thinning/Stories/05_chapter.txt,
+				Thinning/Stories/06_chapter.txt,
+				Thinning/Stories/07_chapter.txt,
+				Thinning/Stories/08_chapter.txt,
+				Thinning/Stories/09_chapter.txt,
+				Thinning/Stories/10_chapter.txt,
+				Thinning/Stories/11_chapter.txt,
+				Thinning/Stories/12_chapter.txt,
+				Thinning/Stories/13_chapter.txt,
+				Thinning/Stories/14_chapter.txt,
+				Thinning/Stories/15_chapter.txt,
+				Thinning/Stories/16_chapter.txt,
+				Thinning/Stories/17_chapter.txt,
+				Thinning/Stories/18_chapter.txt,
+				Thinning/Stories/19_chapter.txt,
+				Thinning/Stories/20_chapter.txt,
+				Thinning/Stories/21_chapter.txt,
+				Thinning/Stories/22_chapter.txt,
+				Thinning/Stories/23_chapter.txt,
+				Thinning/Stories/24_chapter.txt,
+				Thinning/Stories/25_chapter.txt,
 			);
 			target = 004058102E5D245100E6C52E /* zz-time */;
 		};
@@ -230,7 +276,7 @@
 				009F8D8B2F54DFA200658F94 /* ambient_15.m4a */,
 				009F8ED32F5691AC00658F94 /* ambient_16.m4a */,
 				009F8ED52F5691B200658F94 /* ambient_17.m4a */,
-				00C25ECB2F5F9F5B00B0C4FF /* ambient_18.m4a */,
+				006BB5A72FA05228001F431F /* ambient_18.m4a */,
 				009F8ED92F5691C200658F94 /* ambient_19.m4a */,
 				009F8EDB2F5691C800658F94 /* ambient_20.m4a */,
 				00371AF02EAD71200037EDCF /* ambient_21.m4a */,
@@ -421,6 +467,7 @@
 				006D44692EDD4BD300264CFE /* ambient_01.m4a in Resources */,
 				003AED5D2EF39DA600AF5243 /* ambient_02.m4a in Resources */,
 				00371B062EAD71200037EDCF /* ambient_24.m4a in Resources */,
+				006BB5A82FA05228001F431F /* ambient_18.m4a in Resources */,
 				00371B072EAD71200037EDCF /* ambient_29.m4a in Resources */,
 				0032BACB2EDAA4AB00837776 /* ambient_08.m4a in Resources */,
 				0032BAC12ED7F9E000837776 /* ambient_34.m4a in Resources */,
@@ -439,7 +486,6 @@
 				00371B0A2EAD71200037EDCF /* ambient_27.m4a in Resources */,
 				0069A9832EDFFB3300FFA508 /* ambient_10.m4a in Resources */,
 				0069A9842EDFFB3300FFA508 /* ambient_09.m4a in Resources */,
-				00C25ECC2F5F9F5B00B0C4FF /* ambient_18.m4a in Resources */,
 				00371B112EAD71200037EDCF /* ambient_12.m4a in Resources */,
 				009F8D882F54DF9300658F94 /* ambient_11.m4a in Resources */,
 				009F8D8C2F54DFA200658F94 /* ambient_15.m4a in Resources */,
@@ -662,7 +708,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 3.8;
+				MARKETING_VERSION = 3.10;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.jmisabella.z-rooms";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -693,7 +739,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 3.8;
+				MARKETING_VERSION = 3.10;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.jmisabella.z-rooms";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;

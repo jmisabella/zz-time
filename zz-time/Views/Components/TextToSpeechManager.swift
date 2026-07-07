@@ -273,12 +273,8 @@ class TextToSpeechManager: ObservableObject {
     }
 
     func getRandomPoem() -> String? {
-        guard let manager = storyCollectionManager,
-              let collection = manager.selectedCollection else {
-            return nil
-        }
-
-        return manager.getRandomPoem(for: collection)
+        guard let manager = storyCollectionManager else { return nil }
+        return manager.getRandomPoem()
     }
 
     /// Starts speaking a random story from text files

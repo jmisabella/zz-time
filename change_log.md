@@ -1,4 +1,43 @@
-# 2026-02-26 (Latest): Aphelion Story Addition
+# 2026-07-06 (Latest): Thinning Story Addition
+
+### Summary of Changes
+- Added new story collection **Thinning** with 25 chapters (no poems; uses the global poem pool)
+- Added all 25 story files to `membershipExceptions` in `project.pbxproj` (alphabetically after Sensorium)
+
+### Files Added
+- `TTSContent/Thinning/Stories/01_chapter.txt` through `25_chapter.txt`
+
+### project.pbxproj Changes
+Added 25 entries to `membershipExceptions` (alphabetically after Sensorium).
+
+---
+
+# 2026-04-26: Story Collection Overhaul + Global Poem Pool
+
+### Summary of Changes
+- Replaced all story collections with three new ones: **Sensorium** (21 ch), **Aphelion** (8 ch), **Calibration** (10 ch)
+- Removed per-collection poem files; created a single global poem pool (`TTSContent/Poems/`, 14 poems) shared across all collections
+- Display order in UI is now fixed: Sensorium → Aphelion → Calibration; Sensorium is the default for new users
+- Story selector no longer shows poem count per collection
+- Updated `project.pbxproj` `membershipExceptions` to reflect new file structure (55 entries total)
+
+### Files Added
+- `TTSContent/Sensorium/Stories/01_chapter.txt` through `21_chapter_epilogue.txt`
+- `TTSContent/Calibration/Stories/01_chapter.txt` through `10_chapter_epilogue.txt`
+- `TTSContent/Poems/aisle_four.txt`, `all_hours_captured.txt`, `altered_gravity.txt`, `brightest_day.txt`, `holding.txt`, `i_used_to_say_hello.txt`, `kettle.txt`, `near.txt`, `offerings.txt`, `tell.txt`, `the_borrowing.txt`, `the_known_shape.txt`, `the_line_that_held.txt`, `vacancy.txt`
+
+### Files Removed
+- `TTSContent/Aphelion/Poems/` (9 poem files)
+- `TTSContent/The_Eighteen_Paradox/` (entire collection)
+
+### Code Changes
+- `StoryCollectionManager.swift`: removed per-collection poem scanning; custom sort order; `getRandomPoem()` now reads from global `TTSContent/Poems/` pool
+- `TextToSpeechManager.swift`: updated `getRandomPoem()` to use collection-agnostic call
+- `StorySelectionView.swift`: removed poem count label from collection list items
+
+---
+
+# 2026-02-26: Aphelion Story Addition
 
 ### Summary of Changes
 - Added new story collection **Aphelion** with 8 chapters and 12 poems
